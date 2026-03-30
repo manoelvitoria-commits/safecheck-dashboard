@@ -380,8 +380,11 @@ tbody td{padding:12px 14px;font-size:13px;}
   </div>
 </main>
 
+<!-- EmailJS -->
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
 <script>
-const SUPABASE_URL='https://ocqfsccrvpdnjjlofkvk.supabase.co';
+  emailjs.init('zITF-4ENDGwMl6516PV-7');
+</script>'https://ocqfsccrvpdnjjlofkvk.supabase.co';
 const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9jcWZzY2NydnBkbmpqbG9ma3ZrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ1OTMwMTksImV4cCI6MjA5MDE2OTAxOX0.Uq0bMvtwmWm8lpIXAtUaPND7zDwW6QUKvOwbDhuKECI';
 
 // ── USERS (edit here to add/remove users) ────────────────────────────────────
@@ -508,6 +511,7 @@ async function loadData(){
     const r=await fetch(url,{headers:{'apikey':SUPABASE_KEY,'Authorization':`Bearer ${SUPABASE_KEY}`}});
     if(!r.ok) throw new Error(`HTTP ${r.status}`);
     allData=await r.json();
+    checkAndSendHazardAlerts(allData);
     render();
     document.getElementById('syncStatus').textContent=`${allData.length} records · Live`;
   }catch(e){
@@ -519,6 +523,37 @@ async function loadData(){
 function occCount(insp){
   if(!insp.occurrences) return 0;
   return Object.values(insp.occurrences).filter(Boolean).length;
+}
+
+// ── HAZARD ALERT via EmailJS ──────────────────────────────────────────────────
+const ALERT_HAZARDS = ['electric', 'fire'];
+const alertedIds = new Set(); // avoid duplicate alerts in same session
+
+function checkAndSendHazardAlerts(data) {
+  data.forEach(insp => {
+    if (!insp.occurrences) return;
+    ALERT_HAZARDS.forEach(hazardId => {
+      if (!insp.occurrences[hazardId]) return;
+      const alertKey = `${insp.id}_${hazardId}`;
+      if (alertedIds.has(alertKey)) return; // already alerted this session
+      alertedIds.add(alertKey);
+
+      const hazardLabel = hazardId === 'electric' ? '⚡ Electrical Hazard' : '🔥 Fire Hazard';
+      const areaName = AREA_NAMES[insp.area] || insp.area || '—';
+      const datetime = `${insp.date || '—'} ${insp.time_start || ''}`.trim();
+
+      emailjs.send('service_1ksgpsu', 'template_zxdj37d', {
+        hazard_type: hazardLabel,
+        inspector:   insp.inspector || '—',
+        area:        `${insp.area || '—'} — ${areaName}`,
+        datetime:    datetime,
+      }).then(() => {
+        console.log(`✅ Alert sent: ${hazardLabel} by ${insp.inspector}`);
+      }).catch(err => {
+        console.warn('EmailJS error:', err);
+      });
+    });
+  });
 }
 
 function render(){
