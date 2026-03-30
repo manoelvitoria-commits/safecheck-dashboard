@@ -380,7 +380,8 @@ tbody td{padding:12px 14px;font-size:13px;}
   </div>
 </main>
 
-<!-- EmailJS inline -->'https://ocqfsccrvpdnjjlofkvk.supabase.co';
+<script>
+const SUPABASE_URL='https://ocqfsccrvpdnjjlofkvk.supabase.co';
 const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9jcWZzY2NydnBkbmpqbG9ma3ZrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ1OTMwMTksImV4cCI6MjA5MDE2OTAxOX0.Uq0bMvtwmWm8lpIXAtUaPND7zDwW6QUKvOwbDhuKECI';
 
 // ── USERS (edit here to add/remove users) ────────────────────────────────────
@@ -561,6 +562,24 @@ function checkAndSendHazardAlerts(data) {
   });
 }
 
+function isManoel(){
+  return sessionStorage.getItem('safecheck_user') === 'manoel';
+}
+
+function isPrivileged(){
+  const user = sessionStorage.getItem('safecheck_user');
+  return user === 'manoel' || user === 'pierre';
+}
+
+function checkInspectorAccess(e){
+  if(!isPrivileged()){
+    e.preventDefault();
+    alert('🔒 Access restricted. This section is available to authorised users only.');
+    return false;
+  }
+  return true;
+}
+
 function render(){
   const totalOcc=allData.reduce((s,i)=>s+occCount(i),0);
   const inspectors=new Set(allData.map(i=>i.inspector).filter(Boolean)).size;
@@ -697,24 +716,6 @@ function generatePDF(id){
   w.document.write(html);
   w.document.close();
   w.onload = () => { w.print(); };
-}
-
-function checkInspectorAccess(e){
-  if(!isPrivileged()){
-    e.preventDefault();
-    alert('🔒 Access restricted. This section is available to authorised users only.');
-    return false;
-  }
-  return true;
-}
-
-function isManoel(){
-  return sessionStorage.getItem('safecheck_user') === 'manoel';
-}
-
-function isPrivileged(){
-  const user = sessionStorage.getItem('safecheck_user');
-  return user === 'manoel' || user === 'pierre';
 }
 
 async function deleteReport(id){
