@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>SafeCheck Dashboard · NEMM Up</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root {
+  --navy:#0D1F35; --dark:#0A1628; --blue:#1A3C5E; --accent:#2E86C1;
+  --teal:#17A589; --light:#E8F0F8; --bg:#F0F4F8; --white:#FFFFFF;
+  --text:#1A2E3E; --muted:#5D7A8A; --border:#C5D8EA;
+  --red:#E74C3C; --orange:#E67E22; --green:#27AE60; --yellow:#F39C12;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+
+.sidebar{position:fixed;left:0;top:0;bottom:0;width:240px;background:var(--dark);display:flex;flex-direction:column;z-index:100;padding:0 0 24px;}
+.sidebar-brand{padding:28px 24px 24px;border-bottom:1px solid rgba(255,255,255,0.08);}
+.brand-sub{font-size:10px;letter-spacing:3px;text-transform:uppercase;color:rgba(255,255,255,0.4);font-family:'Syne',sans-serif;margin-bottom:4px;}
+.brand-name{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:white;}
+.brand-tag{font-size:11px;color:var(--accent);font-weight:500;margin-top:2px;}
+.sidebar-nav{flex:1;padding:20px 12px;}
+.nav-label{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.3);padding:0 12px;margin-bottom:8px;font-family:'Syne',sans-serif;}
+.nav-item{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:10px;cursor:pointer;color:rgba(255,255,255,0.5);font-size:14px;font-weight:500;transition:all 0.2s;margin-bottom:2px;text-decoration:none;}
+.nav-item:hover{background:rgba(255,255,255,0.06);color:white;}
+.nav-item.active{background:var(--accent);color:white;}
+.nav-item .icon{font-size:18px;width:24px;text-align:center;}
+.sidebar-footer{padding:16px 24px;border-top:1px solid rgba(255,255,255,0.08);}
+.sync-status{display:flex;align-items:center;gap:8px;font-size:12px;color:rgba(255,255,255,0.4);}
+.sync-dot{width:8px;height:8px;border-radius:50%;background:var(--green);animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.4;}}
+
+.main{margin-left:240px;min-height:100vh;}
+.topbar{background:white;padding:18px 32px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:50;}
+.page-title{font-family:'Syne',sans-serif;font-size:20px;font-weight:700;color:var(--navy);}
+.topbar-actions{display:flex;align-items:center;gap:12px;}
+.btn{padding:8px 18px;border-radius:8px;border:none;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all 0.2s;}
+.btn-primary{background:var(--accent);color:white;}
+.btn-primary:hover{background:var(--blue);transform:translateY(-1px);}
+.btn-outline{background:white;color:var(--accent);border:2px solid var(--border);}
+.btn-outline:hover{border-color:var(--accent);}
+.filter-select{padding:8px 14px;border-radius:8px;border:1.5px solid var(--border);background:white;font-family:'DM Sans',sans-serif;font-size:13px;color:var(--text);cursor:pointer;outline:none;}
+.filter-select:focus{border-color:var(--accent);}
+.content{padding:28px 32px;}
+
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px;}
+.kpi-card{background:white;border-radius:16px;padding:20px 22px;border:1px solid var(--border);position:relative;overflow:hidden;transition:transform 0.2s,box-shadow 0.2s;animation:fadeUp 0.5s ease both;}
+.kpi-card:hover{transform:translateY(-3px);box-shadow:0 8px 24px rgba(26,60,94,0.12);}
+.kpi-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;}
+.kpi-card.blue::before{background:var(--accent);}
+.kpi-card.red::before{background:var(--red);}
+.kpi-card.orange::before{background:var(--orange);}
+.kpi-card.green::before{background:var(--green);}
+.kpi-icon{font-size:28px;margin-bottom:12px;width:48px;height:48px;display:flex;align-items:center;justify-content:center;border-radius:12px;}
+.kpi-card.blue .kpi-icon{background:rgba(46,134,193,0.12);}
+.kpi-card.red .kpi-icon{background:rgba(231,76,60,0.12);}
+.kpi-card.orange .kpi-icon{background:rgba(230,126,34,0.12);}
+.kpi-card.green .kpi-icon{background:rgba(39,174,96,0.12);}
+.kpi-value{font-family:'Syne',sans-serif;font-size:36px;font-weight:800;color:var(--navy);line-height:1;margin-bottom:4px;}
+.kpi-label{font-size:12px;color:var(--muted);font-weight:500;text-transform:uppercase;letter-spacing:0.8px;}
+
+.charts-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:24px;}
+.chart-card{background:white;border-radius:16px;padding:22px;border:1px solid var(--border);animation:fadeUp 0.6s ease both;}
+.chart-card.full{grid-column:1/-1;}
+.card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;}
+.card-title{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;color:var(--navy);}
+.card-subtitle{font-size:12px;color:var(--muted);margin-top:2px;}
+.chart-wrap{position:relative;height:240px;}
+
+.occ-list{display:flex;flex-direction:column;gap:10px;}
+.occ-item{display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:10px;background:var(--bg);transition:all 0.2s;}
+.occ-item:hover{background:var(--light);transform:translateX(4px);}
+.occ-rank{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-size:13px;font-weight:800;flex-shrink:0;}
+.occ-rank.r1{background:var(--red);color:white;}
+.occ-rank.r2{background:var(--orange);color:white;}
+.occ-rank.r3{background:var(--yellow);color:white;}
+.occ-rank.rn{background:var(--border);color:var(--muted);}
+.occ-icon{font-size:22px;width:30px;text-align:center;flex-shrink:0;}
+.occ-info{flex:1;min-width:0;}
+.occ-name{font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.occ-bar-wrap{height:6px;background:var(--border);border-radius:3px;margin-top:5px;overflow:hidden;}
+.occ-bar-fill{height:100%;border-radius:3px;transition:width 1s ease;}
+.occ-count{font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:var(--navy);flex-shrink:0;}
+
+.area-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
+.area-card{border-radius:12px;padding:16px;border:2px solid var(--border);transition:all 0.2s;position:relative;overflow:hidden;}
+.area-card:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(26,60,94,0.1);}
+.area-name{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:var(--navy);margin-bottom:4px;}
+.area-count{font-size:12px;color:var(--muted);margin-bottom:10px;}
+.area-bar{height:4px;background:var(--border);border-radius:2px;overflow:hidden;}
+.area-bar-fill{height:100%;border-radius:2px;}
+.area-status{position:absolute;top:12px;right:12px;font-size:11px;font-weight:700;padding:3px 8px;border-radius:20px;}
+.status-high{background:rgba(231,76,60,0.12);color:var(--red);}
+.status-med{background:rgba(230,126,34,0.12);color:var(--orange);}
+.status-low{background:rgba(39,174,96,0.12);color:var(--green);}
+
+.table-wrap{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;}
+thead th{padding:10px 14px;text-align:left;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;border-bottom:2px solid var(--border);background:var(--bg);}
+tbody tr{border-bottom:1px solid var(--border);transition:background 0.15s;}
+tbody tr:hover{background:var(--light);}
+tbody td{padding:12px 14px;font-size:13px;}
+.td-area{font-family:'Syne',sans-serif;font-weight:800;color:var(--navy);font-size:15px;}
+.occ-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700;}
+.occ-badge.ok{background:rgba(39,174,96,0.1);color:var(--green);}
+.occ-badge.warn{background:rgba(230,126,34,0.1);color:var(--orange);}
+.occ-badge.high{background:rgba(231,76,60,0.1);color:var(--red);}
+
+.loading{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px;gap:16px;color:var(--muted);}
+.spinner{width:40px;height:40px;border-radius:50%;border:3px solid var(--border);border-top-color:var(--accent);animation:spin 0.8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.empty-state{text-align:center;padding:48px;color:var(--muted);}
+.empty-icon{font-size:52px;margin-bottom:12px;}
+.empty-title{font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--navy);margin-bottom:6px;}
+
+.dl-btn{display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border-radius:8px;border:1.5px solid var(--border);background:white;color:var(--accent);font-size:12px;font-weight:700;cursor:pointer;transition:all 0.2s;text-decoration:none;}
+.dl-btn:hover{background:var(--accent);color:white;border-color:var(--accent);transform:translateY(-1px);box-shadow:0 4px 12px rgba(46,134,193,0.25);}
+
+.kpi-card:nth-child(1){animation-delay:0.05s;}
+.kpi-card:nth-child(2){animation-delay:0.10s;}
+.kpi-card:nth-child(3){animation-delay:0.15s;}
+.kpi-card:nth-child(4){animation-delay:0.20s;}
+
+@media(max-width:1100px){.kpi-grid{grid-template-columns:repeat(2,1fr);}.charts-grid{grid-template-columns:1fr;}.area-grid{grid-template-columns:repeat(2,1fr);}}
+@media(max-width:768px){.sidebar{display:none;}.main{margin-left:0;}.kpi-grid{grid-template-columns:1fr 1fr;}.content{padding:16px;}}
+
+/* ── LOGIN ── */
+#loginScreen{position:fixed;inset:0;background:linear-gradient(135deg,#0A1628 0%,#1A3C5E 60%,#0D1F35 100%);display:flex;align-items:center;justify-content:center;z-index:9999;}
+#loginScreen.hidden{display:none;}
+.login-box{background:white;border-radius:24px;padding:48px 40px;width:100%;max-width:420px;box-shadow:0 32px 80px rgba(0,0,0,0.4);animation:fadeUp 0.5s ease;}
+.login-logo{text-align:center;margin-bottom:32px;}
+.login-logo-icon{width:64px;height:64px;background:var(--navy);border-radius:18px;display:flex;align-items:center;justify-content:center;font-size:30px;margin:0 auto 14px;}
+.login-logo-name{font-family:'Syne',sans-serif;font-size:26px;font-weight:800;color:var(--navy);}
+.login-logo-sub{font-size:12px;color:var(--muted);margin-top:3px;letter-spacing:1px;text-transform:uppercase;}
+.login-field{margin-bottom:18px;}
+.login-field label{display:block;font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:7px;}
+.login-field input{width:100%;padding:13px 16px;border:2px solid var(--border);border-radius:12px;font-family:'DM Sans',sans-serif;font-size:15px;color:var(--text);outline:none;transition:border-color 0.2s;}
+.login-field input:focus{border-color:var(--accent);}
+.login-btn{width:100%;padding:15px;background:var(--navy);color:white;border:none;border-radius:12px;font-family:'Syne',sans-serif;font-size:16px;font-weight:700;cursor:pointer;transition:all 0.2s;margin-top:8px;}
+.login-btn:hover{background:var(--accent);transform:translateY(-2px);box-shadow:0 8px 24px rgba(46,134,193,0.35);}
+.login-error{background:rgba(231,76,60,0.1);border:1px solid rgba(231,76,60,0.3);color:var(--red);border-radius:10px;padding:10px 14px;font-size:13px;font-weight:600;margin-top:14px;text-align:center;display:none;}
+.login-error.show{display:block;}
+.login-footer{text-align:center;margin-top:24px;font-size:11px;color:var(--muted);}
+.logout-btn{display:flex;align-items:center;gap:6px;padding:7px 14px;border-radius:8px;border:1.5px solid rgba(255,255,255,0.15);background:transparent;color:rgba(255,255,255,0.5);font-size:12px;font-weight:600;cursor:pointer;transition:all 0.2s;margin-top:8px;}
+.logout-btn:hover{background:rgba(255,255,255,0.08);color:white;}
+</style>
+</head>
+<body>
+
+<!-- ── LOGIN SCREEN ── -->
+<div id="loginScreen">
+  <div class="login-box">
+    <div class="login-logo">
+      <div class="login-logo-icon">🦺</div>
+      <div class="login-logo-name">SafeCheck</div>
+      <div class="login-logo-sub">NEMM Up · Safety Dashboard</div>
+    </div>
+    <div class="login-field">
+      <label>Username</label>
+      <input type="text" id="loginUser" placeholder="Enter your username" autocomplete="username" onkeydown="if(event.key==='Enter')doLogin()"/>
+    </div>
+    <div class="login-field">
+      <label>Password</label>
+      <input type="password" id="loginPass" placeholder="Enter your password" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()"/>
+    </div>
+    <button class="login-btn" onclick="doLogin()">🔐 Sign In</button>
+    <div class="login-error" id="loginError">❌ Invalid username or password.</div>
+    <div class="login-footer">SafeCheck v1.0 · NEMM Up · Construction Site Safety</div>
+  </div>
+</div>
+
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-sub">NEMM Up</div>
+    <div class="brand-name">SafeCheck</div>
+    <div class="brand-tag">Safety Dashboard</div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-label">Navigation</div>
+    <a class="nav-item active" href="#"><span class="icon">📊</span>Dashboard</a>
+    <a class="nav-item" href="#inspections"><span class="icon">📋</span>Inspections</a>
+    <a class="nav-item" href="#areas"><span class="icon">📍</span>Areas</a>
+    <a class="nav-item" href="#" onclick="exportCSV()"><span class="icon">📥</span>Export CSV</a>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="sync-status">
+      <div class="sync-dot"></div>
+      <span id="syncStatus">Connecting...</span>
+    </div>
+    <button class="logout-btn" onclick="doLogout()">🚪 Sign Out</button>
+  </div>
+</aside>
+
+<main class="main">
+  <div class="topbar">
+    <div class="page-title">🦺 Safety Inspection Dashboard</div>
+    <div class="topbar-actions">
+      <select class="filter-select" id="filterArea" onchange="loadData()">
+        <option value="">All Areas</option>
+        <option value="SY">SY – Slab Yard</option>
+        <option value="RHF">RHF – Reheating Furnace</option>
+        <option value="MRL">MRL – Main Rolling Area</option>
+        <option value="DC">DC – Down Coiler</option>
+        <option value="WTA">WTA – Water Treatment Area</option>
+        <option value="CY">CY – Coil Yard</option>
+      </select>
+      <select class="filter-select" id="filterPeriod" onchange="loadData()">
+        <option value="">All Time</option>
+        <option value="7">Last 7 days</option>
+        <option value="30">Last 30 days</option>
+        <option value="90">Last 90 days</option>
+      </select>
+      <button class="btn btn-primary" onclick="loadData()">🔄 Refresh</button>
+      <button class="btn btn-outline" onclick="exportCSV()">📥 Export</button>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="kpi-grid">
+      <div class="kpi-card blue"><div class="kpi-icon">📋</div><div class="kpi-value" id="kpiTotal">—</div><div class="kpi-label">Total Inspections</div></div>
+      <div class="kpi-card red"><div class="kpi-icon">⚠️</div><div class="kpi-value" id="kpiOcc">—</div><div class="kpi-label">Total Occurrences</div></div>
+      <div class="kpi-card orange"><div class="kpi-icon">📍</div><div class="kpi-value" id="kpiAreas">6</div><div class="kpi-label">Areas Monitored</div></div>
+      <div class="kpi-card green"><div class="kpi-icon">👷</div><div class="kpi-value" id="kpiInsp">—</div><div class="kpi-label">Active Inspectors</div></div>
+    </div>
+
+    <div class="charts-grid">
+      <div class="chart-card">
+        <div class="card-header"><div><div class="card-title">🏆 Top Occurrences</div><div class="card-subtitle">Most frequent safety issues</div></div></div>
+        <div id="occList" class="occ-list"><div class="loading"><div class="spinner"></div><span>Loading...</span></div></div>
+      </div>
+      <div class="chart-card">
+        <div class="card-header"><div><div class="card-title">📍 By Area</div><div class="card-subtitle">Occurrences per zone</div></div></div>
+        <div class="chart-wrap"><canvas id="areaChart"></canvas></div>
+        <!-- SOP LIVE PANEL -->
+        <div id="sopPanel" style="background:#1a1a1a;border-radius:12px;padding:18px 20px 14px;margin:10px 8px 6px;font-family:'Courier New',monospace;box-shadow:0 4px 24px rgba(0,0,0,0.5);">
+          <div style="text-align:center;color:#ccc;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;margin-bottom:14px;font-family:'DM Sans',sans-serif;">
+            🏭 SOP — START OF PRODUCTION &nbsp;|&nbsp; HSM · NEMM Up · ArcelorMittal
+          </div>
+          <div style="display:flex;gap:14px;align-items:flex-start;flex-wrap:wrap;">
+            <div style="flex:1;min-width:160px;">
+              <div style="background:#111;border:2px solid #333;border-radius:8px;padding:10px 8px 8px;text-align:center;box-shadow:inset 0 2px 8px rgba(0,0,0,0.6);">
+                <div id="sopDays" style="font-size:68px;font-weight:900;color:#ff2a2a;line-height:1;text-shadow:0 0 18px #ff000088,0 0 40px #ff000044;letter-spacing:4px;">---</div>
+              </div>
+              <div style="text-align:center;margin-top:7px;color:#aaa;font-size:11px;font-weight:700;letter-spacing:2px;font-family:'DM Sans',sans-serif;">DAYS / 天</div>
+              <div style="text-align:center;margin-top:3px;color:#666;font-size:10px;font-family:'DM Sans',sans-serif;">TILL OCTOBER 31<sup>st</sup>, 2026</div>
+            </div>
+            <div style="flex:1;min-width:160px;display:flex;flex-direction:column;gap:12px;">
+              <div>
+                <div style="background:#111;border:2px solid #333;border-radius:8px;padding:8px;text-align:center;box-shadow:inset 0 2px 8px rgba(0,0,0,0.6);">
+                  <div id="sopClock" style="font-size:32px;font-weight:900;color:#ff2a2a;line-height:1;text-shadow:0 0 12px #ff000088,0 0 28px #ff000044;letter-spacing:3px;">--:--:--</div>
+                </div>
+                <div style="display:flex;justify-content:space-around;margin-top:5px;">
+                  <span style="color:#aaa;font-size:9px;font-weight:700;letter-spacing:1px;font-family:'DM Sans',sans-serif;">HOURS/时</span>
+                  <span style="color:#aaa;font-size:9px;font-weight:700;letter-spacing:1px;font-family:'DM Sans',sans-serif;">MINUTES/分</span>
+                  <span style="color:#aaa;font-size:9px;font-weight:700;letter-spacing:1px;font-family:'DM Sans',sans-serif;">SECONDS/秒</span>
+                </div>
+                <div style="text-align:center;margin-top:4px;color:#888;font-size:10px;font-weight:700;letter-spacing:1px;font-family:'DM Sans',sans-serif;">ZERO ACCIDENTS / 零事故</div>
+              </div>
+              <div>
+                <div style="background:#111;border:2px solid #333;border-radius:8px;padding:8px;text-align:center;box-shadow:inset 0 2px 8px rgba(0,0,0,0.6);">
+                  <div id="sopAccDays" style="font-size:44px;font-weight:900;color:#00e5aa;line-height:1;text-shadow:0 0 12px #00e5aa88,0 0 28px #00e5aa44;letter-spacing:3px;">---</div>
+                </div>
+                <div style="text-align:center;margin-top:5px;color:#aaa;font-size:11px;font-weight:700;letter-spacing:2px;font-family:'DM Sans',sans-serif;">DAYS / 天</div>
+              </div>
+            </div>
+          </div>
+          <div style="text-align:center;margin-top:10px;color:#444;font-size:9px;font-family:'DM Sans',sans-serif;letter-spacing:1px;">
+            SafeCheck · NEMM Up · <span id="sopDateStr"></span>
+          </div>
+        </div>
+        <script>
+        (function(){
+          var ACC_START  = new Date('2025-04-29T00:00:00');
+          function pad(n){ return n < 10 ? '0'+n : String(n); }
+          function updateSOP(){
+            var now = new Date();
+            // Compare dates only (ignore time) to get exact day count
+            var today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            var target = new Date(2026, 9, 31); // October 31, 2026 (month is 0-indexed)
+            var msLeft = target - today;
+            var daysLeft = msLeft > 0 ? Math.round(msLeft / 86400000) - 1 : 0;
+            document.getElementById('sopDays').textContent = daysLeft;
+            var midnight = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 0);
+            var remMs = midnight - now;
+            var totalSec = Math.floor(remMs / 1000);
+            var hh = Math.floor(totalSec / 3600);
+            var mm = Math.floor((totalSec % 3600) / 60);
+            var ss = totalSec % 60;
+            document.getElementById('sopClock').textContent =
+              pad(hh) + ':' + pad(mm) + ':' + pad(ss);
+            var accMs = now - ACC_START;
+            var accDays = accMs > 0 ? Math.floor(accMs / 86400000) : 0;
+            document.getElementById('sopAccDays').textContent = accDays;
+            var months=['January','February','March','April','May','June','July','August','September','October','November','December'];
+            document.getElementById('sopDateStr').textContent =
+              months[now.getMonth()] + ' ' + now.getDate() + ', ' + now.getFullYear();
+          }
+          updateSOP();
+          setInterval(updateSOP, 1000);
+        })();
+        </script>
+      </div>
+      <div class="chart-card full">
+        <div class="card-header"><div><div class="card-title">📈 Inspection Trend</div><div class="card-subtitle">Occurrences over time</div></div></div>
+        <div class="chart-wrap"><canvas id="trendChart"></canvas></div>
+      </div>
+    </div>
+
+    <div class="chart-card" style="margin-bottom:24px" id="areas">
+      <div class="card-header"><div><div class="card-title">🏗️ Area Status</div><div class="card-subtitle">Risk level per construction zone</div></div></div>
+      <div class="area-grid" id="areaGrid"><div class="loading"><div class="spinner"></div></div></div>
+    </div>
+
+    <div class="chart-card" id="inspections">
+      <div class="card-header"><div><div class="card-title">📋 Recent Inspections</div><div class="card-subtitle">Latest records from all inspectors</div></div></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Date</th><th>Time</th><th>Area</th><th>Inspector</th><th>Duration</th><th>Occurrences</th><th>Lang</th><th>Photos</th><th>Report</th><th id="deleteColHeader"></th></tr></thead>
+          <tbody id="inspTable"><tr><td colspan="9"><div class="loading"><div class="spinner"></div></div></td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+const SUPABASE_URL='https://ocqfsccrvpdnjjlofkvk.supabase.co';
+const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9jcWZzY2NydnBkbmpqbG9ma3ZrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ1OTMwMTksImV4cCI6MjA5MDE2OTAxOX0.Uq0bMvtwmWm8lpIXAtUaPND7zDwW6QUKvOwbDhuKECI';
+
+// ── USERS (edit here to add/remove users) ────────────────────────────────────
+const USERS = [
+  { username: 'manoel',  password: 'nemm2026' },
+  { username: 'amilcar', password: 'palacio' },
+  { username: 'manager', password: 'nemm@site' },
+  { username: 'pierre',  password: 'france2026' },
+  { username: 'adriana', password: 'projetos' },
+  // Add more users below (max 5 recommended):
+  // { username: 'inspector1', password: 'pass123' },
+  // { username: 'inspector2', password: 'pass456' },
+];
+
+// ── AUTH ─────────────────────────────────────────────────────────────────────
+function checkAuth() {
+  const session = sessionStorage.getItem('safecheck_auth');
+  if (session === 'true') {
+    document.getElementById('loginScreen').classList.add('hidden');
+  }
+}
+
+function doLogin() {
+  const user = document.getElementById('loginUser').value.trim().toLowerCase();
+  const pass = document.getElementById('loginPass').value;
+  const error = document.getElementById('loginError');
+  const match = USERS.find(u => u.username === user && u.password === pass);
+  if (match) {
+    sessionStorage.setItem('safecheck_auth', 'true');
+    sessionStorage.setItem('safecheck_user', match.username);
+    document.getElementById('loginScreen').classList.add('hidden');
+    error.classList.remove('show');
+    loadData();
+  } else {
+    error.classList.add('show');
+    document.getElementById('loginPass').value = '';
+    document.getElementById('loginPass').focus();
+  }
+}
+
+function doLogout() {
+  sessionStorage.removeItem('safecheck_auth');
+  sessionStorage.removeItem('safecheck_user');
+  document.getElementById('loginUser').value = '';
+  document.getElementById('loginPass').value = '';
+  document.getElementById('loginScreen').classList.remove('hidden');
+}
+
+checkAuth();
+
+const OCCURRENCES=[
+  {id:'no_helmet',label:'No Hard Hat',icon:'⛑️'},
+  {id:'no_gloves',label:'No Gloves',icon:'🧤'},
+  {id:'no_glasses',label:'No Safety Glasses',icon:'🥽'},
+  {id:'no_boots',label:'No Safety Boots',icon:'🥾'},
+  {id:'no_vest',label:'No Reflective Vest',icon:'🦺'},
+  {id:'no_harness',label:'No Harness',icon:'🪢'},
+  {id:'no_mask',label:'No Respirator Mask',icon:'😷'},
+  {id:'unsafe',label:'Unsafe Condition',icon:'⚠️'},
+  {id:'disorder',label:'Disorganized Area',icon:'🗃️'},
+  {id:'no_sign',label:'No Safety Signage',icon:'🚧'},
+  {id:'electric',label:'Electrical Hazard',icon:'⚡'},
+  {id:'fall_risk',label:'Fall Risk',icon:'🕳️'},
+  {id:'bad_tools',label:'Damaged Tools',icon:'🔧'},
+  {id:'equip_misuse',label:'Equipment Misuse',icon:'🏗️'},
+  {id:'no_barrier',label:'No Barrier',icon:'🚫'},
+  {id:'height',label:'Work at Height',icon:'🏔️'},
+  {id:'fire',label:'Fire Hazard',icon:'🔥'},
+  {id:'no_firstaid',label:'No First Aid Kit',icon:'🩺'},
+  {id:'other',label:'Other',icon:'📝'},
+];
+
+const AREAS=['SY','RHF','MRL','DC','WTA','CY'];
+const AREA_NAMES={
+  'SY':  'Slab Yard',
+  'RHF': 'Reheating Furnace',
+  'MRL': 'Main Rolling Area',
+  'DC':  'Down Coiler',
+  'WTA': 'Water Treatment Area',
+  'CY':  'Coil Yard',
+};
+let allData=[], aCI=null, tCI=null;
+
+async function loadData(){
+  document.getElementById('syncStatus').textContent='Syncing...';
+  try{
+    const area=document.getElementById('filterArea').value;
+    const period=document.getElementById('filterPeriod').value;
+    let url=`${SUPABASE_URL}/rest/v1/inspections?select=*&order=created_at.desc&limit=500`;
+    if(area) url+=`&area=eq.${area}`;
+    if(period){const d=new Date();d.setDate(d.getDate()-parseInt(period));url+=`&created_at=gte.${d.toISOString()}`;}
+    const r=await fetch(url,{headers:{'apikey':SUPABASE_KEY,'Authorization':`Bearer ${SUPABASE_KEY}`}});
+    if(!r.ok) throw new Error(`HTTP ${r.status}`);
+    allData=await r.json();
+    render();
+    document.getElementById('syncStatus').textContent=`${allData.length} records · Live`;
+  }catch(e){
+    document.getElementById('syncStatus').textContent='Connection error';
+    showEmpty();
+  }
+}
+
+function occCount(insp){
+  if(!insp.occurrences) return 0;
+  return Object.values(insp.occurrences).filter(Boolean).length;
+}
+
+function render(){
+  const totalOcc=allData.reduce((s,i)=>s+occCount(i),0);
+  const inspectors=new Set(allData.map(i=>i.inspector).filter(Boolean)).size;
+  document.getElementById('kpiTotal').textContent=allData.length;
+  document.getElementById('kpiOcc').textContent=totalOcc;
+  document.getElementById('kpiInsp').textContent=inspectors||'—';
+  renderRanking(); renderAreaChart(); renderTrend(); renderAreaGrid(); renderTable();
+}
+
+function renderRanking(){
+  const counts={};
+  OCCURRENCES.forEach(o=>counts[o.id]=0);
+  allData.forEach(i=>{if(i.occurrences)Object.entries(i.occurrences).forEach(([k,v])=>{if(v&&counts[k]!==undefined)counts[k]++;});});
+  const sorted=OCCURRENCES.map(o=>({...o,count:counts[o.id]||0})).filter(o=>o.count>0).sort((a,b)=>b.count-a.count).slice(0,8);
+  const max=sorted[0]?.count||1;
+  const colors=['#E74C3C','#E67E22','#F39C12','#2E86C1','#2E86C1','#2E86C1','#5D7A8A','#5D7A8A'];
+  if(!sorted.length){document.getElementById('occList').innerHTML=`<div class="empty-state"><div class="empty-icon">✅</div><div class="empty-title">No occurrences yet</div><p>Start inspecting to see data</p></div>`;return;}
+  document.getElementById('occList').innerHTML=sorted.map((o,i)=>`
+    <div class="occ-item">
+      <div class="occ-rank ${i===0?'r1':i===1?'r2':i===2?'r3':'rn'}">${i+1}</div>
+      <div class="occ-icon">${o.icon}</div>
+      <div class="occ-info">
+        <div class="occ-name">${o.label}</div>
+        <div class="occ-bar-wrap"><div class="occ-bar-fill" style="width:${(o.count/max*100).toFixed(0)}%;background:${colors[i]}"></div></div>
+      </div>
+      <div class="occ-count">${o.count}</div>
+    </div>`).join('');
+}
+
+function renderAreaChart(){
+  const ac={};AREAS.forEach(a=>ac[a]=0);
+  allData.forEach(i=>{if(i.area&&ac[i.area]!==undefined)ac[i.area]+=occCount(i);});
+  const ctx=document.getElementById('areaChart').getContext('2d');
+  if(aCI)aCI.destroy();
+  const max=Math.max(...Object.values(ac),1);
+  aCI=new Chart(ctx,{type:'bar',data:{labels:AREAS.map(a=>`${a} – ${AREA_NAMES[a]}`),datasets:[{label:'Occurrences',data:AREAS.map(a=>ac[a]),backgroundColor:AREAS.map(a=>{const r=ac[a]/max;return r>0.7?'rgba(231,76,60,0.8)':r>0.4?'rgba(230,126,34,0.8)':'rgba(46,134,193,0.8)';}),borderRadius:8,borderSkipped:false}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,grid:{color:'rgba(0,0,0,0.05)'}},x:{grid:{display:false},ticks:{font:{size:11}}}}}})
+}
+
+function renderTrend(){
+  const byDate={};
+  allData.forEach(i=>{const d=i.date||i.created_at?.split('T')[0]||'?';if(!byDate[d])byDate[d]=0;byDate[d]+=occCount(i);});
+  const dates=Object.keys(byDate).sort().slice(-14);
+  const ctx=document.getElementById('trendChart').getContext('2d');
+  if(tCI)tCI.destroy();
+  tCI=new Chart(ctx,{type:'line',data:{labels:dates,datasets:[{label:'Occurrences',data:dates.map(d=>byDate[d]),borderColor:'#2E86C1',backgroundColor:'rgba(46,134,193,0.08)',borderWidth:2.5,pointBackgroundColor:'#2E86C1',pointRadius:5,fill:true,tension:0.4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,grid:{color:'rgba(0,0,0,0.05)'}},x:{grid:{display:false}}}}});
+}
+
+function renderAreaGrid(){
+  const ac={},ai={};
+  AREAS.forEach(a=>{ac[a]=0;ai[a]=0;});
+  allData.forEach(i=>{if(i.area&&ac[i.area]!==undefined){ai[i.area]++;ac[i.area]+=occCount(i);}});
+  const max=Math.max(...Object.values(ac),1);
+  document.getElementById('areaGrid').innerHTML=AREAS.map(area=>{
+    const occ=ac[area],insp=ai[area],avg=insp>0?(occ/insp).toFixed(1):0;
+    const r=occ/max,s=r>0.6?'high':r>0.3?'med':'low';
+    const sl=s==='high'?'🔴 High Risk':s==='med'?'🟡 Medium':'🟢 Low Risk';
+    const bc=s==='high'?'#E74C3C':s==='med'?'#E67E22':'#27AE60';
+    return `<div class="area-card"><span class="area-status status-${s}">${sl}</span><div class="area-name">${area}</div><div style="font-size:12px;color:var(--accent);font-weight:600;margin-bottom:4px;">${AREA_NAMES[area]}</div><div class="area-count">${insp} inspections · ${occ} occurrences · avg ${avg}/visit</div><div class="area-bar"><div class="area-bar-fill" style="width:${(r*100).toFixed(0)}%;background:${bc}"></div></div></div>`;
+  }).join('');
+}
+
+function generatePDF(id){
+  const i = allData.find(x => x.id === id);
+  if(!i) return;
+  const active = OCCURRENCES.filter(o => i.occurrences && i.occurrences[o.id]);
+  const rows = active.length
+    ? active.map(o=>`<tr><td style="padding:8px 12px;border-bottom:1px solid #C5D8EA">${o.icon} ${o.label}</td></tr>`).join('')
+    : `<tr><td style="padding:10px;color:#27AE60;font-weight:bold">✅ No non-conformities recorded.</td></tr>`;
+  const photoImgs = (i.photos||[]).filter(Boolean)
+    .map(url=>`<img src="${url}" style="width:210px;height:158px;object-fit:cover;border-radius:8px;border:2px solid #C5D8EA;margin:5px" crossorigin="anonymous"/>`)
+    .join('');
+  const lang = i.language || 'EN';
+  const isZH = lang === 'ZH';
+  const html=`<!DOCTYPE html><html><head><meta charset="utf-8"/>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;color-adjust:exact!important;}
+    body{font-family:Arial,sans-serif;color:#1A2E3E;background:#fff}
+    .header{background:linear-gradient(135deg,#1A3C5E,#0F2337);padding:30px;color:white}
+    .brand{font-size:11px;letter-spacing:3px;text-transform:uppercase;opacity:.7;margin-bottom:8px}
+    .title{font-size:22px;font-weight:800;margin-bottom:4px}
+    .sub{font-size:13px;opacity:.8}
+    .badge{display:inline-block;background:rgba(255,255,255,.15);border-radius:20px;padding:4px 14px;font-size:12px;margin-top:12px}
+    .body{padding:28px}
+    .section{margin-bottom:22px}
+    h3{color:#0F2337;font-size:11px;text-transform:uppercase;letter-spacing:1.5px;border-bottom:2px solid #C5D8EA;padding-bottom:6px;margin-bottom:12px}
+    .grid{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:10px}
+    .cell{background:#F5F8FB;border:1px solid #C5D8EA;border-radius:8px;padding:12px}
+    .lbl{font-size:10px;color:#5D7A8A;text-transform:uppercase;letter-spacing:1px}
+    .val{font-size:15px;font-weight:700;margin-top:4px}
+    table{width:100%;border-collapse:collapse;border:1px solid #C5D8EA}
+    .notes-box{background:#F5F8FB;border:1px solid #C5D8EA;border-radius:8px;padding:14px;font-size:14px;line-height:1.7}
+    .photos{display:flex;flex-wrap:wrap;margin-top:4px}
+    .footer{margin-top:28px;padding-top:14px;border-top:1px solid #C5D8EA;text-align:center;font-size:11px;color:#999}
+    .nemm{font-weight:800;color:#1A3C5E;font-size:13px}
+  </style></head><body>
+  <div class="header">
+    <div class="brand">NEMM UP</div>
+    <div class="title">🦺 SafeCheck by NEMM Up — ${isZH?'安全检查':'Safety Inspection'}</div>
+    <div class="sub">${isZH?'官方检查记录 — 建筑工地':'Official Inspection Record — Construction Site'}</div>
+    <span class="badge">ID #${i.id}</span>
+    <span class="badge" style="margin-left:8px">${lang}</span>
+  </div>
+  <div class="body">
+    <div class="section">
+      <h3>${isZH?'检查数据':'Inspection Data'}</h3>
+      <div class="grid">
+        <div class="cell"><div class="lbl">📅 ${isZH?'日期':'Date'}</div><div class="val">${i.date||'—'}</div></div>
+        <div class="cell"><div class="lbl">⏱️ ${isZH?'开始时间':'Start Time'}</div><div class="val">${i.time_start||'—'}</div></div>
+        <div class="cell"><div class="lbl">🏁 ${isZH?'结束时间':'End Time'}</div><div class="val">${i.time_end||'—'}</div></div>
+        <div class="cell"><div class="lbl">⏳ ${isZH?'时长':'Duration'}</div><div class="val">${i.duration||'—'}</div></div>
+        <div class="cell"><div class="lbl">📍 ${isZH?'地点':'Location'}</div><div class="val">${i.area||'—'}</div></div>
+        <div class="cell"><div class="lbl">👷 ${isZH?'检查员':'Inspector'}</div><div class="val">${i.inspector||'—'}</div></div>
+      </div>
+    </div>
+    <div class="section">
+      <h3>${isZH?'已识别的隐患':'Identified Occurrences'}</h3>
+      <table>${rows}</table>
+    </div>
+    ${i.notes?`<div class="section"><h3>${isZH?'备注':'Notes'}</h3><div class="notes-box">${i.notes}</div></div>`:''}
+    ${photoImgs?`<div class="section"><h3>${isZH?'照片':'Photos'} (${i.photos.length})</h3><div class="photos">${photoImgs}</div></div>`:''}
+    <div class="footer"><span class="nemm">NEMM UP</span> · Generated by SafeCheck Dashboard · ${new Date().toLocaleString('en-GB')}</div>
+  </div></body></html>`;
+
+  const w = window.open('','_blank');
+  w.document.write(html);
+  w.document.close();
+  w.onload = () => { w.print(); };
+}
+
+function isManoel(){
+  return sessionStorage.getItem('safecheck_user') === 'manoel';
+}
+
+async function deleteReport(id){
+  if(!confirm('Delete this inspection report? This cannot be undone.')) return;
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/inspections?id=eq.${id}`,{
+    method:'DELETE',
+    headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY}
+  });
+  if(res.ok){
+    allData = allData.filter(r=>r.id!==id);
+    renderTable();
+    renderAreaChart(); renderTrend(); renderAreaGrid();
+  } else {
+    alert('Error deleting report. Please try again.');
+  }
+}
+
+async function deleteAllReports(){
+  if(!confirm('⚠️ Delete ALL inspection reports? This cannot be undone!')) return;
+  if(!confirm('Are you absolutely sure? All data will be permanently deleted.')) return;
+  const ids = allData.map(r=>r.id);
+  for(const id of ids){
+    await fetch(`${SUPABASE_URL}/rest/v1/inspections?id=eq.${id}`,{
+      method:'DELETE',
+      headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY}
+    });
+  }
+  allData=[];
+  renderTable(); renderAreaChart(); renderTrend(); renderAreaGrid();
+}
+
+function renderTable(){
+  const manoel = isManoel();
+  // Update header
+  const delHeader = document.getElementById('deleteColHeader');
+  if(delHeader) delHeader.innerHTML = manoel ? '🗑️ Delete' : '';
+
+  if(!allData.length){
+    document.getElementById('inspTable').innerHTML=`<tr><td colspan="${manoel?10:9}"><div class="empty-state"><div class="empty-icon">📋</div><div class="empty-title">No inspections yet</div><p>Install SafeCheck and complete an inspection!</p></div></td></tr>`;
+    return;
+  }
+
+  // Delete-all button row (only for manoel)
+  const deleteAllRow = manoel
+    ? `<tr style="background:rgba(231,76,60,0.04);"><td colspan="10" style="text-align:right;padding:8px 14px;">
+        <button onclick="deleteAllReports()" style="background:var(--red);color:white;border:none;border-radius:8px;padding:6px 14px;font-size:12px;font-weight:700;cursor:pointer;letter-spacing:0.5px;">
+          🗑️ Delete All Reports
+        </button>
+       </td></tr>`
+    : '';
+
+  document.getElementById('inspTable').innerHTML = deleteAllRow + allData.slice(0,50).map(i=>{
+    const c=occCount(i),bc=c===0?'ok':c>=3?'high':'warn',bl=c===0?'✅ OK':`⚠️ ${c}`;
+    const photoHtml = (i.photos && i.photos.length > 0)
+      ? i.photos.slice(0,3).map(url =>
+          `<a href="${url}" target="_blank"><img src="${url}" style="width:40px;height:40px;object-fit:cover;border-radius:6px;border:1.5px solid var(--border);margin-right:3px;vertical-align:middle;" onerror="this.style.display='none'"/></a>`
+        ).join('') + (i.photos.length > 3 ? `<span style="font-size:11px;color:var(--muted);vertical-align:middle;"> +${i.photos.length-3}</span>` : '')
+      : '<span style="color:var(--muted);font-size:12px;">—</span>';
+    const deleteCell = manoel
+      ? `<td style="text-align:center;"><button onclick="deleteReport(${i.id})" title="Delete this report" style="background:none;border:none;cursor:pointer;font-size:18px;color:var(--red);opacity:0.7;transition:opacity 0.2s;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.7">🗑️</button></td>`
+      : '<td></td>';
+    return `<tr><td>${i.date||'—'}</td><td>${i.time_start||'—'}${i.time_end?' → '+i.time_end:''}</td><td><span class="td-area">${i.area||'—'}</span><br><span style="font-size:11px;color:var(--muted);font-weight:400;">${AREA_NAMES[i.area]||''}</span></td><td>${i.inspector||'—'}</td><td>${i.duration||'—'}</td><td><span class="occ-badge ${bc}">${bl}</span></td><td>${i.language||'EN'}</td><td>${photoHtml}</td><td><button class="dl-btn" onclick="generatePDF(${i.id})">⬇️ PDF</button></td>${deleteCell}</tr>`;
+  }).join('');
+}
+
+function showEmpty(){
+  document.getElementById('occList').innerHTML=`<div class="empty-state"><div class="empty-icon">📡</div><div class="empty-title">Waiting for data</div><p>Complete an inspection on the SafeCheck app to see data here.</p></div>`;
+  document.getElementById('inspTable').innerHTML=`<tr><td colspan="8"><div class="empty-state"><div class="empty-icon">📡</div><div class="empty-title">No data yet</div><p>Install SafeCheck and start inspecting!</p></div></td></tr>`;
+  document.getElementById('areaGrid').innerHTML=`<div class="empty-state"><div class="empty-icon">📍</div><div class="empty-title">No area data yet</div></div>`;
+}
+
+function exportCSV(){
+  if(!allData.length){alert('No data to export yet.');return;}
+  const rows=[['ID','Date','Time Start','Time End','Duration','Area','Inspector','Language','Total Occurrences',...OCCURRENCES.map(o=>o.label)]];
+  allData.forEach(i=>{
+    const oc=OCCURRENCES.map(o=>i.occurrences&&i.occurrences[o.id]?1:0);
+    rows.push([i.id,i.date,i.time_start,i.time_end,i.duration,i.area,i.inspector,i.language,oc.reduce((a,b)=>a+b,0),...oc]);
+  });
+  const csv=rows.map(r=>r.map(v=>`"${String(v||'').replace(/"/g,'""')}"`).join(',')).join('\n');
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8;'}));
+  a.download=`SafeCheck_${new Date().toISOString().split('T')[0]}.csv`;
+  a.click();
+}
+
+setInterval(()=>{ if(sessionStorage.getItem('safecheck_auth')==='true') loadData(); },60000);
+if(sessionStorage.getItem('safecheck_auth')==='true') loadData();
+</script>
+</body>
+</html>
