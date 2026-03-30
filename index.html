@@ -851,7 +851,7 @@ function renderInspectors() {
   }).join('');
 }
 
-
+function showEmpty(){
   document.getElementById('occList').innerHTML=`<div class="empty-state"><div class="empty-icon">📡</div><div class="empty-title">Waiting for data</div><p>Complete an inspection on the SafeCheck app to see data here.</p></div>`;
   document.getElementById('inspTable').innerHTML=`<tr><td colspan="8"><div class="empty-state"><div class="empty-icon">📡</div><div class="empty-title">No data yet</div><p>Install SafeCheck and start inspecting!</p></div></td></tr>`;
   document.getElementById('areaGrid').innerHTML=`<div class="empty-state"><div class="empty-icon">📍</div><div class="empty-title">No area data yet</div></div>`;
