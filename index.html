@@ -198,6 +198,7 @@ tbody td{padding:12px 14px;font-size:13px;}
       <span id="syncStatus">Connecting...</span>
     </div>
     <button class="logout-btn" onclick="doLogout()">🚪 Sign Out</button>
+    <button class="logout-btn" onclick="doLogoutFull()" style="font-size:11px;opacity:0.6;margin-top:4px;" title="Sign out and forget credentials">🔑 Forget Me</button>
   </div>
 </aside>
 
@@ -397,9 +398,28 @@ const USERS = [
 
 // ── AUTH ─────────────────────────────────────────────────────────────────────
 function checkAuth() {
+  // Check sessionStorage first (tab still open)
   const session = sessionStorage.getItem('safecheck_auth');
   if (session === 'true') {
     document.getElementById('loginScreen').classList.add('hidden');
+    return;
+  }
+  // Check localStorage (returning user, auto-login)
+  const saved = localStorage.getItem('safecheck_saved');
+  if (saved) {
+    try {
+      const { username, password } = JSON.parse(saved);
+      const match = USERS.find(u => u.username === username && u.password === password);
+      if (match) {
+        sessionStorage.setItem('safecheck_auth', 'true');
+        sessionStorage.setItem('safecheck_user', match.username);
+        document.getElementById('loginScreen').classList.add('hidden');
+        loadData();
+        return;
+      }
+    } catch(e) {
+      localStorage.removeItem('safecheck_saved');
+    }
   }
 }
 
@@ -409,6 +429,8 @@ function doLogin() {
   const error = document.getElementById('loginError');
   const match = USERS.find(u => u.username === user && u.password === pass);
   if (match) {
+    // Save to localStorage for auto-login on next visit
+    localStorage.setItem('safecheck_saved', JSON.stringify({ username: match.username, password: match.password }));
     sessionStorage.setItem('safecheck_auth', 'true');
     sessionStorage.setItem('safecheck_user', match.username);
     document.getElementById('loginScreen').classList.add('hidden');
@@ -422,6 +444,17 @@ function doLogin() {
 }
 
 function doLogout() {
+  // Clear session but keep localStorage so next visit auto-logs in
+  sessionStorage.removeItem('safecheck_auth');
+  sessionStorage.removeItem('safecheck_user');
+  document.getElementById('loginUser').value = '';
+  document.getElementById('loginPass').value = '';
+  document.getElementById('loginScreen').classList.remove('hidden');
+}
+
+function doLogoutFull() {
+  // Full logout — clears saved credentials too
+  localStorage.removeItem('safecheck_saved');
   sessionStorage.removeItem('safecheck_auth');
   sessionStorage.removeItem('safecheck_user');
   document.getElementById('loginUser').value = '';
