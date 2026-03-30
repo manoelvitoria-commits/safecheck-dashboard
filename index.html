@@ -189,7 +189,7 @@ tbody td{padding:12px 14px;font-size:13px;}
     <a class="nav-item active" href="#"><span class="icon">📊</span>Dashboard</a>
     <a class="nav-item" href="#inspections"><span class="icon">📋</span>Inspections</a>
     <a class="nav-item" href="#areas"><span class="icon">📍</span>Areas</a>
-    <a class="nav-item" href="#inspectors"><span class="icon">👷</span>Inspectors</a>
+    <a class="nav-item" href="#inspectors" id="navInspectors" onclick="return checkInspectorAccess(event)"><span class="icon">👷</span>Inspectors <span id="inspectorLock" style="font-size:11px;opacity:0.5;">🔒</span></a>
     <a class="nav-item" href="#" onclick="exportCSV()"><span class="icon">📥</span>Export CSV</a>
   </nav>
   <div class="sidebar-footer">
@@ -527,7 +527,16 @@ function render(){
   document.getElementById('kpiTotal').textContent=allData.length;
   document.getElementById('kpiOcc').textContent=totalOcc;
   document.getElementById('kpiInsp').textContent=inspectors||'—';
-  renderRanking(); renderAreaChart(); renderTrend(); renderAreaGrid(); renderTable(); renderInspectors();
+  renderRanking(); renderAreaChart(); renderTrend(); renderAreaGrid(); renderTable(); 
+  // Inspector Activity — only for manoel and pierre
+  if(isPrivileged()){
+    document.getElementById('inspectorLock').style.display = 'none';
+    document.getElementById('inspectors').style.display = '';
+    renderInspectors();
+  } else {
+    document.getElementById('inspectorLock').style.display = 'inline';
+    document.getElementById('inspectors').style.display = 'none';
+  }
 }
 
 function renderRanking(){
@@ -650,8 +659,22 @@ function generatePDF(id){
   w.onload = () => { w.print(); };
 }
 
+function checkInspectorAccess(e){
+  if(!isPrivileged()){
+    e.preventDefault();
+    alert('🔒 Access restricted. This section is available to authorised users only.');
+    return false;
+  }
+  return true;
+}
+
 function isManoel(){
   return sessionStorage.getItem('safecheck_user') === 'manoel';
+}
+
+function isPrivileged(){
+  const user = sessionStorage.getItem('safecheck_user');
+  return user === 'manoel' || user === 'pierre';
 }
 
 async function deleteReport(id){
