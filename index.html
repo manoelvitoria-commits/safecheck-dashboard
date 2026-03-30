@@ -553,10 +553,21 @@ function checkAndSendHazardAlerts(data) {
             datetime:    datetime,
           }
         })
-      }).then(r => {
-        console.log(`✅ Alert sent: ${hazardLabel} by ${insp.inspector}`);
+      }).then(async r => {
+        if(r.ok){
+          console.log(`✅ Alert sent: ${hazardLabel} by ${insp.inspector}`);
+          // Visual notification
+          const toast = document.createElement('div');
+          toast.style.cssText = 'position:fixed;top:20px;right:20px;z-index:99999;background:#E74C3C;color:white;padding:14px 20px;border-radius:12px;font-weight:700;font-size:14px;box-shadow:0 4px 20px rgba(0,0,0,0.3);';
+          toast.innerHTML = `🚨 Alert sent: ${hazardLabel}<br><span style="font-weight:400;font-size:12px;">Inspector: ${insp.inspector} · ${insp.area}</span>`;
+          document.body.appendChild(toast);
+          setTimeout(() => toast.remove(), 6000);
+        } else {
+          const text = await r.text();
+          console.warn(`❌ EmailJS error ${r.status}:`, text);
+        }
       }).catch(err => {
-        console.warn('EmailJS error:', err);
+        console.warn('EmailJS fetch error:', err);
       });
     });
   });
