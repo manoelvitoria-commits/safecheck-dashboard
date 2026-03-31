@@ -527,18 +527,29 @@ const ALERT_HAZARDS = ['electric', 'fire'];
 const alertedIds = new Set(); // avoid duplicate alerts in same session
 
 function checkAndSendHazardAlerts(data) {
+  console.log(`🔍 Checking ${data.length} inspections for hazards...`);
+  let found = 0;
   data.forEach(insp => {
     if (!insp.occurrences) return;
+    // Log any inspection that has electric or fire
+    if (insp.occurrences['electric'] || insp.occurrences['fire']) {
+      console.log(`⚠️ Hazard found in inspection ${insp.id}:`, insp.occurrences);
+      found++;
+    }
     ALERT_HAZARDS.forEach(hazardId => {
       if (!insp.occurrences[hazardId]) return;
       const alertKey = `${insp.id}_${hazardId}`;
-      if (alertedIds.has(alertKey)) return; // already alerted this session
+      if (alertedIds.has(alertKey)) {
+        console.log(`⏭️ Already alerted: ${alertKey}`);
+        return;
+      }
       alertedIds.add(alertKey);
 
       const hazardLabel = hazardId === 'electric' ? '⚡ Electrical Hazard' : '🔥 Fire Hazard';
       const areaName = AREA_NAMES[insp.area] || insp.area || '—';
       const datetime = `${insp.date || '—'} ${insp.time_start || ''}`.trim();
 
+      console.log(`📧 Sending alert for ${hazardLabel}...`);
       fetch('https://api.emailjs.com/api/v1.0/email/send', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -556,7 +567,6 @@ function checkAndSendHazardAlerts(data) {
       }).then(async r => {
         if(r.ok){
           console.log(`✅ Alert sent: ${hazardLabel} by ${insp.inspector}`);
-          // Visual notification
           const toast = document.createElement('div');
           toast.style.cssText = 'position:fixed;top:20px;right:20px;z-index:99999;background:#E74C3C;color:white;padding:14px 20px;border-radius:12px;font-weight:700;font-size:14px;box-shadow:0 4px 20px rgba(0,0,0,0.3);';
           toast.innerHTML = `🚨 Alert sent: ${hazardLabel}<br><span style="font-weight:400;font-size:12px;">Inspector: ${insp.inspector} · ${insp.area}</span>`;
@@ -571,6 +581,7 @@ function checkAndSendHazardAlerts(data) {
       });
     });
   });
+  console.log(`🔍 Total hazard inspections found: ${found}`);
 }
 
 function isManoel(){
