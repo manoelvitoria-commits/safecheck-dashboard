@@ -524,18 +524,32 @@ function occCount(insp){
 
 // ── HAZARD ALERT via EmailJS ──────────────────────────────────────────────────
 const ALERT_HAZARDS = ['electric', 'fire'];
-const alertedIds = new Set(); // avoid duplicate alerts in same session
+
+// Load alerted IDs from localStorage (persistent across sessions)
+function getAlertedIds() {
+  try { return new Set(JSON.parse(localStorage.getItem('safecheck_alerted') || '[]')); }
+  catch(e) { return new Set(); }
+}
+function saveAlertedId(key) {
+  const ids = getAlertedIds();
+  ids.add(key);
+  // Keep only last 500 to avoid bloat
+  const arr = [...ids].slice(-500);
+  localStorage.setItem('safecheck_alerted', JSON.stringify(arr));
+}
 
 function checkAndSendHazardAlerts(data) {
-  console.log(`🔍 Checking ${data.length} inspections for hazards...`);
+  const alertedIds = getAlertedIds();
+  // Only check inspections from the last 48 hours
+  const cutoff = new Date(Date.now() - 48 * 3600 * 1000);
+  const recent = data.filter(i => {
+    const d = new Date(i.created_at || i.date);
+    return d >= cutoff;
+  });
+  console.log(`🔍 Checking ${recent.length} recent inspections for hazards...`);
   let found = 0;
-  data.forEach(insp => {
+  recent.forEach(insp => {
     if (!insp.occurrences) return;
-    // Log any inspection that has electric or fire
-    if (insp.occurrences['electric'] || insp.occurrences['fire']) {
-      console.log(`⚠️ Hazard found in inspection ${insp.id}:`, insp.occurrences);
-      found++;
-    }
     ALERT_HAZARDS.forEach(hazardId => {
       if (!insp.occurrences[hazardId]) return;
       const alertKey = `${insp.id}_${hazardId}`;
@@ -543,7 +557,8 @@ function checkAndSendHazardAlerts(data) {
         console.log(`⏭️ Already alerted: ${alertKey}`);
         return;
       }
-      alertedIds.add(alertKey);
+      found++;
+      saveAlertedId(alertKey);
 
       const hazardLabel = hazardId === 'electric' ? '⚡ Electrical Hazard' : '🔥 Fire Hazard';
       const areaName = AREA_NAMES[insp.area] || insp.area || '—';
@@ -581,7 +596,7 @@ function checkAndSendHazardAlerts(data) {
       });
     });
   });
-  console.log(`🔍 Total hazard inspections found: ${found}`);
+  console.log(`📧 New hazard alerts sent: ${found}`);
 }
 
 function isManoel(){
