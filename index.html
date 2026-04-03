@@ -940,7 +940,7 @@ Provide a SOP readiness assessment. What needs to be resolved before production 
   try{
     const response=await fetch('https://ocqfsccrvpdnjjlofkvk.supabase.co/functions/v1/dynamic-function',{
       method:'POST',
-      headers:{'Content-Type':'application/json','apikey':'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9jcWZzY2NydnBkbmpqbG9ma3ZrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ1OTMwMTksImV4cCI6MjA5MDE2OTAxOX0.Uq0bMvtwmWm8lpIXAtUaPND7zDwW6QUKvOwbDhuKECI','x-claude-key':getClaudeKey()},
+      headers:{'Content-Type':'application/json','apikey':'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9jcWZzY2NydnBkbmpqbG9ma3ZrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ1OTMwMTksImV4cCI6MjA5MDE2OTAxOX0.Uq0bMvtwmWm8lpIXAtUaPND7zDwW6QUKvOwbDhuKECI','Authorization':'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9jcWZzY2NydnBkbmpqbG9ma3ZrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ1OTMwMTksImV4cCI6MjA5MDE2OTAxOX0.Uq0bMvtwmWm8lpIXAtUaPND7zDwW6QUKvOwbDhuKECI','x-claude-key':getClaudeKey()},
       body:JSON.stringify({
         model:'claude-sonnet-4-20250514',
         max_tokens:1000,
@@ -956,7 +956,8 @@ Provide a SOP readiness assessment. What needs to be resolved before production 
     renderAIStructuredPanels(topOcc, areaCounts);
   }catch(e){
     document.getElementById('aiInsightBox').className='ai-insight-box';
-    document.getElementById('aiInsightBox').textContent='⚠️ Analysis failed: '+e.message+'\nPlease check your connection and try again.';
+    document.getElementById('aiInsightBox').textContent='⚠️ Analysis failed: '+e.message+'\n\nPossible causes:\n1. Re-enter your Claude API Key (click 🔑 in sidebar)\n2. Check if Supabase Edge Function is deployed\n3. Verify internet connection';
+    console.error('AI error:', e);
   }
   btn.innerHTML='▶ Run Analysis';
   btn.disabled=false;
@@ -1021,9 +1022,22 @@ function updateEPIStats(){
   document.getElementById('epiProgressBar').style.width=(analyzed.length>0?compliance:0)+'%';
   document.getElementById('epiProgressBar').style.background=compliance>=80?'var(--green)':compliance>=50?'var(--orange)':'var(--red)';
 
-  // Show analyzed photos
-  if(analyzed.length>0){
-    document.getElementById('epiPhotoGrid').innerHTML=analyzed.slice(0,12).map(i=>{
+  // Show ALL photos with inspection data
+  const withPhotos = allData.filter(i=>i.photos&&i.photos.length>0);
+  if(withPhotos.length>0){
+    document.getElementById('epiPhotoGrid').innerHTML=withPhotos.slice(0,24).map(i=>{
+      const hasEPI = i.epi_check&&i.epi_check.length>0;
+      if(!hasEPI){
+        // Not yet analyzed — show photo with Analyze button
+        const photo=i.photos[0];
+        return `<div class="epi-photo-card" style="border:2px solid var(--border);">
+          ${photo?`<img src="${photo}" onerror="this.style.display='none'" style="width:100%;height:130px;object-fit:cover;"/>`:'<div style="height:130px;background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:32px;">📷</div>'}
+          <div class="epi-photo-info">
+            <div style="font-size:11px;color:var(--muted);margin-bottom:6px;">${i.area||'—'} · ${i.date||'—'}</div>
+            <button onclick="analyzeOnePhoto(${i.id})" style="width:100%;background:var(--ai);color:white;border:none;border-radius:8px;padding:6px;font-size:12px;font-weight:600;cursor:pointer;">🤖 Analyze EPI</button>
+          </div>
+        </div>`;
+      }
       const epi=i.epi_check[0];
       const photo=i.photos&&i.photos[0];
       // Support both old format (single) and new format (workers array)
@@ -1045,6 +1059,8 @@ function updateEPIStats(){
         </div>
       </div>`;
     }).join('');
+  } else {
+    document.getElementById('epiPhotoGrid').innerHTML='<div class="empty-state"><div class="empty-icon">📸</div><div class="empty-title">No photos yet</div><p>Complete inspections with photos in the SafeCheck app</p></div>';
   }
 }
 
@@ -1069,7 +1085,7 @@ async function analyzeAllPhotos(){
 
       const response=await fetch('https://ocqfsccrvpdnjjlofkvk.supabase.co/functions/v1/dynamic-function',{
         method:'POST',
-        headers:{'Content-Type':'application/json','apikey':'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9jcWZzY2NydnBkbmpqbG9ma3ZrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ1OTMwMTksImV4cCI6MjA5MDE2OTAxOX0.Uq0bMvtwmWm8lpIXAtUaPND7zDwW6QUKvOwbDhuKECI','x-claude-key':getClaudeKey()},
+        headers:{'Content-Type':'application/json','apikey':'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9jcWZzY2NydnBkbmpqbG9ma3ZrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ1OTMwMTksImV4cCI6MjA5MDE2OTAxOX0.Uq0bMvtwmWm8lpIXAtUaPND7zDwW6QUKvOwbDhuKECI','Authorization':'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9jcWZzY2NydnBkbmpqbG9ma3ZrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ1OTMwMTksImV4cCI6MjA5MDE2OTAxOX0.Uq0bMvtwmWm8lpIXAtUaPND7zDwW6QUKvOwbDhuKECI','x-claude-key':getClaudeKey()},
         body:JSON.stringify({
           model:'claude-sonnet-4-20250514',
           max_tokens:300,
@@ -1112,7 +1128,7 @@ async function analyzeOnePhoto(id){
     const b64=await new Promise(res=>{const r=new FileReader();r.onload=e=>res(e.target.result.split(',')[1]);r.readAsDataURL(blob);});
     const response=await fetch('https://ocqfsccrvpdnjjlofkvk.supabase.co/functions/v1/dynamic-function',{
       method:'POST',
-      headers:{'Content-Type':'application/json','apikey':'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9jcWZzY2NydnBkbmpqbG9ma3ZrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ1OTMwMTksImV4cCI6MjA5MDE2OTAxOX0.Uq0bMvtwmWm8lpIXAtUaPND7zDwW6QUKvOwbDhuKECI','x-claude-key':getClaudeKey()},
+      headers:{'Content-Type':'application/json','apikey':'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9jcWZzY2NydnBkbmpqbG9ma3ZrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ1OTMwMTksImV4cCI6MjA5MDE2OTAxOX0.Uq0bMvtwmWm8lpIXAtUaPND7zDwW6QUKvOwbDhuKECI','Authorization':'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9jcWZzY2NydnBkbmpqbG9ma3ZrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ1OTMwMTksImV4cCI6MjA5MDE2OTAxOX0.Uq0bMvtwmWm8lpIXAtUaPND7zDwW6QUKvOwbDhuKECI','x-claude-key':getClaudeKey()},
       body:JSON.stringify({
         model:'claude-sonnet-4-20250514',max_tokens:300,
         messages:[{role:'user',content:[
