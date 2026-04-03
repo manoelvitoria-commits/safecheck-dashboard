@@ -938,9 +938,9 @@ Provide a SOP readiness assessment. What needs to be resolved before production 
   };
 
   try{
-    const response=await fetch('https://api.anthropic.com/v1/messages',{
+    const response=await fetch('https://ocqfsccrvpdnjjlofkvk.supabase.co/functions/v1/dynamic-function',{
       method:'POST',
-      headers:{'Content-Type':'application/json','x-api-key':getClaudeKey(),'anthropic-version':'2023-06-01'},
+      headers:{'Content-Type':'application/json','apikey':'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9jcWZzY2NydnBkbmpqbG9ma3ZrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ1OTMwMTksImV4cCI6MjA5MDE2OTAxOX0.Uq0bMvtwmWm8lpIXAtUaPND7zDwW6QUKvOwbDhuKECI','x-claude-key':getClaudeKey()},
       body:JSON.stringify({
         model:'claude-sonnet-4-20250514',
         max_tokens:1000,
@@ -1067,9 +1067,9 @@ async function analyzeAllPhotos(){
       const blob=await imgRes.blob();
       const b64=await new Promise(res=>{const r=new FileReader();r.onload=e=>res(e.target.result.split(',')[1]);r.readAsDataURL(blob);});
 
-      const response=await fetch('https://api.anthropic.com/v1/messages',{
+      const response=await fetch('https://ocqfsccrvpdnjjlofkvk.supabase.co/functions/v1/dynamic-function',{
         method:'POST',
-        headers:{'Content-Type':'application/json','x-api-key':getClaudeKey(),'anthropic-version':'2023-06-01'},
+        headers:{'Content-Type':'application/json','apikey':'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9jcWZzY2NydnBkbmpqbG9ma3ZrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ1OTMwMTksImV4cCI6MjA5MDE2OTAxOX0.Uq0bMvtwmWm8lpIXAtUaPND7zDwW6QUKvOwbDhuKECI','x-claude-key':getClaudeKey()},
         body:JSON.stringify({
           model:'claude-sonnet-4-20250514',
           max_tokens:300,
@@ -1110,9 +1110,9 @@ async function analyzeOnePhoto(id){
     const imgRes=await fetch(insp.photos[0]);
     const blob=await imgRes.blob();
     const b64=await new Promise(res=>{const r=new FileReader();r.onload=e=>res(e.target.result.split(',')[1]);r.readAsDataURL(blob);});
-    const response=await fetch('https://api.anthropic.com/v1/messages',{
+    const response=await fetch('https://ocqfsccrvpdnjjlofkvk.supabase.co/functions/v1/dynamic-function',{
       method:'POST',
-      headers:{'Content-Type':'application/json','x-api-key':getClaudeKey(),'anthropic-version':'2023-06-01'},
+      headers:{'Content-Type':'application/json','apikey':'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9jcWZzY2NydnBkbmpqbG9ma3ZrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ1OTMwMTksImV4cCI6MjA5MDE2OTAxOX0.Uq0bMvtwmWm8lpIXAtUaPND7zDwW6QUKvOwbDhuKECI','x-claude-key':getClaudeKey()},
       body:JSON.stringify({
         model:'claude-sonnet-4-20250514',max_tokens:300,
         messages:[{role:'user',content:[
