@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>SafeCheck Dashboard · NEMM Up</title>
+<title>SafeCheck Dashboard v2.0 · NEMM Up</title>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
@@ -12,20 +12,41 @@
   --teal:#17A589; --light:#E8F0F8; --bg:#F0F4F8; --white:#FFFFFF;
   --text:#1A2E3E; --muted:#5D7A8A; --border:#C5D8EA;
   --red:#E74C3C; --orange:#E67E22; --green:#27AE60; --yellow:#F39C12;
+  --ai:#6C3483; --ai-light:#F4ECF7;
 }
 *{margin:0;padding:0;box-sizing:border-box;}
 body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
 
+/* ── LOGIN ── */
+#loginScreen{position:fixed;inset:0;background:linear-gradient(135deg,#0A1628 0%,#1A3C5E 60%,#0D1F35 100%);display:flex;align-items:center;justify-content:center;z-index:9999;}
+#loginScreen.hidden{display:none;}
+.login-box{background:white;border-radius:24px;padding:48px 40px;width:100%;max-width:420px;box-shadow:0 32px 80px rgba(0,0,0,0.4);animation:fadeUp 0.5s ease;}
+.login-logo{text-align:center;margin-bottom:32px;}
+.login-logo-name{font-family:'Syne',sans-serif;font-size:26px;font-weight:800;color:var(--navy);}
+.login-logo-sub{font-size:12px;color:var(--muted);margin-top:3px;letter-spacing:1px;text-transform:uppercase;}
+.login-field{margin-bottom:18px;}
+.login-field label{display:block;font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:7px;}
+.login-field input{width:100%;padding:13px 16px;border:2px solid var(--border);border-radius:12px;font-family:'DM Sans',sans-serif;font-size:15px;color:var(--text);outline:none;transition:border-color 0.2s;}
+.login-field input:focus{border-color:var(--accent);}
+.login-btn{width:100%;padding:15px;background:var(--navy);color:white;border:none;border-radius:12px;font-family:'Syne',sans-serif;font-size:16px;font-weight:700;cursor:pointer;transition:all 0.2s;margin-top:8px;}
+.login-btn:hover{background:var(--accent);transform:translateY(-2px);}
+.login-error{background:rgba(231,76,60,0.1);border:1px solid rgba(231,76,60,0.3);color:var(--red);border-radius:10px;padding:10px 14px;font-size:13px;font-weight:600;margin-top:14px;text-align:center;display:none;}
+.login-error.show{display:block;}
+
+/* ── LAYOUT ── */
 .sidebar{position:fixed;left:0;top:0;bottom:0;width:240px;background:var(--dark);display:flex;flex-direction:column;z-index:100;padding:0 0 24px;}
 .sidebar-brand{padding:28px 24px 24px;border-bottom:1px solid rgba(255,255,255,0.08);}
 .brand-sub{font-size:10px;letter-spacing:3px;text-transform:uppercase;color:rgba(255,255,255,0.4);font-family:'Syne',sans-serif;margin-bottom:4px;}
 .brand-name{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:white;}
 .brand-tag{font-size:11px;color:var(--accent);font-weight:500;margin-top:2px;}
-.sidebar-nav{flex:1;padding:20px 12px;}
+.brand-v2{font-size:10px;background:var(--ai);color:white;padding:2px 8px;border-radius:20px;font-weight:700;margin-left:6px;}
+.sidebar-nav{flex:1;padding:20px 12px;overflow-y:auto;}
 .nav-label{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.3);padding:0 12px;margin-bottom:8px;font-family:'Syne',sans-serif;}
 .nav-item{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:10px;cursor:pointer;color:rgba(255,255,255,0.5);font-size:14px;font-weight:500;transition:all 0.2s;margin-bottom:2px;text-decoration:none;}
 .nav-item:hover{background:rgba(255,255,255,0.06);color:white;}
 .nav-item.active{background:var(--accent);color:white;}
+.nav-item.ai-nav{color:rgba(200,160,230,0.7);}
+.nav-item.ai-nav:hover,.nav-item.ai-nav.active{background:var(--ai);color:white;}
 .nav-item .icon{font-size:18px;width:24px;text-align:center;}
 .sidebar-footer{padding:16px 24px;border-top:1px solid rgba(255,255,255,0.08);}
 .sync-status{display:flex;align-items:center;gap:8px;font-size:12px;color:rgba(255,255,255,0.4);}
@@ -38,126 +59,156 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .topbar-actions{display:flex;align-items:center;gap:12px;}
 .btn{padding:8px 18px;border-radius:8px;border:none;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all 0.2s;}
 .btn-primary{background:var(--accent);color:white;}
-.btn-primary:hover{background:var(--blue);transform:translateY(-1px);}
+.btn-primary:hover{background:var(--blue);}
 .btn-outline{background:white;color:var(--accent);border:2px solid var(--border);}
 .btn-outline:hover{border-color:var(--accent);}
+.btn-ai{background:var(--ai);color:white;}
+.btn-ai:hover{background:#5B2C6F;}
 .filter-select{padding:8px 14px;border-radius:8px;border:1.5px solid var(--border);background:white;font-family:'DM Sans',sans-serif;font-size:13px;color:var(--text);cursor:pointer;outline:none;}
-.filter-select:focus{border-color:var(--accent);}
 .content{padding:28px 32px;}
 
+/* ── SECTIONS ── */
+.section-page{display:none;}
+.section-page.active{display:block;}
+
+/* ── KPI CARDS ── */
 .kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px;}
 .kpi-card{background:white;border-radius:16px;padding:20px 22px;border:1px solid var(--border);position:relative;overflow:hidden;transition:transform 0.2s,box-shadow 0.2s;animation:fadeUp 0.5s ease both;}
 .kpi-card:hover{transform:translateY(-3px);box-shadow:0 8px 24px rgba(26,60,94,0.12);}
-.kpi-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;}
-.kpi-card.blue::before{background:var(--accent);}
-.kpi-card.red::before{background:var(--red);}
-.kpi-card.orange::before{background:var(--orange);}
-.kpi-card.green::before{background:var(--green);}
-.kpi-icon{font-size:28px;margin-bottom:12px;width:48px;height:48px;display:flex;align-items:center;justify-content:center;border-radius:12px;}
-.kpi-card.blue .kpi-icon{background:rgba(46,134,193,0.12);}
-.kpi-card.red .kpi-icon{background:rgba(231,76,60,0.12);}
-.kpi-card.orange .kpi-icon{background:rgba(230,126,34,0.12);}
-.kpi-card.green .kpi-icon{background:rgba(39,174,96,0.12);}
-.kpi-value{font-family:'Syne',sans-serif;font-size:36px;font-weight:800;color:var(--navy);line-height:1;margin-bottom:4px;}
-.kpi-label{font-size:12px;color:var(--muted);font-weight:500;text-transform:uppercase;letter-spacing:0.8px;}
+.kpi-card.blue{border-top:4px solid var(--accent);}
+.kpi-card.red{border-top:4px solid var(--red);}
+.kpi-card.green{border-top:4px solid var(--green);}
+.kpi-card.orange{border-top:4px solid var(--orange);}
+.kpi-card.ai-card{border-top:4px solid var(--ai);}
+.kpi-icon{font-size:28px;margin-bottom:10px;}
+.kpi-value{font-family:'Syne',sans-serif;font-size:36px;font-weight:800;color:var(--navy);line-height:1;}
+.kpi-label{font-size:13px;color:var(--muted);font-weight:500;margin-top:6px;}
+.kpi-sub{font-size:11px;color:var(--muted);margin-top:3px;}
 
-.charts-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:24px;}
-.chart-card{background:white;border-radius:16px;padding:22px;border:1px solid var(--border);animation:fadeUp 0.6s ease both;}
-.chart-card.full{grid-column:1/-1;}
-.card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;}
-.card-title{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;color:var(--navy);}
-.card-subtitle{font-size:12px;color:var(--muted);margin-top:2px;}
-.chart-wrap{position:relative;height:240px;}
+/* ── SOP COUNTDOWN ── */
+.sop-panel{background:linear-gradient(135deg,var(--navy),var(--blue));border-radius:20px;padding:24px 28px;color:white;margin-bottom:24px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;align-items:center;}
+.sop-item{text-align:center;}
+.sop-value{font-family:'Syne',sans-serif;font-size:42px;font-weight:800;letter-spacing:-1px;}
+.sop-label{font-size:11px;letter-spacing:2px;text-transform:uppercase;opacity:0.6;margin-top:4px;}
+.sop-center{text-align:center;border-left:1px solid rgba(255,255,255,0.15);border-right:1px solid rgba(255,255,255,0.15);padding:0 20px;}
+.sop-title{font-family:'Syne',sans-serif;font-size:16px;font-weight:700;margin-bottom:4px;}
+.sop-date{font-size:12px;opacity:0.6;}
+.sop-timer{font-family:'Syne',sans-serif;font-size:22px;font-weight:700;color:rgba(255,255,255,0.8);margin-top:6px;letter-spacing:1px;}
 
-.occ-list{display:flex;flex-direction:column;gap:10px;}
-.occ-item{display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:10px;background:var(--bg);transition:all 0.2s;}
-.occ-item:hover{background:var(--light);transform:translateX(4px);}
-.occ-rank{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-size:13px;font-weight:800;flex-shrink:0;}
-.occ-rank.r1{background:var(--red);color:white;}
-.occ-rank.r2{background:var(--orange);color:white;}
-.occ-rank.r3{background:var(--yellow);color:white;}
-.occ-rank.rn{background:var(--border);color:var(--muted);}
-.occ-icon{font-size:22px;width:30px;text-align:center;flex-shrink:0;}
-.occ-info{flex:1;min-width:0;}
-.occ-name{font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.occ-bar-wrap{height:6px;background:var(--border);border-radius:3px;margin-top:5px;overflow:hidden;}
-.occ-bar-fill{height:100%;border-radius:3px;transition:width 1s ease;}
-.occ-count{font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:var(--navy);flex-shrink:0;}
+/* ── AI ANALYST PANEL ── */
+.ai-panel{background:white;border-radius:20px;border:2px solid var(--ai);margin-bottom:24px;overflow:hidden;}
+.ai-panel-header{background:linear-gradient(135deg,var(--ai),#8E44AD);padding:18px 24px;display:flex;align-items:center;justify-content:space-between;}
+.ai-panel-title{font-family:'Syne',sans-serif;font-size:16px;font-weight:700;color:white;display:flex;align-items:center;gap:10px;}
+.ai-panel-body{padding:24px;}
+.ai-insight-box{background:var(--ai-light);border-radius:12px;padding:16px 20px;font-size:14px;line-height:1.8;color:var(--text);border-left:4px solid var(--ai);white-space:pre-wrap;}
+.ai-insight-box.loading{color:var(--muted);font-style:italic;}
+.ai-btn-row{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap;}
+.ai-chip{padding:6px 14px;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;border:2px solid var(--ai);color:var(--ai);background:white;transition:all 0.2s;}
+.ai-chip:hover,.ai-chip.active{background:var(--ai);color:white;}
+.ai-spinner{display:inline-block;width:16px;height:16px;border:2px solid rgba(255,255,255,0.3);border-top-color:white;border-radius:50%;animation:spin 0.7s linear infinite;vertical-align:middle;margin-right:8px;}
+@keyframes spin{to{transform:rotate(360deg);}}
 
-.area-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
-.area-card{border-radius:12px;padding:16px;border:2px solid var(--border);transition:all 0.2s;position:relative;overflow:hidden;}
-.area-card:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(26,60,94,0.1);}
-.area-name{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:var(--navy);margin-bottom:4px;}
-.area-count{font-size:12px;color:var(--muted);margin-bottom:10px;}
-.area-bar{height:4px;background:var(--border);border-radius:2px;overflow:hidden;}
-.area-bar-fill{height:100%;border-radius:2px;}
-.area-status{position:absolute;top:12px;right:12px;font-size:11px;font-weight:700;padding:3px 8px;border-radius:20px;}
+/* ── EPI VISION PANEL ── */
+.epi-panel{background:white;border-radius:20px;border:2px solid var(--green);margin-bottom:24px;overflow:hidden;}
+.epi-panel-header{background:linear-gradient(135deg,#1A6B3A,#27AE60);padding:18px 24px;display:flex;align-items:center;justify-content:space-between;}
+.epi-panel-title{font-family:'Syne',sans-serif;font-size:16px;font-weight:700;color:white;display:flex;align-items:center;gap:10px;}
+.epi-panel-body{padding:24px;}
+.epi-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px;}
+.epi-stat{background:var(--bg);border-radius:12px;padding:14px;text-align:center;border:1px solid var(--border);}
+.epi-stat-val{font-size:28px;font-weight:800;font-family:'Syne',sans-serif;color:var(--navy);}
+.epi-stat-lbl{font-size:11px;color:var(--muted);margin-top:4px;}
+.epi-photo-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;}
+.epi-photo-card{border-radius:12px;overflow:hidden;border:1px solid var(--border);background:white;}
+.epi-photo-card img{width:100%;height:130px;object-fit:cover;}
+.epi-photo-info{padding:8px 10px;}
+.epi-badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:700;margin-right:3px;margin-bottom:2px;}
+.epi-ok{background:#E8F8F5;color:#1A6B3A;}
+.epi-miss{background:#FDEDEC;color:#C0392B;}
+.epi-unk{background:#FEF9E7;color:#7D6608;}
+.epi-progress{height:6px;border-radius:3px;background:var(--border);margin-top:8px;overflow:hidden;}
+.epi-progress-fill{height:100%;border-radius:3px;transition:width 0.5s;}
+.analyze-all-btn{background:linear-gradient(135deg,#1A6B3A,#27AE60);color:white;border:none;border-radius:12px;padding:12px 24px;font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:8px;transition:opacity 0.2s;}
+.analyze-all-btn:hover{opacity:0.9;}
+.analyze-all-btn:disabled{opacity:0.5;cursor:not-allowed;}
+
+/* ── CARDS & CHARTS ── */
+.card{background:white;border-radius:16px;padding:22px 24px;border:1px solid var(--border);margin-bottom:20px;}
+.card-title{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:1px;margin-bottom:16px;display:flex;align-items:center;gap:8px;}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px;}
+.three-col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;margin-bottom:20px;}
+canvas{max-height:220px;}
+
+/* ── OCCURRENCES RANKING ── */
+.occ-item{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--light);}
+.occ-item:last-child{border-bottom:none;}
+.occ-rank{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;color:white;flex-shrink:0;}
+.occ-rank.r1{background:var(--red);}
+.occ-rank.r2{background:var(--orange);}
+.occ-rank.r3{background:var(--yellow);}
+.occ-rank.rn{background:var(--muted);}
+.occ-icon{font-size:20px;flex-shrink:0;}
+.occ-info{flex:1;}
+.occ-name{font-size:13px;font-weight:600;color:var(--text);}
+.occ-bar-wrap{height:5px;background:var(--light);border-radius:3px;margin-top:5px;}
+.occ-bar-fill{height:5px;border-radius:3px;transition:width 0.5s;}
+.occ-count{font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:var(--navy);}
+
+/* ── AREA GRID ── */
+.area-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
+.area-card{background:white;border-radius:14px;padding:16px 18px;border:1px solid var(--border);transition:transform 0.2s;}
+.area-card:hover{transform:translateY(-2px);}
+.area-name{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:var(--navy);margin-top:6px;}
+.area-count{font-size:12px;color:var(--muted);margin-top:4px;}
+.area-bar{height:5px;background:var(--light);border-radius:3px;margin-top:10px;}
+.area-bar-fill{height:5px;border-radius:3px;}
+.area-status{font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;}
 .status-high{background:rgba(231,76,60,0.12);color:var(--red);}
 .status-med{background:rgba(230,126,34,0.12);color:var(--orange);}
 .status-low{background:rgba(39,174,96,0.12);color:var(--green);}
 
-.table-wrap{overflow-x:auto;}
-table{width:100%;border-collapse:collapse;}
-thead th{padding:10px 14px;text-align:left;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;border-bottom:2px solid var(--border);background:var(--bg);}
-tbody tr{border-bottom:1px solid var(--border);transition:background 0.15s;}
-tbody tr:hover{background:var(--light);}
-tbody td{padding:12px 14px;font-size:13px;}
-.td-area{font-family:'Syne',sans-serif;font-weight:800;color:var(--navy);font-size:15px;}
-.occ-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700;}
-.occ-badge.ok{background:rgba(39,174,96,0.1);color:var(--green);}
-.occ-badge.warn{background:rgba(230,126,34,0.1);color:var(--orange);}
-.occ-badge.high{background:rgba(231,76,60,0.1);color:var(--red);}
+/* ── TABLE ── */
+.table-wrap{overflow-x:auto;border-radius:12px;border:1px solid var(--border);}
+table{width:100%;border-collapse:collapse;font-size:13px;}
+th{background:var(--navy);color:white;padding:12px 14px;text-align:left;font-weight:600;font-size:12px;letter-spacing:0.5px;}
+td{padding:11px 14px;border-bottom:1px solid var(--light);vertical-align:middle;}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:var(--bg);}
+.td-area{background:var(--light);border-radius:6px;padding:3px 10px;font-weight:700;font-size:12px;}
+.occ-badge{padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700;}
+.occ-badge.ok{background:#E8F8F5;color:#1A8A5A;}
+.occ-badge.warn{background:#FEF9E7;color:#7D6608;}
+.occ-badge.high{background:#FDEDEC;color:#C0392B;}
+.dl-btn{background:var(--accent);color:white;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:600;cursor:pointer;transition:all 0.2s;}
+.dl-btn:hover{background:var(--blue);}
 
-.loading{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px;gap:16px;color:var(--muted);}
-.spinner{width:40px;height:40px;border-radius:50%;border:3px solid var(--border);border-top-color:var(--accent);animation:spin 0.8s linear infinite;}
-@keyframes spin{to{transform:rotate(360deg);}}
-.empty-state{text-align:center;padding:48px;color:var(--muted);}
-.empty-icon{font-size:52px;margin-bottom:12px;}
-.empty-title{font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--navy);margin-bottom:6px;}
+/* ── EMPTY STATE ── */
+.empty-state{text-align:center;padding:40px 20px;}
+.empty-icon{font-size:48px;margin-bottom:14px;}
+.empty-title{font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--navy);margin-bottom:8px;}
+.empty-state p{font-size:14px;color:var(--muted);}
 
-.dl-btn{display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border-radius:8px;border:1.5px solid var(--border);background:white;color:var(--accent);font-size:12px;font-weight:700;cursor:pointer;transition:all 0.2s;text-decoration:none;}
-.dl-btn:hover{background:var(--accent);color:white;border-color:var(--accent);transform:translateY(-1px);box-shadow:0 4px 12px rgba(46,134,193,0.25);}
+/* ── ANIMATIONS ── */
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:translateY(0);}}
 
-.kpi-card:nth-child(1){animation-delay:0.05s;}
-.kpi-card:nth-child(2){animation-delay:0.10s;}
-.kpi-card:nth-child(3){animation-delay:0.15s;}
-.kpi-card:nth-child(4){animation-delay:0.20s;}
-
-@media(max-width:1100px){.kpi-grid{grid-template-columns:repeat(2,1fr);}.charts-grid{grid-template-columns:1fr;}.area-grid{grid-template-columns:repeat(2,1fr);}}
-@media(max-width:768px){.sidebar{display:none;}.main{margin-left:0;}.kpi-grid{grid-template-columns:1fr 1fr;}.content{padding:16px;}}
-
-/* ── LOGIN ── */
-#loginScreen{position:fixed;inset:0;background:linear-gradient(135deg,#0A1628 0%,#1A3C5E 60%,#0D1F35 100%);display:flex;align-items:center;justify-content:center;z-index:9999;}
-#loginScreen.hidden{display:none;}
-.login-box{background:white;border-radius:24px;padding:48px 40px;width:100%;max-width:420px;box-shadow:0 32px 80px rgba(0,0,0,0.4);animation:fadeUp 0.5s ease;}
-.login-logo{text-align:center;margin-bottom:32px;}
-.login-logo-icon{width:64px;height:64px;background:var(--navy);border-radius:18px;display:flex;align-items:center;justify-content:center;font-size:30px;margin:0 auto 14px;}
-.login-logo-name{font-family:'Syne',sans-serif;font-size:26px;font-weight:800;color:var(--navy);}
-.login-logo-sub{font-size:12px;color:var(--muted);margin-top:3px;letter-spacing:1px;text-transform:uppercase;}
-.login-field{margin-bottom:18px;}
-.login-field label{display:block;font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:7px;}
-.login-field input{width:100%;padding:13px 16px;border:2px solid var(--border);border-radius:12px;font-family:'DM Sans',sans-serif;font-size:15px;color:var(--text);outline:none;transition:border-color 0.2s;}
-.login-field input:focus{border-color:var(--accent);}
-.login-btn{width:100%;padding:15px;background:var(--navy);color:white;border:none;border-radius:12px;font-family:'Syne',sans-serif;font-size:16px;font-weight:700;cursor:pointer;transition:all 0.2s;margin-top:8px;}
-.login-btn:hover{background:var(--accent);transform:translateY(-2px);box-shadow:0 8px 24px rgba(46,134,193,0.35);}
-.login-error{background:rgba(231,76,60,0.1);border:1px solid rgba(231,76,60,0.3);color:var(--red);border-radius:10px;padding:10px 14px;font-size:13px;font-weight:600;margin-top:14px;text-align:center;display:none;}
-.login-error.show{display:block;}
-.login-footer{text-align:center;margin-top:24px;font-size:11px;color:var(--muted);}
-.logout-btn{display:flex;align-items:center;gap:6px;padding:7px 14px;border-radius:8px;border:1.5px solid rgba(255,255,255,0.15);background:transparent;color:rgba(255,255,255,0.5);font-size:12px;font-weight:600;cursor:pointer;transition:all 0.2s;margin-top:8px;}
-.logout-btn:hover{background:rgba(255,255,255,0.08);color:white;}
+/* ── RESPONSIVE ── */
+@media(max-width:900px){
+  .sidebar{width:60px;}
+  .sidebar .brand-name,.sidebar .nav-item span:not(.icon),.sidebar-footer,.brand-sub,.brand-tag,.nav-label{display:none;}
+  .main{margin-left:60px;}
+  .kpi-grid{grid-template-columns:repeat(2,1fr);}
+  .two-col,.three-col,.area-grid,.epi-grid{grid-template-columns:1fr;}
+}
 </style>
 </head>
 <body>
 
-<!-- ── LOGIN SCREEN ── -->
+<!-- LOGIN -->
 <div id="loginScreen">
   <div class="login-box">
     <div class="login-logo">
-      <div class="login-logo-icon" style="background:transparent;padding:0;">
-        <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyMDAgMjAwIj48cmVjdCB4PSIwIiB5PSIwIiB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgcng9IjMwIiBmaWxsPSIjRkZGRkZGIiBzdHJva2U9IiMxQTNGOEYiIHN0cm9rZS13aWR0aD0iNCIvPjxwYXRoIGQ9Ik0zMyAxNDcgUTMzIDU1IDEwMCAzMyBRMTY3IDU1IDE2NyAxNDcgWiIgZmlsbD0iI0YwRjRGRiIvPjxwYXRoIGQ9Ik0zMyAxNDcgUTMzIDU1IDEwMCAzMyBRMTY3IDU1IDE2NyAxNDciIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzFBM0Y4RiIgc3Ryb2tlLXdpZHRoPSI0IiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48cmVjdCB4PSIyMSIgeT0iMTQ0IiB3aWR0aD0iMTU4IiBoZWlnaHQ9IjEyIiByeD0iNiIgZmlsbD0iIzFBM0Y4RiIvPjxyZWN0IHg9IjIxIiB5PSIxMjkiIHdpZHRoPSIxNTgiIGhlaWdodD0iOSIgcng9IjQiIGZpbGw9IiMxQTNGOEYiIG9wYWNpdHk9IjAuMTgiLz48dGV4dCB4PSIxMDAiIHk9IjEwMyIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9ImNlbnRyYWwiIGZvbnQtZmFtaWx5PSJBcmlhbCBCbGFjayxBcmlhbCxzYW5zLXNlcmlmIiBmb250LXdlaWdodD0iOTAwIiBmb250LXNpemU9IjE4IiBmaWxsPSIjMUEzRjhGIj5ORU1NIFVQPC90ZXh0Pjwvc3ZnPg==" style="width:64px;height:64px;border-radius:14px;" alt="NEMM UP SafeCheck"/>
-      </div>
-      <div class="login-logo-name" style="font-family:Arial Black,Arial,sans-serif;font-weight:900;color:#1A3F8F;">NEMM UP</div>
-      <div class="login-logo-sub" style="color:#1A3F8F;opacity:0.7;">SafeCheck · Safety Dashboard</div>
+      <div style="font-family:Arial Black,Arial,sans-serif;font-weight:900;font-size:32px;color:#1A3F8F;margin-bottom:8px;">NEMM UP</div>
+      <div class="login-logo-name">SafeCheck <span style="font-size:14px;background:#6C3483;color:white;padding:2px 10px;border-radius:20px;vertical-align:middle;">v2.0</span></div>
+      <div class="login-logo-sub">AI Safety Dashboard · HSM Project</div>
     </div>
     <div class="login-field">
       <label>Username</label>
@@ -169,42 +220,49 @@ tbody td{padding:12px 14px;font-size:13px;}
     </div>
     <button class="login-btn" onclick="doLogin()">🔐 Sign In</button>
     <div class="login-error" id="loginError">❌ Invalid username or password.</div>
-    <div class="login-footer">SafeCheck v1.0 · NEMM Up · Construction Site Safety</div>
+    <div style="text-align:center;margin-top:20px;font-size:11px;color:#8B9AB0;">SafeCheck v2.0 · NEMM Up · ArcelorMittal HSM</div>
   </div>
 </div>
 
-<aside class="sidebar">
+<!-- SIDEBAR -->
+<div class="sidebar">
   <div class="sidebar-brand">
-    <div style="display:flex;align-items:center;gap:10px;">
-      <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyMDAgMjAwIj48cmVjdCB4PSIwIiB5PSIwIiB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgcng9IjMwIiBmaWxsPSIjRkZGRkZGIiBzdHJva2U9IiMxQTNGOEYiIHN0cm9rZS13aWR0aD0iNCIvPjxwYXRoIGQ9Ik0zMyAxNDcgUTMzIDU1IDEwMCAzMyBRMTY3IDU1IDE2NyAxNDcgWiIgZmlsbD0iI0YwRjRGRiIvPjxwYXRoIGQ9Ik0zMyAxNDcgUTMzIDU1IDEwMCAzMyBRMTY3IDU1IDE2NyAxNDciIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzFBM0Y4RiIgc3Ryb2tlLXdpZHRoPSI0IiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48cmVjdCB4PSIyMSIgeT0iMTQ0IiB3aWR0aD0iMTU4IiBoZWlnaHQ9IjEyIiByeD0iNiIgZmlsbD0iIzFBM0Y4RiIvPjxyZWN0IHg9IjIxIiB5PSIxMjkiIHdpZHRoPSIxNTgiIGhlaWdodD0iOSIgcng9IjQiIGZpbGw9IiMxQTNGOEYiIG9wYWNpdHk9IjAuMTgiLz48dGV4dCB4PSIxMDAiIHk9IjEwMyIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9ImNlbnRyYWwiIGZvbnQtZmFtaWx5PSJBcmlhbCBCbGFjayxBcmlhbCxzYW5zLXNlcmlmIiBmb250LXdlaWdodD0iOTAwIiBmb250LXNpemU9IjE4IiBmaWxsPSIjMUEzRjhGIj5ORU1NIFVQPC90ZXh0Pjwvc3ZnPg==" style="width:44px;height:44px;border-radius:10px;flex-shrink:0;" alt="NEMM UP"/>
-      <div>
-        <div style="font-family:Arial Black,Arial,sans-serif;font-weight:900;font-size:14px;color:white;line-height:1.1;">NEMM UP</div>
-        <div class="brand-name" style="font-size:16px;line-height:1.1;">SafeCheck</div>
-        <div class="brand-tag">Safety Dashboard</div>
-      </div>
-    </div>
+    <div class="brand-sub">NEMM UP</div>
+    <div class="brand-name">SafeCheck<span class="brand-v2">v2</span></div>
+    <div class="brand-tag">AI Safety Dashboard</div>
   </div>
   <nav class="sidebar-nav">
-    <div class="nav-label">Navigation</div>
-    <a class="nav-item active" href="#"><span class="icon">📊</span>Dashboard</a>
-    <a class="nav-item" href="#inspections"><span class="icon">📋</span>Inspections</a>
-    <a class="nav-item" href="#areas"><span class="icon">📍</span>Areas</a>
-    <a class="nav-item" href="#inspectors" id="navInspectors" onclick="return checkInspectorAccess(event)"><span class="icon">👷</span>Inspectors <span id="inspectorLock" style="font-size:11px;opacity:0.5;">🔒</span></a>
-    <a class="nav-item" href="#" onclick="exportCSV()"><span class="icon">📥</span>Export CSV</a>
+    <div class="nav-label">Overview</div>
+    <a class="nav-item active" id="navOverview" onclick="showSection('overview',this)"><span class="icon">📊</span>Dashboard</a>
+    <a class="nav-item" id="navRecords" onclick="showSection('records',this)"><span class="icon">📋</span>Records</a>
+    <a class="nav-item" id="navAreas" onclick="showSection('areas',this)"><span class="icon">📍</span>Areas</a>
+
+    <div class="nav-label" style="margin-top:16px;">AI Features</div>
+    <a class="nav-item ai-nav" id="navAI" onclick="showSection('ai',this)"><span class="icon">🤖</span>AI Analyst</a>
+    <a class="nav-item ai-nav" id="navEPI" onclick="showSection('epi',this)"><span class="icon">📸</span>EPI Vision</a>
+
+    <div class="nav-label" style="margin-top:16px;">Team</div>
+    <a class="nav-item" id="navInspectors" onclick="return checkInspectorAccess(event,'inspectors',this)"><span class="icon">👷</span>Inspectors <span id="inspectorLock" style="font-size:11px;opacity:0.5;">🔒</span></a>
   </nav>
   <div class="sidebar-footer">
     <div class="sync-status">
       <div class="sync-dot"></div>
       <span id="syncStatus">Connecting...</span>
     </div>
-    <button class="logout-btn" onclick="doLogout()">🚪 Sign Out</button>
-    <button class="logout-btn" onclick="doLogoutFull()" style="font-size:11px;opacity:0.6;margin-top:4px;" title="Sign out and forget credentials">🔑 Forget Me</button>
+    <div style="margin-top:10px;display:flex;gap:6px;">
+      <button onclick="loadData()" style="flex:1;padding:6px;border-radius:6px;border:1px solid rgba(255,255,255,0.15);background:transparent;color:rgba(255,255,255,0.5);font-size:11px;cursor:pointer;">↻ Sync</button>
+      <button onclick="doLogoutFull()" style="flex:1;padding:6px;border-radius:6px;border:1px solid rgba(255,255,255,0.15);background:transparent;color:rgba(255,255,255,0.5);font-size:11px;cursor:pointer;">⏏ Logout</button>
+    </div>
+    <div style="margin-top:8px;">
+      <button onclick="promptClaudeKey()" style="width:100%;padding:6px;border-radius:6px;border:1px solid rgba(108,52,131,0.5);background:rgba(108,52,131,0.2);color:rgba(200,160,230,0.8);font-size:11px;cursor:pointer;" title="Set Claude AI API Key">🔑 AI Key: <span id="aiKeyStatus"></span></button>
+    </div>
   </div>
-</aside>
+</div>
 
-<main class="main">
+<!-- MAIN -->
+<div class="main">
   <div class="topbar">
-    <div class="page-title" style="display:flex;align-items:center;gap:10px;"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyMDAgMjAwIj48cmVjdCB4PSIwIiB5PSIwIiB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgcng9IjMwIiBmaWxsPSIjRkZGRkZGIiBzdHJva2U9IiMxQTNGOEYiIHN0cm9rZS13aWR0aD0iNCIvPjxwYXRoIGQ9Ik0zMyAxNDcgUTMzIDU1IDEwMCAzMyBRMTY3IDU1IDE2NyAxNDcgWiIgZmlsbD0iI0YwRjRGRiIvPjxwYXRoIGQ9Ik0zMyAxNDcgUTMzIDU1IDEwMCAzMyBRMTY3IDU1IDE2NyAxNDciIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzFBM0Y4RiIgc3Ryb2tlLXdpZHRoPSI0IiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48cmVjdCB4PSIyMSIgeT0iMTQ0IiB3aWR0aD0iMTU4IiBoZWlnaHQ9IjEyIiByeD0iNiIgZmlsbD0iIzFBM0Y4RiIvPjxyZWN0IHg9IjIxIiB5PSIxMjkiIHdpZHRoPSIxNTgiIGhlaWdodD0iOSIgcng9IjQiIGZpbGw9IiMxQTNGOEYiIG9wYWNpdHk9IjAuMTgiLz48dGV4dCB4PSIxMDAiIHk9IjEwMyIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9ImNlbnRyYWwiIGZvbnQtZmFtaWx5PSJBcmlhbCBCbGFjayxBcmlhbCxzYW5zLXNlcmlmIiBmb250LXdlaWdodD0iOTAwIiBmb250LXNpemU9IjE4IiBmaWxsPSIjMUEzRjhGIj5ORU1NIFVQPC90ZXh0Pjwvc3ZnPg==" style="width:32px;height:32px;border-radius:7px;" alt=""/> Safety Inspection Dashboard · <span style="font-family:Arial Black,Arial,sans-serif;font-weight:900;color:#1A3F8F;font-size:0.85em;">NEMM UP</span></div>
+    <div class="page-title" id="pageTitle">📊 Dashboard Overview</div>
     <div class="topbar-actions">
       <select class="filter-select" id="filterArea" onchange="loadData()">
         <option value="">All Areas</option>
@@ -212,7 +270,7 @@ tbody td{padding:12px 14px;font-size:13px;}
         <option value="RHF">RHF – Reheating Furnace</option>
         <option value="MRL">MRL – Main Rolling Area</option>
         <option value="DC">DC – Down Coiler</option>
-        <option value="WTA">WTA – Water Treatment Area</option>
+        <option value="WTA">WTA – Water Treatment</option>
         <option value="CY">CY – Coil Yard</option>
       </select>
       <select class="filter-select" id="filterPeriod" onchange="loadData()">
@@ -221,248 +279,287 @@ tbody td{padding:12px 14px;font-size:13px;}
         <option value="30">Last 30 days</option>
         <option value="90">Last 90 days</option>
       </select>
-      <button class="btn btn-primary" onclick="loadData()">🔄 Refresh</button>
-      <button class="btn btn-outline" onclick="exportCSV()">📥 Export</button>
+      <button class="btn btn-outline" onclick="exportCSV()">⬇ CSV</button>
+      <button class="btn btn-primary" onclick="loadData()">↻ Refresh</button>
     </div>
   </div>
 
   <div class="content">
-    <div class="kpi-grid">
-      <div class="kpi-card blue"><div class="kpi-icon">📋</div><div class="kpi-value" id="kpiTotal">—</div><div class="kpi-label">Total Inspections</div></div>
-      <div class="kpi-card red"><div class="kpi-icon">⚠️</div><div class="kpi-value" id="kpiOcc">—</div><div class="kpi-label">Total Occurrences</div></div>
-      <div class="kpi-card orange"><div class="kpi-icon">📍</div><div class="kpi-value" id="kpiAreas">6</div><div class="kpi-label">Areas Monitored</div></div>
-      <div class="kpi-card green"><div class="kpi-icon">👷</div><div class="kpi-value" id="kpiInsp">—</div><div class="kpi-label">Active Inspectors</div></div>
-    </div>
 
-    <div class="charts-grid">
-      <div class="chart-card">
-        <div class="card-header"><div><div class="card-title">🏆 Top Occurrences</div><div class="card-subtitle">Most frequent safety issues</div></div></div>
-        <div id="occList" class="occ-list"><div class="loading"><div class="spinner"></div><span>Loading...</span></div></div>
+    <!-- ══ OVERVIEW ══ -->
+    <div id="sec-overview" class="section-page active">
+
+      <!-- KPIs -->
+      <div class="kpi-grid">
+        <div class="kpi-card blue"><div class="kpi-icon">📋</div><div class="kpi-value" id="kpiTotal">—</div><div class="kpi-label">Total Inspections</div></div>
+        <div class="kpi-card red"><div class="kpi-icon">⚠️</div><div class="kpi-value" id="kpiOcc">—</div><div class="kpi-label">Total Occurrences</div></div>
+        <div class="kpi-card green"><div class="kpi-icon">👷</div><div class="kpi-value" id="kpiInsp">—</div><div class="kpi-label">Active Inspectors</div></div>
+        <div class="kpi-card ai-card"><div class="kpi-icon">🤖</div><div class="kpi-value" id="kpiEPI">—</div><div class="kpi-label">EPI Analyses</div><div class="kpi-sub" id="kpiEPISub">Photos analyzed by AI</div></div>
       </div>
-      <div class="chart-card">
-        <div class="card-header"><div><div class="card-title">📍 By Area</div><div class="card-subtitle">Occurrences per zone</div></div></div>
-        <div class="chart-wrap"><canvas id="areaChart"></canvas></div>
-        <!-- SOP LIVE PANEL -->
-        <div id="sopPanel" style="background:#1a1a1a;border-radius:12px;padding:18px 20px 14px;margin:10px 8px 6px;font-family:'Courier New',monospace;box-shadow:0 4px 24px rgba(0,0,0,0.5);">
-          <div style="text-align:center;color:#ccc;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;margin-bottom:14px;font-family:'DM Sans',sans-serif;">
-            🏭 SOP — START OF PRODUCTION &nbsp;|&nbsp; HSM · NEMM Up · ArcelorMittal
-          </div>
-          <div style="display:flex;gap:14px;align-items:flex-start;flex-wrap:wrap;">
-            <div style="flex:1;min-width:160px;">
-              <div style="background:#111;border:2px solid #333;border-radius:8px;padding:10px 8px 8px;text-align:center;box-shadow:inset 0 2px 8px rgba(0,0,0,0.6);">
-                <div id="sopDays" style="font-size:68px;font-weight:900;color:#ff2a2a;line-height:1;text-shadow:0 0 18px #ff000088,0 0 40px #ff000044;letter-spacing:4px;">---</div>
-              </div>
-              <div style="text-align:center;margin-top:7px;color:#aaa;font-size:11px;font-weight:700;letter-spacing:2px;font-family:'DM Sans',sans-serif;">DAYS / 天</div>
-              <div style="text-align:center;margin-top:3px;color:#666;font-size:10px;font-family:'DM Sans',sans-serif;">TILL OCTOBER 31<sup>st</sup>, 2026</div>
+
+      <!-- Charts row -->
+      <div class="two-col">
+        <div class="card">
+          <div class="card-title">⚠️ Occurrence Ranking</div>
+          <div id="occList"><div class="empty-state"><div class="empty-icon">📡</div><div class="empty-title">Loading...</div></div></div>
+        </div>
+        <div class="card">
+          <div class="card-title">📈 14-Day Trend</div>
+          <canvas id="trendChart"></canvas>
+        </div>
+      </div>
+
+      <!-- SOP LIVE PANEL -->
+      <div id="sopPanel" style="background:#1a1a1a;border-radius:16px;padding:20px 24px 16px;margin-bottom:24px;font-family:'Courier New',monospace;box-shadow:0 4px 32px rgba(0,0,0,0.5);">
+        <div style="text-align:center;color:#ccc;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;margin-bottom:16px;font-family:'DM Sans',sans-serif;">
+          🏭 SOP — START OF PRODUCTION &nbsp;|&nbsp; HSM · NEMM Up · ArcelorMittal
+        </div>
+        <div style="display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap;">
+          <div style="flex:1;min-width:160px;">
+            <div style="background:#111;border:2px solid #333;border-radius:10px;padding:12px 8px 10px;text-align:center;box-shadow:inset 0 2px 8px rgba(0,0,0,0.6);">
+              <div id="sopDays" style="font-size:72px;font-weight:900;color:#ff2a2a;line-height:1;text-shadow:0 0 18px #ff000088,0 0 40px #ff000044;letter-spacing:4px;">---</div>
             </div>
-            <div style="flex:1;min-width:160px;display:flex;flex-direction:column;gap:12px;">
-              <div>
-                <div style="background:#111;border:2px solid #333;border-radius:8px;padding:8px;text-align:center;box-shadow:inset 0 2px 8px rgba(0,0,0,0.6);">
-                  <div id="sopClock" style="font-size:32px;font-weight:900;color:#ff2a2a;line-height:1;text-shadow:0 0 12px #ff000088,0 0 28px #ff000044;letter-spacing:3px;">--:--:--</div>
-                </div>
-                <div style="display:flex;justify-content:space-around;margin-top:5px;">
-                  <span style="color:#aaa;font-size:9px;font-weight:700;letter-spacing:1px;font-family:'DM Sans',sans-serif;">HOURS/时</span>
-                  <span style="color:#aaa;font-size:9px;font-weight:700;letter-spacing:1px;font-family:'DM Sans',sans-serif;">MINUTES/分</span>
-                  <span style="color:#aaa;font-size:9px;font-weight:700;letter-spacing:1px;font-family:'DM Sans',sans-serif;">SECONDS/秒</span>
-                </div>
-                <div style="text-align:center;margin-top:4px;color:#888;font-size:10px;font-weight:700;letter-spacing:1px;font-family:'DM Sans',sans-serif;">ZERO ACCIDENTS / 零事故</div>
-              </div>
-              <div>
-                <div style="background:#111;border:2px solid #333;border-radius:8px;padding:8px;text-align:center;box-shadow:inset 0 2px 8px rgba(0,0,0,0.6);">
-                  <div id="sopAccDays" style="font-size:44px;font-weight:900;color:#00e5aa;line-height:1;text-shadow:0 0 12px #00e5aa88,0 0 28px #00e5aa44;letter-spacing:3px;">---</div>
-                </div>
-                <div style="text-align:center;margin-top:5px;color:#aaa;font-size:11px;font-weight:700;letter-spacing:2px;font-family:'DM Sans',sans-serif;">DAYS / 天</div>
-              </div>
-            </div>
+            <div style="text-align:center;margin-top:8px;color:#aaa;font-size:11px;font-weight:700;letter-spacing:2px;font-family:'DM Sans',sans-serif;">DAYS / 天</div>
+            <div style="text-align:center;margin-top:3px;color:#666;font-size:10px;font-family:'DM Sans',sans-serif;">TILL OCTOBER 31<sup>st</sup>, 2026</div>
           </div>
-          <div style="text-align:center;margin-top:10px;color:#444;font-size:9px;font-family:'DM Sans',sans-serif;letter-spacing:1px;">
-            SafeCheck · NEMM Up · <span id="sopDateStr"></span>
+          <div style="flex:1;min-width:160px;display:flex;flex-direction:column;gap:14px;">
+            <div>
+              <div style="background:#111;border:2px solid #333;border-radius:10px;padding:10px;text-align:center;box-shadow:inset 0 2px 8px rgba(0,0,0,0.6);">
+                <div id="sopClock" style="font-size:34px;font-weight:900;color:#ff2a2a;line-height:1;text-shadow:0 0 12px #ff000088,0 0 28px #ff000044;letter-spacing:3px;">--:--:--</div>
+              </div>
+              <div style="display:flex;justify-content:space-around;margin-top:6px;">
+                <span style="color:#aaa;font-size:9px;font-weight:700;letter-spacing:1px;font-family:'DM Sans',sans-serif;">HOURS/时</span>
+                <span style="color:#aaa;font-size:9px;font-weight:700;letter-spacing:1px;font-family:'DM Sans',sans-serif;">MINUTES/分</span>
+                <span style="color:#aaa;font-size:9px;font-weight:700;letter-spacing:1px;font-family:'DM Sans',sans-serif;">SECONDS/秒</span>
+              </div>
+              <div style="text-align:center;margin-top:4px;color:#888;font-size:10px;font-weight:700;letter-spacing:1px;font-family:'DM Sans',sans-serif;">ZERO ACCIDENTS / 零事故</div>
+            </div>
+            <div>
+              <div style="background:#111;border:2px solid #333;border-radius:10px;padding:10px;text-align:center;box-shadow:inset 0 2px 8px rgba(0,0,0,0.6);">
+                <div id="sopAccDays" style="font-size:48px;font-weight:900;color:#00e5aa;line-height:1;text-shadow:0 0 12px #00e5aa88,0 0 28px #00e5aa44;letter-spacing:3px;">---</div>
+              </div>
+              <div style="text-align:center;margin-top:6px;color:#aaa;font-size:11px;font-weight:700;letter-spacing:2px;font-family:'DM Sans',sans-serif;">ACCIDENT-FREE DAYS / 天</div>
+            </div>
           </div>
         </div>
-        <script>
-        (function(){
-          var ACC_START  = new Date('2025-04-29T00:00:00');
-          function pad(n){ return n < 10 ? '0'+n : String(n); }
-          function updateSOP(){
-            var now = new Date();
-            // Compare dates only (ignore time) to get exact day count
-            var today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-            var target = new Date(2026, 9, 31); // October 31, 2026 (month is 0-indexed)
-            var msLeft = target - today;
-            var daysLeft = msLeft > 0 ? Math.round(msLeft / 86400000) - 1 : 0;
-            document.getElementById('sopDays').textContent = daysLeft;
-            var midnight = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 0);
-            var remMs = midnight - now;
-            var totalSec = Math.floor(remMs / 1000);
-            var hh = Math.floor(totalSec / 3600);
-            var mm = Math.floor((totalSec % 3600) / 60);
-            var ss = totalSec % 60;
-            document.getElementById('sopClock').textContent =
-              pad(hh) + ':' + pad(mm) + ':' + pad(ss);
-            var accMs = now - ACC_START;
-            var accDays = accMs > 0 ? Math.floor(accMs / 86400000) : 0;
-            document.getElementById('sopAccDays').textContent = accDays;
-            var months=['January','February','March','April','May','June','July','August','September','October','November','December'];
-            document.getElementById('sopDateStr').textContent =
-              months[now.getMonth()] + ' ' + now.getDate() + ', ' + now.getFullYear();
-          }
-          updateSOP();
-          setInterval(updateSOP, 1000);
-        })();
-        </script>
-      </div>
-      <div class="chart-card full">
-        <div class="card-header"><div><div class="card-title">📈 Inspection Trend</div><div class="card-subtitle">Occurrences over time</div></div></div>
-        <div class="chart-wrap"><canvas id="trendChart"></canvas></div>
-      </div>
-    </div>
-
-    <div class="chart-card" style="margin-bottom:24px" id="areas">
-      <div class="card-header"><div><div class="card-title">🏗️ Area Status</div><div class="card-subtitle">Risk level per construction zone</div></div></div>
-      <div class="area-grid" id="areaGrid"><div class="loading"><div class="spinner"></div></div></div>
-    </div>
-
-    <div class="chart-card" id="inspections">
-      <div class="card-header"><div><div class="card-title">📋 Recent Inspections</div><div class="card-subtitle">Latest records from all inspectors</div></div></div>
-      <div class="table-wrap">
-        <table>
-          <thead><tr><th>Date</th><th>Time</th><th>Area</th><th>Inspector</th><th>Duration</th><th>Occurrences</th><th>Lang</th><th>Photos</th><th>Report</th><th id="deleteColHeader"></th></tr></thead>
-          <tbody id="inspTable"><tr><td colspan="9"><div class="loading"><div class="spinner"></div></div></td></tr></tbody>
-        </table>
-      </div>
-    </div>
-  </div>
-
-  <!-- ── INSPECTORS SECTION ─────────────────────────────────────────── -->
-  <div class="content" id="inspectors" style="padding-top:0;">
-    <div class="chart-card" style="margin-bottom:24px;">
-      <div class="card-header">
-        <div>
-          <div class="card-title">👷 Inspector Activity</div>
-          <div class="card-subtitle">Visits and inspections per inspector</div>
+        <div style="text-align:center;margin-top:12px;color:#444;font-size:9px;font-family:'DM Sans',sans-serif;letter-spacing:1px;">
+          SafeCheck v2.0 · NEMM Up · <span id="sopDateStr"></span>
         </div>
-        <div style="display:flex;gap:8px;align-items:center;">
+      </div>
+      <script>
+      (function(){
+        var ACC_START = new Date('2025-04-29T00:00:00');
+        function pad(n){ return n < 10 ? '0'+n : String(n); }
+        function updateSOP(){
+          var now = new Date();
+          var today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+          var target = new Date(2026, 9, 31);
+          var msLeft = target - today;
+          var daysLeft = msLeft > 0 ? Math.round(msLeft / 86400000) - 1 : 0;
+          document.getElementById('sopDays').textContent = daysLeft;
+          var midnight = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 0);
+          var remMs = midnight - now;
+          var totalSec = Math.floor(remMs / 1000);
+          var hh = Math.floor(totalSec / 3600);
+          var mm = Math.floor((totalSec % 3600) / 60);
+          var ss = totalSec % 60;
+          document.getElementById('sopClock').textContent = pad(hh) + ':' + pad(mm) + ':' + pad(ss);
+          var accMs = now - ACC_START;
+          var accDays = accMs > 0 ? Math.floor(accMs / 86400000) : 0;
+          document.getElementById('sopAccDays').textContent = accDays;
+          var months=['January','February','March','April','May','June','July','August','September','October','November','December'];
+          document.getElementById('sopDateStr').textContent = months[now.getMonth()] + ' ' + now.getDate() + ', ' + now.getFullYear();
+        }
+        updateSOP();
+        setInterval(updateSOP, 1000);
+      })();
+      </script>
+
+      <!-- Area chart -->
+      <div class="card">
+        <div class="card-title">📍 Occurrences by Area</div>
+        <canvas id="areaChart"></canvas>
+      </div>
+
+    </div>
+
+    <!-- ══ RECORDS ══ -->
+    <div id="sec-records" class="section-page">
+      <div class="card" style="padding:0;overflow:hidden;">
+        <div style="padding:18px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
+          <div class="card-title" style="margin:0;">📋 Inspection Records</div>
+          <div id="deleteAllContainer"></div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr>
+              <th>Date</th><th>Time</th><th>Area</th><th>Inspector</th>
+              <th>Duration</th><th>Occurrences</th><th>Lang</th><th>Photos</th>
+              <th>EPI AI</th><th>Report</th><th id="deleteColHeader"></th>
+            </tr></thead>
+            <tbody id="inspTable"><tr><td colspan="11"><div class="empty-state"><div class="empty-icon">📡</div><div class="empty-title">Loading...</div></div></td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ AREAS ══ -->
+    <div id="sec-areas" class="section-page">
+      <div class="card">
+        <div class="card-title">📍 Area Risk Assessment</div>
+        <div class="area-grid" id="areaGrid"><div class="empty-state"><div class="empty-icon">📍</div><div class="empty-title">Loading...</div></div></div>
+      </div>
+    </div>
+
+    <!-- ══ AI ANALYST ══ -->
+    <div id="sec-ai" class="section-page">
+      <div class="ai-panel">
+        <div class="ai-panel-header">
+          <div class="ai-panel-title">🤖 AI Safety Analyst <span style="font-size:11px;opacity:0.7;font-weight:400;">Powered by Claude AI</span></div>
+          <button class="btn" style="background:rgba(255,255,255,0.15);color:white;border:none;" onclick="runAIAnalysis('general')" id="aiRunBtn">▶ Run Analysis</button>
+        </div>
+        <div class="ai-panel-body">
+          <div class="ai-btn-row" style="margin-bottom:16px;">
+            <div class="ai-chip active" onclick="selectAIChip(this,'general')">📊 General Overview</div>
+            <div class="ai-chip" onclick="selectAIChip(this,'risk')">🎯 Risk Assessment</div>
+            <div class="ai-chip" onclick="selectAIChip(this,'trend')">📈 Trend Analysis</div>
+            <div class="ai-chip" onclick="selectAIChip(this,'inspector')">👷 Inspector Performance</div>
+            <div class="ai-chip" onclick="selectAIChip(this,'sop')">🏭 SOP Readiness</div>
+          </div>
+          <div class="ai-insight-box loading" id="aiInsightBox">
+            Click "Run Analysis" to generate AI-powered safety insights based on your inspection data.
+          </div>
+          <div style="margin-top:12px;font-size:11px;color:var(--muted);">
+            💡 AI analysis uses real inspection data from Supabase · Results in English for international team
+          </div>
+        </div>
+      </div>
+
+      <!-- AI Stats -->
+      <div class="three-col">
+        <div class="card">
+          <div class="card-title">🔴 Top Hazards</div>
+          <div id="aiTopHazards"><div class="empty-state" style="padding:20px;"><div class="empty-icon" style="font-size:32px;">⚠️</div><p>Run analysis first</p></div></div>
+        </div>
+        <div class="card">
+          <div class="card-title">📍 Highest Risk Areas</div>
+          <div id="aiRiskAreas"><div class="empty-state" style="padding:20px;"><div class="empty-icon" style="font-size:32px;">📍</div><p>Run analysis first</p></div></div>
+        </div>
+        <div class="card">
+          <div class="card-title">💡 Recommendations</div>
+          <div id="aiRecommendations"><div class="empty-state" style="padding:20px;"><div class="empty-icon" style="font-size:32px;">💡</div><p>Run analysis first</p></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ EPI VISION ══ -->
+    <div id="sec-epi" class="section-page">
+      <div class="epi-panel">
+        <div class="epi-panel-header">
+          <div class="epi-panel-title">📸 EPI Vision — Batch Photo Analysis <span style="font-size:11px;opacity:0.7;font-weight:400;">Powered by Claude AI Vision</span></div>
+          <button class="analyze-all-btn" id="analyzeAllBtn" onclick="analyzeAllPhotos()">
+            <span>🔍 Analyze All Photos</span>
+          </button>
+        </div>
+        <div class="epi-panel-body">
+          <div class="epi-grid">
+            <div class="epi-stat"><div class="epi-stat-val" id="epiTotalPhotos">—</div><div class="epi-stat-lbl">Total Photos</div></div>
+            <div class="epi-stat"><div class="epi-stat-val" id="epiAnalyzed" style="color:var(--green);">—</div><div class="epi-stat-lbl">Analyzed</div></div>
+            <div class="epi-stat"><div class="epi-stat-val" id="epiNonCompliant" style="color:var(--red);">—</div><div class="epi-stat-lbl">Non-Compliant</div></div>
+          </div>
+          <div style="margin-bottom:16px;">
+            <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-bottom:6px;">
+              <span>EPI Compliance Rate</span>
+              <span id="epiComplianceRate">—</span>
+            </div>
+            <div class="epi-progress"><div class="epi-progress-fill" id="epiProgressBar" style="width:0%;background:var(--green);"></div></div>
+          </div>
+          <div style="font-size:13px;color:var(--muted);margin-bottom:16px;">
+            💡 This analysis runs on the dashboard (stable network) — no mobile connectivity required in the field.
+          </div>
+          <div style="font-size:12px;color:var(--muted);margin-bottom:12px;font-weight:600;text-transform:uppercase;letter-spacing:1px;">Recent Photo Analysis Results</div>
+          <div class="epi-photo-grid" id="epiPhotoGrid">
+            <div class="empty-state"><div class="empty-icon">📸</div><div class="empty-title">No analyses yet</div><p>Click "Analyze All Photos" to start</p></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ INSPECTORS ══ -->
+    <div id="sec-inspectors" class="section-page">
+      <div class="card">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+          <div class="card-title" style="margin:0;">👷 Inspector Activity</div>
           <select id="inspectorPeriod" onchange="renderInspectors()" style="padding:6px 12px;border-radius:8px;border:1.5px solid var(--border);background:var(--bg);color:var(--text);font-size:13px;font-weight:600;cursor:pointer;">
+            <option value="all">All Time</option>
             <option value="week">This Week</option>
             <option value="month">This Month</option>
-            <option value="all" selected>All Time</option>
           </select>
         </div>
-      </div>
-
-      <!-- Ranking + Chart row -->
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:24px;">
-        <!-- Ranking -->
-        <div>
-          <div style="font-size:12px;font-weight:700;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:12px;">🏆 Top Inspectors</div>
-          <div id="inspectorRanking"></div>
+        <div class="two-col">
+          <div>
+            <div style="font-size:12px;font-weight:700;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:12px;">🏆 Top Inspectors</div>
+            <div id="inspectorRanking"></div>
+          </div>
+          <div>
+            <div style="font-size:12px;font-weight:700;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:12px;">📊 Inspections per Inspector</div>
+            <canvas id="inspectorChart" style="max-height:200px;"></canvas>
+          </div>
         </div>
-        <!-- Bar chart -->
-        <div>
-          <div style="font-size:12px;font-weight:700;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:12px;">📊 Inspections per Inspector</div>
-          <canvas id="inspectorChart" style="max-height:200px;"></canvas>
+        <div style="margin-top:20px;">
+          <div style="font-size:12px;font-weight:700;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:12px;">📅 Weekly Activity Heatmap</div>
+          <div id="inspectorCalendar" style="overflow-x:auto;"></div>
         </div>
-      </div>
-
-      <!-- Weekly calendar heatmap -->
-      <div style="font-size:12px;font-weight:700;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:12px;">📅 Weekly Visit Calendar</div>
-      <div id="inspectorCalendar" style="overflow-x:auto;"></div>
-
-      <!-- Detail table -->
-      <div style="font-size:12px;font-weight:700;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin:20px 0 12px;">📋 Detail Table</div>
-      <div class="table-wrap">
-        <table>
-          <thead><tr><th>#</th><th>Inspector</th><th>This Week</th><th>This Month</th><th>Total</th><th>Last Visit</th><th>Avg Occ/Visit</th></tr></thead>
-          <tbody id="inspectorTable"><tr><td colspan="7"><div class="loading"><div class="spinner"></div></div></td></tr></tbody>
-        </table>
+        <div style="margin-top:20px;overflow-x:auto;">
+          <table style="width:100%;border-collapse:collapse;font-size:13px;">
+            <thead><tr style="background:var(--navy);color:white;">
+              <th style="padding:10px 14px;">#</th>
+              <th style="padding:10px 14px;">Inspector</th>
+              <th style="padding:10px 14px;text-align:center;">This Week</th>
+              <th style="padding:10px 14px;text-align:center;">This Month</th>
+              <th style="padding:10px 14px;text-align:center;">Total</th>
+              <th style="padding:10px 14px;">Last Visit</th>
+              <th style="padding:10px 14px;text-align:center;">Avg Occ/Visit</th>
+            </tr></thead>
+            <tbody id="inspectorTable"></tbody>
+          </table>
+        </div>
       </div>
     </div>
-  </div>
-</main>
+
+  </div><!-- /content -->
+</div><!-- /main -->
 
 <script>
 const SUPABASE_URL='https://ocqfsccrvpdnjjlofkvk.supabase.co';
 const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9jcWZzY2NydnBkbmpqbG9ma3ZrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ1OTMwMTksImV4cCI6MjA5MDE2OTAxOX0.Uq0bMvtwmWm8lpIXAtUaPND7zDwW6QUKvOwbDhuKECI';
+// ── CLAUDE API KEY (stored in localStorage, never in code) ────────────────────
+function getClaudeKey() {
+  return localStorage.getItem('safecheck_claude_key') || '';
+}
+function setClaudeKey(key) {
+  localStorage.setItem('safecheck_claude_key', key);
+}
+function promptClaudeKey() {
+  const key = prompt('🔑 Enter your Anthropic Claude API Key to enable AI features:\n(It will be stored locally in your browser only)');
+  if (key && key.startsWith('sk-ant-')) {
+    setClaudeKey(key);
+    alert('✅ Claude API Key saved! AI features are now enabled.');
+    return key;
+  } else if (key) {
+    alert('❌ Invalid key format. Must start with sk-ant-');
+  }
+  return null;
+}
+const CLAUDE_API_KEY = null; // never hardcoded — use getClaudeKey()
 
-// ── USERS (edit here to add/remove users) ────────────────────────────────────
 const USERS = [
   { username: 'manoel',  password: 'nemm2026' },
   { username: 'amilcar', password: 'palacio' },
   { username: 'manager', password: 'nemm@site' },
   { username: 'pierre',  password: 'france2026' },
   { username: 'adriana', password: 'projetos' },
-  // Add more users below (max 5 recommended):
-  // { username: 'inspector1', password: 'pass123' },
-  // { username: 'inspector2', password: 'pass456' },
 ];
-
-// ── AUTH ─────────────────────────────────────────────────────────────────────
-function checkAuth() {
-  // Check sessionStorage first (tab still open)
-  const session = sessionStorage.getItem('safecheck_auth');
-  if (session === 'true') {
-    document.getElementById('loginScreen').classList.add('hidden');
-    return;
-  }
-  // Check localStorage (returning user, auto-login)
-  const saved = localStorage.getItem('safecheck_saved');
-  if (saved) {
-    try {
-      const { username, password } = JSON.parse(saved);
-      const match = USERS.find(u => u.username === username && u.password === password);
-      if (match) {
-        sessionStorage.setItem('safecheck_auth', 'true');
-        sessionStorage.setItem('safecheck_user', match.username);
-        document.getElementById('loginScreen').classList.add('hidden');
-        loadData();
-        return;
-      }
-    } catch(e) {
-      localStorage.removeItem('safecheck_saved');
-    }
-  }
-}
-
-function doLogin() {
-  const user = document.getElementById('loginUser').value.trim().toLowerCase();
-  const pass = document.getElementById('loginPass').value;
-  const error = document.getElementById('loginError');
-  const match = USERS.find(u => u.username === user && u.password === pass);
-  if (match) {
-    // Save to localStorage for auto-login on next visit
-    localStorage.setItem('safecheck_saved', JSON.stringify({ username: match.username, password: match.password }));
-    sessionStorage.setItem('safecheck_auth', 'true');
-    sessionStorage.setItem('safecheck_user', match.username);
-    document.getElementById('loginScreen').classList.add('hidden');
-    error.classList.remove('show');
-    loadData();
-  } else {
-    error.classList.add('show');
-    document.getElementById('loginPass').value = '';
-    document.getElementById('loginPass').focus();
-  }
-}
-
-function doLogout() {
-  // Clear session but keep localStorage so next visit auto-logs in
-  sessionStorage.removeItem('safecheck_auth');
-  sessionStorage.removeItem('safecheck_user');
-  document.getElementById('loginUser').value = '';
-  document.getElementById('loginPass').value = '';
-  document.getElementById('loginScreen').classList.remove('hidden');
-}
-
-function doLogoutFull() {
-  // Full logout — clears saved credentials too
-  localStorage.removeItem('safecheck_saved');
-  sessionStorage.removeItem('safecheck_auth');
-  sessionStorage.removeItem('safecheck_user');
-  document.getElementById('loginUser').value = '';
-  document.getElementById('loginPass').value = '';
-  document.getElementById('loginScreen').classList.remove('hidden');
-}
-
-checkAuth();
 
 const OCCURRENCES=[
   {id:'no_helmet',label:'No Hard Hat',icon:'⛑️'},
@@ -487,16 +584,90 @@ const OCCURRENCES=[
 ];
 
 const AREAS=['SY','RHF','MRL','DC','WTA','CY'];
-const AREA_NAMES={
-  'SY':  'Slab Yard',
-  'RHF': 'Reheating Furnace',
-  'MRL': 'Main Rolling Area',
-  'DC':  'Down Coiler',
-  'WTA': 'Water Treatment Area',
-  'CY':  'Coil Yard',
-};
-let allData=[], aCI=null, tCI=null;
+const AREA_NAMES={SY:'Slab Yard',RHF:'Reheating Furnace',MRL:'Main Rolling Area',DC:'Down Coiler',WTA:'Water Treatment Area',CY:'Coil Yard'};
 
+let allData=[], aCI=null, tCI=null, currentAIChip='general';
+
+// ── AUTH ──────────────────────────────────────────────────────────────────────
+function updateAIKeyStatus(){
+  const el = document.getElementById('aiKeyStatus');
+  if(!el) return;
+  const key = getClaudeKey();
+  el.textContent = key ? 'Set ✅' : 'Not set ❌';
+}
+
+function checkAuth(){
+  const session=sessionStorage.getItem('safecheck_auth');
+  if(session==='true'){document.getElementById('loginScreen').classList.add('hidden');return;}
+  const saved=localStorage.getItem('safecheck_saved');
+  if(saved){
+    try{
+      const{username,password}=JSON.parse(saved);
+      const match=USERS.find(u=>u.username===username&&u.password===password);
+      if(match){
+        sessionStorage.setItem('safecheck_auth','true');
+        sessionStorage.setItem('safecheck_user',match.username);
+        document.getElementById('loginScreen').classList.add('hidden');
+        loadData();return;
+      }
+    }catch(e){localStorage.removeItem('safecheck_saved');}
+  }
+}
+
+function doLogin(){
+  const user=document.getElementById('loginUser').value.trim().toLowerCase();
+  const pass=document.getElementById('loginPass').value;
+  const error=document.getElementById('loginError');
+  const match=USERS.find(u=>u.username===user&&u.password===pass);
+  if(match){
+    localStorage.setItem('safecheck_saved',JSON.stringify({username:match.username,password:match.password}));
+    sessionStorage.setItem('safecheck_auth','true');
+    sessionStorage.setItem('safecheck_user',match.username);
+    document.getElementById('loginScreen').classList.add('hidden');
+    error.classList.remove('show');
+    loadData();
+    updateAIKeyStatus();
+  }else{
+    error.classList.add('show');
+    document.getElementById('loginPass').value='';
+    document.getElementById('loginPass').focus();
+  }
+}
+
+function doLogout(){
+  sessionStorage.removeItem('safecheck_auth');sessionStorage.removeItem('safecheck_user');
+  document.getElementById('loginUser').value='';document.getElementById('loginPass').value='';
+  document.getElementById('loginScreen').classList.remove('hidden');
+}
+
+function doLogoutFull(){
+  localStorage.removeItem('safecheck_saved');
+  doLogout();
+}
+
+checkAuth();
+
+// ── NAVIGATION ────────────────────────────────────────────────────────────────
+function showSection(id, el){
+  document.querySelectorAll('.section-page').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('sec-'+id).classList.add('active');
+  if(el) el.classList.add('active');
+  const titles={overview:'📊 Dashboard Overview',records:'📋 Inspection Records',areas:'📍 Area Risk Assessment',ai:'🤖 AI Safety Analyst',epi:'📸 EPI Vision Analysis',inspectors:'👷 Inspector Activity'};
+  document.getElementById('pageTitle').textContent=titles[id]||'SafeCheck';
+  if(id==='inspectors') renderInspectors();
+  if(id==='epi') updateEPIStats();
+}
+
+function isManoel(){return sessionStorage.getItem('safecheck_user')==='manoel';}
+function isPrivileged(){const u=sessionStorage.getItem('safecheck_user');return u==='manoel'||u==='pierre';}
+
+function checkInspectorAccess(e,id,el){
+  if(!isPrivileged()){e.preventDefault();alert('🔒 Access restricted. This section is available to authorised users only.');return false;}
+  showSection(id,el);return false;
+}
+
+// ── DATA LOADING ──────────────────────────────────────────────────────────────
 async function loadData(){
   document.getElementById('syncStatus').textContent='Syncing...';
   try{
@@ -511,6 +682,7 @@ async function loadData(){
     checkAndSendHazardAlerts(allData);
     render();
     document.getElementById('syncStatus').textContent=`${allData.length} records · Live`;
+    document.getElementById('sopInspTotal').textContent=allData.length;
   }catch(e){
     document.getElementById('syncStatus').textContent='Connection error';
     showEmpty();
@@ -522,127 +694,64 @@ function occCount(insp){
   return Object.values(insp.occurrences).filter(Boolean).length;
 }
 
-// ── HAZARD ALERT via EmailJS ──────────────────────────────────────────────────
-const ALERT_HAZARDS = ['electric', 'fire'];
+// ── HAZARD ALERTS ─────────────────────────────────────────────────────────────
+const ALERT_HAZARDS=['electric','fire'];
+function getAlertedIds(){try{return new Set(JSON.parse(localStorage.getItem('safecheck_alerted')||'[]'));}catch(e){return new Set();}}
+function saveAlertedId(key){const ids=getAlertedIds();ids.add(key);localStorage.setItem('safecheck_alerted',JSON.stringify([...ids].slice(-500)));}
 
-// Load alerted IDs from localStorage (persistent across sessions)
-function getAlertedIds() {
-  try { return new Set(JSON.parse(localStorage.getItem('safecheck_alerted') || '[]')); }
-  catch(e) { return new Set(); }
-}
-function saveAlertedId(key) {
-  const ids = getAlertedIds();
-  ids.add(key);
-  // Keep only last 500 to avoid bloat
-  const arr = [...ids].slice(-500);
-  localStorage.setItem('safecheck_alerted', JSON.stringify(arr));
-}
-
-function checkAndSendHazardAlerts(data) {
-  const alertedIds = getAlertedIds();
-  // Only check inspections from the last 48 hours
-  const cutoff = new Date(Date.now() - 48 * 3600 * 1000);
-  const recent = data.filter(i => {
-    const d = new Date(i.created_at || i.date);
-    return d >= cutoff;
-  });
-  console.log(`🔍 Checking ${recent.length} recent inspections for hazards...`);
-  let found = 0;
-  recent.forEach(insp => {
-    if (!insp.occurrences) return;
-    ALERT_HAZARDS.forEach(hazardId => {
-      if (!insp.occurrences[hazardId]) return;
-      const alertKey = `${insp.id}_${hazardId}`;
-      if (alertedIds.has(alertKey)) {
-        console.log(`⏭️ Already alerted: ${alertKey}`);
-        return;
-      }
-      found++;
+function checkAndSendHazardAlerts(data){
+  const alertedIds=getAlertedIds();
+  const cutoff=new Date(Date.now()-48*3600*1000);
+  const recent=data.filter(i=>new Date(i.created_at||i.date)>=cutoff);
+  recent.forEach(insp=>{
+    if(!insp.occurrences)return;
+    ALERT_HAZARDS.forEach(hazardId=>{
+      if(!insp.occurrences[hazardId])return;
+      const alertKey=`${insp.id}_${hazardId}`;
+      if(alertedIds.has(alertKey))return;
       saveAlertedId(alertKey);
-
-      const hazardLabel = hazardId === 'electric' ? '⚡ Electrical Hazard' : '🔥 Fire Hazard';
-      const areaName = AREA_NAMES[insp.area] || insp.area || '—';
-      const datetime = `${insp.date || '—'} ${insp.time_start || ''}`.trim();
-
-      console.log(`📧 Sending alert for ${hazardLabel}...`);
-      fetch('https://api.emailjs.com/api/v1.0/email/send', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          service_id:  'service_73qkk3h',
-          template_id: 'template_zxdj37d',
-          user_id:     '2lHLpzIdZXh9Sguuk',
-          template_params: {
-            hazard_type: hazardLabel,
-            inspector:   insp.inspector || '—',
-            area:        `${insp.area || '—'} — ${areaName}`,
-            datetime:    datetime,
-          }
-        })
-      }).then(async r => {
+      const hazardLabel=hazardId==='electric'?'⚡ Electrical Hazard':'🔥 Fire Hazard';
+      const areaName=AREA_NAMES[insp.area]||insp.area||'—';
+      fetch('https://api.emailjs.com/api/v1.0/email/send',{
+        method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({service_id:'service_73qkk3h',template_id:'template_zxdj37d',user_id:'2lHLpzIdZXh9Sguuk',
+          template_params:{hazard_type:hazardLabel,inspector:insp.inspector||'—',area:`${insp.area||'—'} — ${areaName}`,datetime:`${insp.date||'—'} ${insp.time_start||''}`.trim()}})
+      }).then(r=>{
         if(r.ok){
-          console.log(`✅ Alert sent: ${hazardLabel} by ${insp.inspector}`);
-          const toast = document.createElement('div');
-          toast.style.cssText = 'position:fixed;top:20px;right:20px;z-index:99999;background:#E74C3C;color:white;padding:14px 20px;border-radius:12px;font-weight:700;font-size:14px;box-shadow:0 4px 20px rgba(0,0,0,0.3);';
-          toast.innerHTML = `🚨 Alert sent: ${hazardLabel}<br><span style="font-weight:400;font-size:12px;">Inspector: ${insp.inspector} · ${insp.area}</span>`;
-          document.body.appendChild(toast);
-          setTimeout(() => toast.remove(), 6000);
-        } else {
-          const text = await r.text();
-          console.warn(`❌ EmailJS error ${r.status}:`, text);
+          const t=document.createElement('div');
+          t.style.cssText='position:fixed;top:20px;right:20px;z-index:99999;background:#E74C3C;color:white;padding:14px 20px;border-radius:12px;font-weight:700;font-size:14px;box-shadow:0 4px 20px rgba(0,0,0,0.3);';
+          t.innerHTML=`🚨 Alert sent: ${hazardLabel}<br><span style="font-weight:400;font-size:12px;">Inspector: ${insp.inspector} · ${insp.area}</span>`;
+          document.body.appendChild(t);setTimeout(()=>t.remove(),6000);
         }
-      }).catch(err => {
-        console.warn('EmailJS fetch error:', err);
-      });
+      }).catch(()=>{});
     });
   });
-  console.log(`📧 New hazard alerts sent: ${found}`);
 }
 
-function isManoel(){
-  return sessionStorage.getItem('safecheck_user') === 'manoel';
-}
-
-function isPrivileged(){
-  const user = sessionStorage.getItem('safecheck_user');
-  return user === 'manoel' || user === 'pierre';
-}
-
-function checkInspectorAccess(e){
-  if(!isPrivileged()){
-    e.preventDefault();
-    alert('🔒 Access restricted. This section is available to authorised users only.');
-    return false;
-  }
-  return true;
-}
-
+// ── RENDER ────────────────────────────────────────────────────────────────────
 function render(){
   const totalOcc=allData.reduce((s,i)=>s+occCount(i),0);
   const inspectors=new Set(allData.map(i=>i.inspector).filter(Boolean)).size;
+  const epiAnalyzed=allData.filter(i=>i.epi_check&&i.epi_check.length>0).length;
   document.getElementById('kpiTotal').textContent=allData.length;
   document.getElementById('kpiOcc').textContent=totalOcc;
   document.getElementById('kpiInsp').textContent=inspectors||'—';
-  renderRanking(); renderAreaChart(); renderTrend(); renderAreaGrid(); renderTable(); 
-  // Inspector Activity — only for manoel and pierre
+  document.getElementById('kpiEPI').textContent=epiAnalyzed;
+  document.getElementById('kpiEPISub').textContent=`${epiAnalyzed} of ${allData.length} inspections`;
+  renderRanking(); renderAreaChart(); renderTrend(); renderAreaGrid(); renderTable();
+  updateEPIStats();
   if(isPrivileged()){
-    document.getElementById('inspectorLock').style.display = 'none';
-    document.getElementById('inspectors').style.display = '';
-    renderInspectors();
-  } else {
-    document.getElementById('inspectorLock').style.display = 'inline';
-    document.getElementById('inspectors').style.display = 'none';
+    document.getElementById('inspectorLock').style.display='none';
   }
 }
 
 function renderRanking(){
-  const counts={};
-  OCCURRENCES.forEach(o=>counts[o.id]=0);
+  const counts={};OCCURRENCES.forEach(o=>counts[o.id]=0);
   allData.forEach(i=>{if(i.occurrences)Object.entries(i.occurrences).forEach(([k,v])=>{if(v&&counts[k]!==undefined)counts[k]++;});});
   const sorted=OCCURRENCES.map(o=>({...o,count:counts[o.id]||0})).filter(o=>o.count>0).sort((a,b)=>b.count-a.count).slice(0,8);
   const max=sorted[0]?.count||1;
   const colors=['#E74C3C','#E67E22','#F39C12','#2E86C1','#2E86C1','#2E86C1','#5D7A8A','#5D7A8A'];
-  if(!sorted.length){document.getElementById('occList').innerHTML=`<div class="empty-state"><div class="empty-icon">✅</div><div class="empty-title">No occurrences yet</div><p>Start inspecting to see data</p></div>`;return;}
+  if(!sorted.length){document.getElementById('occList').innerHTML=`<div class="empty-state"><div class="empty-icon">✅</div><div class="empty-title">No occurrences yet</div></div>`;return;}
   document.getElementById('occList').innerHTML=sorted.map((o,i)=>`
     <div class="occ-item">
       <div class="occ-rank ${i===0?'r1':i===1?'r2':i===2?'r3':'rn'}">${i+1}</div>
@@ -661,7 +770,7 @@ function renderAreaChart(){
   const ctx=document.getElementById('areaChart').getContext('2d');
   if(aCI)aCI.destroy();
   const max=Math.max(...Object.values(ac),1);
-  aCI=new Chart(ctx,{type:'bar',data:{labels:AREAS.map(a=>`${a} – ${AREA_NAMES[a]}`),datasets:[{label:'Occurrences',data:AREAS.map(a=>ac[a]),backgroundColor:AREAS.map(a=>{const r=ac[a]/max;return r>0.7?'rgba(231,76,60,0.8)':r>0.4?'rgba(230,126,34,0.8)':'rgba(46,134,193,0.8)';}),borderRadius:8,borderSkipped:false}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,grid:{color:'rgba(0,0,0,0.05)'}},x:{grid:{display:false},ticks:{font:{size:11}}}}}})
+  aCI=new Chart(ctx,{type:'bar',data:{labels:AREAS.map(a=>`${a} – ${AREA_NAMES[a]}`),datasets:[{label:'Occurrences',data:AREAS.map(a=>ac[a]),backgroundColor:AREAS.map(a=>{const r=ac[a]/max;return r>0.7?'rgba(231,76,60,0.8)':r>0.4?'rgba(230,126,34,0.8)':'rgba(46,134,193,0.8)';}),borderRadius:8,borderSkipped:false}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,grid:{color:'rgba(0,0,0,0.05)'}},x:{grid:{display:false},ticks:{font:{size:11}}}}}});
 }
 
 function renderTrend(){
@@ -674,8 +783,7 @@ function renderTrend(){
 }
 
 function renderAreaGrid(){
-  const ac={},ai={};
-  AREAS.forEach(a=>{ac[a]=0;ai[a]=0;});
+  const ac={},ai={};AREAS.forEach(a=>{ac[a]=0;ai[a]=0;});
   allData.forEach(i=>{if(i.area&&ac[i.area]!==undefined){ai[i.area]++;ac[i.area]+=occCount(i);}});
   const max=Math.max(...Object.values(ac),1);
   document.getElementById('areaGrid').innerHTML=AREAS.map(area=>{
@@ -687,326 +795,412 @@ function renderAreaGrid(){
   }).join('');
 }
 
-function generatePDF(id){
-  const i = allData.find(x => x.id === id);
-  if(!i) return;
-  const active = OCCURRENCES.filter(o => i.occurrences && i.occurrences[o.id]);
-  const rows = active.length
-    ? active.map(o=>`<tr><td style="padding:8px 12px;border-bottom:1px solid #C5D8EA">${o.icon} ${o.label}</td></tr>`).join('')
-    : `<tr><td style="padding:10px;color:#27AE60;font-weight:bold">✅ No non-conformities recorded.</td></tr>`;
-  const photoImgs = (i.photos||[]).filter(Boolean)
-    .map(url=>`<img src="${url}" style="width:210px;height:158px;object-fit:cover;border-radius:8px;border:2px solid #C5D8EA;margin:5px" crossorigin="anonymous"/>`)
-    .join('');
-  const lang = i.language || 'EN';
-  const isZH = lang === 'ZH';
-  const html=`<!DOCTYPE html><html><head><meta charset="utf-8"/>
-  <style>
-    *{margin:0;padding:0;box-sizing:border-box;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;color-adjust:exact!important;}
-    body{font-family:Arial,sans-serif;color:#1A2E3E;background:#fff}
-    .header{background:linear-gradient(135deg,#1A3C5E,#0F2337);padding:30px;color:white}
-    .brand{font-size:11px;letter-spacing:3px;text-transform:uppercase;opacity:.7;margin-bottom:8px}
-    .title{font-size:22px;font-weight:800;margin-bottom:4px}
-    .sub{font-size:13px;opacity:.8}
-    .badge{display:inline-block;background:rgba(255,255,255,.15);border-radius:20px;padding:4px 14px;font-size:12px;margin-top:12px}
-    .body{padding:28px}
-    .section{margin-bottom:22px}
-    h3{color:#0F2337;font-size:11px;text-transform:uppercase;letter-spacing:1.5px;border-bottom:2px solid #C5D8EA;padding-bottom:6px;margin-bottom:12px}
-    .grid{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:10px}
-    .cell{background:#F5F8FB;border:1px solid #C5D8EA;border-radius:8px;padding:12px}
-    .lbl{font-size:10px;color:#5D7A8A;text-transform:uppercase;letter-spacing:1px}
-    .val{font-size:15px;font-weight:700;margin-top:4px}
-    table{width:100%;border-collapse:collapse;border:1px solid #C5D8EA}
-    .notes-box{background:#F5F8FB;border:1px solid #C5D8EA;border-radius:8px;padding:14px;font-size:14px;line-height:1.7}
-    .photos{display:flex;flex-wrap:wrap;margin-top:4px}
-    .footer{margin-top:28px;padding-top:14px;border-top:1px solid #C5D8EA;text-align:center;font-size:11px;color:#999}
-    .nemm{font-weight:800;color:#1A3C5E;font-size:13px}
-  </style></head><body>
-  <div class="header">
-    <div class="brand">NEMM UP</div>
-    <div style="display:flex;align-items:center;gap:12px;"><span style="font-family:Arial Black,Arial,sans-serif;font-weight:900;font-size:20px;color:white;letter-spacing:1px;">NEMM UP</span><span style="opacity:0.4;font-size:18px;">|</span><div class="title" style="margin:0;">SafeCheck — ${isZH?'安全检查':'Safety Inspection'}</div></div>
-    <div class="sub">${isZH?'官方检查记录 — 建筑工地':'Official Inspection Record — Construction Site'}</div>
-    <span class="badge">ID #${i.id}</span>
-    <span class="badge" style="margin-left:8px">${lang}</span>
-  </div>
-  <div class="body">
-    <div class="section">
-      <h3>${isZH?'检查数据':'Inspection Data'}</h3>
-      <div class="grid">
-        <div class="cell"><div class="lbl">📅 ${isZH?'日期':'Date'}</div><div class="val">${i.date||'—'}</div></div>
-        <div class="cell"><div class="lbl">⏱️ ${isZH?'开始时间':'Start Time'}</div><div class="val">${i.time_start||'—'}</div></div>
-        <div class="cell"><div class="lbl">🏁 ${isZH?'结束时间':'End Time'}</div><div class="val">${i.time_end||'—'}</div></div>
-        <div class="cell"><div class="lbl">⏳ ${isZH?'时长':'Duration'}</div><div class="val">${i.duration||'—'}</div></div>
-        <div class="cell"><div class="lbl">📍 ${isZH?'地点':'Location'}</div><div class="val">${i.area||'—'}</div></div>
-        <div class="cell"><div class="lbl">👷 ${isZH?'检查员':'Inspector'}</div><div class="val">${i.inspector||'—'}</div></div>
-      </div>
-    </div>
-    <div class="section">
-      <h3>${isZH?'已识别的隐患':'Identified Occurrences'}</h3>
-      <table>${rows}</table>
-    </div>
-    ${i.notes?`<div class="section"><h3>${isZH?'备注':'Notes'}</h3><div class="notes-box">${i.notes}</div></div>`:''}
-    ${photoImgs?`<div class="section"><h3>${isZH?'照片':'Photos'} (${i.photos.length})</h3><div class="photos">${photoImgs}</div></div>`:''}
-    <div class="footer"><span class="nemm">NEMM UP</span> · Generated by SafeCheck Dashboard · ${new Date().toLocaleString('en-GB')}</div>
-  </div></body></html>`;
-
-  const w = window.open('','_blank');
-  w.document.write(html);
-  w.document.close();
-  w.onload = () => { w.print(); };
-}
-
-async function deleteReport(id){
-  if(!confirm('Delete this inspection report? This cannot be undone.')) return;
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/inspections?id=eq.${id}`,{
-    method:'DELETE',
-    headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY}
-  });
-  if(res.ok){
-    allData = allData.filter(r=>r.id!==id);
-    renderTable();
-    renderAreaChart(); renderTrend(); renderAreaGrid();
-  } else {
-    alert('Error deleting report. Please try again.');
-  }
-}
-
-async function deleteAllReports(){
-  if(!confirm('⚠️ Delete ALL inspection reports? This cannot be undone!')) return;
-  if(!confirm('Are you absolutely sure? All data will be permanently deleted.')) return;
-  const ids = allData.map(r=>r.id);
-  for(const id of ids){
-    await fetch(`${SUPABASE_URL}/rest/v1/inspections?id=eq.${id}`,{
-      method:'DELETE',
-      headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY}
-    });
-  }
-  allData=[];
-  renderTable(); renderAreaChart(); renderTrend(); renderAreaGrid();
-}
-
 function renderTable(){
-  const manoel = isManoel();
-  // Update header
-  const delHeader = document.getElementById('deleteColHeader');
-  if(delHeader) delHeader.innerHTML = manoel ? '🗑️ Delete' : '';
-
+  const manoel=isManoel();
+  const delHeader=document.getElementById('deleteColHeader');
+  if(delHeader) delHeader.innerHTML=manoel?'🗑️':' ';
+  const deleteAllContainer=document.getElementById('deleteAllContainer');
+  if(deleteAllContainer) deleteAllContainer.innerHTML=manoel?`<button onclick="deleteAllReports()" style="background:var(--red);color:white;border:none;border-radius:8px;padding:6px 14px;font-size:12px;font-weight:700;cursor:pointer;">🗑️ Delete All</button>`:'';
   if(!allData.length){
-    document.getElementById('inspTable').innerHTML=`<tr><td colspan="${manoel?10:9}"><div class="empty-state"><div class="empty-icon">📋</div><div class="empty-title">No inspections yet</div><p>Install SafeCheck and complete an inspection!</p></div></td></tr>`;
+    document.getElementById('inspTable').innerHTML=`<tr><td colspan="11"><div class="empty-state"><div class="empty-icon">📋</div><div class="empty-title">No inspections yet</div><p>Install SafeCheck and complete an inspection!</p></div></td></tr>`;
     return;
   }
-
-  // Delete-all button row (only for manoel)
-  const deleteAllRow = manoel
-    ? `<tr style="background:rgba(231,76,60,0.04);"><td colspan="10" style="text-align:right;padding:8px 14px;">
-        <button onclick="deleteAllReports()" style="background:var(--red);color:white;border:none;border-radius:8px;padding:6px 14px;font-size:12px;font-weight:700;cursor:pointer;letter-spacing:0.5px;">
-          🗑️ Delete All Reports
-        </button>
-       </td></tr>`
-    : '';
-
-  document.getElementById('inspTable').innerHTML = deleteAllRow + allData.slice(0,50).map(i=>{
+  document.getElementById('inspTable').innerHTML=allData.slice(0,50).map(i=>{
     const c=occCount(i),bc=c===0?'ok':c>=3?'high':'warn',bl=c===0?'✅ OK':`⚠️ ${c}`;
-    const photoHtml = (i.photos && i.photos.length > 0)
-      ? i.photos.slice(0,3).map(url =>
-          `<a href="${url}" target="_blank"><img src="${url}" style="width:40px;height:40px;object-fit:cover;border-radius:6px;border:1.5px solid var(--border);margin-right:3px;vertical-align:middle;" onerror="this.style.display='none'"/></a>`
-        ).join('') + (i.photos.length > 3 ? `<span style="font-size:11px;color:var(--muted);vertical-align:middle;"> +${i.photos.length-3}</span>` : '')
-      : '<span style="color:var(--muted);font-size:12px;">—</span>';
-    const deleteCell = manoel
-      ? `<td style="text-align:center;"><button onclick="deleteReport(${i.id})" title="Delete this report" style="background:none;border:none;cursor:pointer;font-size:18px;color:var(--red);opacity:0.7;transition:opacity 0.2s;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.7">🗑️</button></td>`
-      : '<td></td>';
-    return `<tr><td>${i.date||'—'}</td><td>${i.time_start||'—'}${i.time_end?' → '+i.time_end:''}</td><td><span class="td-area">${i.area||'—'}</span><br><span style="font-size:11px;color:var(--muted);font-weight:400;">${AREA_NAMES[i.area]||''}</span></td><td>${i.inspector||'—'}</td><td>${i.duration||'—'}</td><td><span class="occ-badge ${bc}">${bl}</span></td><td>${i.language||'EN'}</td><td>${photoHtml}</td><td><button class="dl-btn" onclick="generatePDF(${i.id})">⬇️ PDF</button></td>${deleteCell}</tr>`;
+    const photoHtml=(i.photos&&i.photos.length>0)
+      ?i.photos.slice(0,3).map(url=>`<a href="${url}" target="_blank"><img src="${url}" style="width:40px;height:40px;object-fit:cover;border-radius:6px;border:1.5px solid var(--border);margin-right:3px;vertical-align:middle;" onerror="this.style.display='none'"/></a>`).join('')+(i.photos.length>3?`<span style="font-size:11px;color:var(--muted);vertical-align:middle;"> +${i.photos.length-3}</span>`:'')
+      :'<span style="color:var(--muted);font-size:12px;">—</span>';
+    const epiHtml=i.epi_check&&i.epi_check.length>0
+      ?`<span style="background:#E8F8F5;color:#1A6B3A;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:700;">🤖 ${i.epi_check[0].compliant?'✅':'⚠️'}</span>`
+      :`<button onclick="analyzeOnePhoto(${i.id})" style="background:var(--ai);color:white;border:none;border-radius:6px;padding:3px 8px;font-size:11px;font-weight:600;cursor:pointer;">Analyze</button>`;
+    const deleteCell=manoel?`<td style="text-align:center;"><button onclick="deleteReport(${i.id})" style="background:none;border:none;cursor:pointer;font-size:18px;color:var(--red);opacity:0.7;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.7">🗑️</button></td>`:'<td></td>';
+    return `<tr><td>${i.date||'—'}</td><td>${i.time_start||'—'}${i.time_end?' → '+i.time_end:''}</td><td><span class="td-area">${i.area||'—'}</span><br><span style="font-size:11px;color:var(--muted);">${AREA_NAMES[i.area]||''}</span></td><td>${i.inspector||'—'}</td><td>${i.duration||'—'}</td><td><span class="occ-badge ${bc}">${bl}</span></td><td>${i.language||'EN'}</td><td>${photoHtml}</td><td>${epiHtml}</td><td><button class="dl-btn" onclick="generatePDF(${i.id})">⬇️ PDF</button></td>${deleteCell}</tr>`;
   }).join('');
 }
 
-let inspectorChartInst = null;
+// ── AI SAFETY ANALYST ─────────────────────────────────────────────────────────
+let currentAIMode = 'general';
 
-function getWeekStart(date) {
-  const d = new Date(date);
-  const day = d.getDay();
-  const diff = d.getDate() - day + (day === 0 ? -6 : 1);
-  d.setDate(diff);
-  d.setHours(0,0,0,0);
-  return d;
+function selectAIChip(el, mode){
+  document.querySelectorAll('.ai-chip').forEach(c=>c.classList.remove('active'));
+  el.classList.add('active');
+  currentAIMode = mode;
 }
 
-function renderInspectors() {
-  const period = document.getElementById('inspectorPeriod')?.value || 'all';
-  const now = new Date();
-  const weekStart = getWeekStart(now);
-  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-
-  // Filter data by period
-  function inPeriod(item) {
-    if (period === 'all') return true;
-    const d = new Date(item.date || item.created_at?.split('T')[0]);
-    if (period === 'week') return d >= weekStart;
-    if (period === 'month') return d >= monthStart;
-    return true;
+async function runAIAnalysis(mode){
+  if(!allData.length){alert('No inspection data available yet.');return;}
+  const key = getClaudeKey();
+  if(!key){
+    const newKey = promptClaudeKey();
+    if(!newKey) return;
   }
+  mode = mode || currentAIMode;
+  const btn=document.getElementById('aiRunBtn');
+  btn.innerHTML='<span class="ai-spinner"></span>Analyzing...';
+  btn.disabled=true;
+  document.getElementById('aiInsightBox').className='ai-insight-box loading';
+  document.getElementById('aiInsightBox').textContent='🤖 Claude AI is analyzing your safety data...';
 
-  const filtered = allData.filter(inPeriod);
+  // Build data summary for AI
+  const totalInsp=allData.length;
+  const totalOcc=allData.reduce((s,i)=>s+occCount(i),0);
+  const occCounts={};OCCURRENCES.forEach(o=>occCounts[o.id]=0);
+  allData.forEach(i=>{if(i.occurrences)Object.entries(i.occurrences).forEach(([k,v])=>{if(v&&occCounts[k]!==undefined)occCounts[k]++;});});
+  const topOcc=OCCURRENCES.map(o=>({...o,count:occCounts[o.id]})).filter(o=>o.count>0).sort((a,b)=>b.count-a.count).slice(0,5);
+  const areaCounts={};AREAS.forEach(a=>areaCounts[a]=0);
+  allData.forEach(i=>{if(i.area)areaCounts[i.area]=(areaCounts[i.area]||0)+occCount(i);});
+  const inspCounts={};
+  allData.forEach(i=>{if(i.inspector)inspCounts[i.inspector]=(inspCounts[i.inspector]||0)+1;});
+  const now=new Date();const sop=new Date('2026-10-31');
+  const daysToSOP=Math.floor((sop-now)/86400000);
+  const epiAnalyzed=allData.filter(i=>i.epi_check&&i.epi_check.length>0).length;
 
-  // Build per-inspector stats
-  const stats = {};
-  allData.forEach(i => {
-    const name = i.inspector || '—';
-    if (!stats[name]) stats[name] = { total: 0, week: 0, month: 0, occ: 0, lastVisit: '' };
-    stats[name].total++;
-    stats[name].occ += occCount(i);
-    const d = new Date(i.date || i.created_at?.split('T')[0]);
-    if (d >= weekStart) stats[name].week++;
-    if (d >= monthStart) stats[name].month++;
-    const ds = i.date || i.created_at?.split('T')[0] || '';
-    if (ds > stats[name].lastVisit) stats[name].lastVisit = ds;
-  });
+  const prompts={
+    general:`You are a safety analyst for NEMM Up / ArcelorMittal HSM project in China (Hot Strip Mill). Analyze this safety inspection data and provide a comprehensive overview in 4-5 paragraphs.
 
-  // Filter by period for ranking/chart
-  const periodStats = {};
-  filtered.forEach(i => {
-    const name = i.inspector || '—';
-    if (!periodStats[name]) periodStats[name] = 0;
-    periodStats[name]++;
-  });
+Data Summary:
+- Total inspections: ${totalInsp}
+- Total occurrences/non-conformities: ${totalOcc}
+- Days to SOP (Start of Production): ${daysToSOP} days (Oct 31, 2026)
+- Active inspectors: ${Object.keys(inspCounts).length}
+- EPI Vision AI analyses: ${epiAnalyzed}
+- Top occurrences: ${topOcc.map(o=>`${o.label}(${o.count})`).join(', ')}
+- Occurrences by area: ${Object.entries(areaCounts).map(([a,c])=>`${a}:${c}`).join(', ')}
+- Inspector activity: ${Object.entries(inspCounts).map(([n,c])=>`${n}:${c}`).join(', ')}
 
-  const sorted = Object.entries(stats).sort((a,b) => b[1].total - a[1].total);
-  const periodSorted = Object.entries(periodStats).sort((a,b) => b[1]-a[1]);
+Provide actionable insights. Be specific and professional. Focus on safety priorities for a steel mill construction site.`,
 
-  // ── RANKING ──
-  const medals = ['🥇','🥈','🥉'];
-  const rankingEl = document.getElementById('inspectorRanking');
-  if (!sorted.length) {
-    rankingEl.innerHTML = '<div class="empty-state"><div class="empty-icon">👷</div><div class="empty-title">No data yet</div></div>';
-  } else {
-    rankingEl.innerHTML = sorted.slice(0,8).map(([name, s], idx) => {
-      const pct = Math.round((s.total / allData.length) * 100);
-      const medal = medals[idx] || `${idx+1}.`;
-      const avg = s.total > 0 ? (s.occ / s.total).toFixed(1) : '0';
-      return `<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);">
-        <span style="font-size:18px;width:28px;text-align:center;">${medal}</span>
-        <div style="flex:1;">
-          <div style="font-weight:700;font-size:14px;color:var(--text);">${name}</div>
-          <div style="font-size:11px;color:var(--muted);">${s.total} inspections · avg ${avg} occ/visit</div>
-          <div style="height:5px;background:var(--border);border-radius:3px;margin-top:4px;">
-            <div style="height:5px;width:${pct}%;background:var(--accent);border-radius:3px;"></div>
-          </div>
+    risk:`You are a safety risk analyst. Based on this data, provide a risk assessment for the HSM project.
+
+Data:
+- Occurrences by area: ${Object.entries(areaCounts).map(([a,c])=>`${AREA_NAMES[a]}(${a}):${c} occurrences`).join(', ')}
+- Top hazards: ${topOcc.map(o=>`${o.label}:${o.count}`).join(', ')}
+- Days to SOP: ${daysToSOP}
+
+Identify the highest risk areas and hazards. Rate each area (High/Medium/Low risk) and explain why. Provide specific mitigation recommendations for the top 3 risks.`,
+
+    trend:`You are a safety trend analyst. Analyze inspection trends for the HSM project.
+
+Data:
+- Total inspections: ${totalInsp} over the inspection period
+- Recent data (last 30 days): ${allData.filter(i=>new Date(i.date||i.created_at)>new Date(Date.now()-30*86400000)).length} inspections
+- Inspector growth: ${Object.keys(inspCounts).length} active inspectors
+- Occurrence rate: ${(totalOcc/totalInsp).toFixed(1)} avg per inspection
+
+Analyze if safety is improving or deteriorating. Identify positive trends and areas of concern. Project the safety status at SOP (${daysToSOP} days away).`,
+
+    inspector:`You are an inspector performance analyst. Evaluate the inspection team performance.
+
+Inspector data:
+${Object.entries(inspCounts).map(([n,c])=>`- ${n}: ${c} inspections`).join('\n')}
+- Total inspections: ${totalInsp}
+- Total occurrences found: ${totalOcc}
+
+Evaluate team performance, identify top performers, and recommend how to optimize inspection coverage. Consider the multilingual team (Brazilian + Chinese workers).`,
+
+    sop:`You are a project readiness analyst for the HSM Steel Mill project. With ${daysToSOP} days to SOP (Start of Production Oct 31, 2026), assess safety readiness.
+
+Current status:
+- Inspections completed: ${totalInsp}
+- Outstanding safety issues: ${totalOcc} occurrences recorded
+- EPI compliance analyses: ${epiAnalyzed}
+- Highest risk area: ${Object.entries(areaCounts).sort((a,b)=>b[1]-a[1])[0]?.[0]||'N/A'}
+
+Provide a SOP readiness assessment. What needs to be resolved before production starts? What is the current safety trajectory? Provide a clear GO/NO-GO recommendation with conditions.`
+  };
+
+  try{
+    const response=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':getClaudeKey(),'anthropic-version':'2023-06-01'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-20250514',
+        max_tokens:1000,
+        messages:[{role:'user',content:prompts[mode]||prompts.general}]
+      })
+    });
+    const data=await response.json();
+    const text=data.content?.map(c=>c.text||'').join('')||'Analysis failed. Please try again.';
+    document.getElementById('aiInsightBox').className='ai-insight-box';
+    document.getElementById('aiInsightBox').textContent=text;
+
+    // Generate structured panels
+    renderAIStructuredPanels(topOcc, areaCounts);
+  }catch(e){
+    document.getElementById('aiInsightBox').className='ai-insight-box';
+    document.getElementById('aiInsightBox').textContent='⚠️ Analysis failed: '+e.message+'\nPlease check your connection and try again.';
+  }
+  btn.innerHTML='▶ Run Analysis';
+  btn.disabled=false;
+}
+
+function renderAIStructuredPanels(topOcc, areaCounts){
+  // Top hazards
+  document.getElementById('aiTopHazards').innerHTML=topOcc.slice(0,5).map((o,i)=>`
+    <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);">
+      <span style="font-size:18px;">${o.icon}</span>
+      <div style="flex:1;">
+        <div style="font-size:13px;font-weight:600;">${o.label}</div>
+        <div style="height:4px;background:var(--border);border-radius:2px;margin-top:4px;">
+          <div style="height:4px;width:${(o.count/(topOcc[0]?.count||1)*100).toFixed(0)}%;background:${i<2?'var(--red)':'var(--orange)'};border-radius:2px;"></div>
         </div>
-        <span style="font-size:13px;font-weight:700;color:var(--accent);">${s.total}</span>
+      </div>
+      <span style="font-weight:800;color:var(--navy);">${o.count}</span>
+    </div>`).join('');
+
+  // Risk areas
+  const sortedAreas=Object.entries(areaCounts).sort((a,b)=>b[1]-a[1]).slice(0,3);
+  const maxArea=sortedAreas[0]?.[1]||1;
+  document.getElementById('aiRiskAreas').innerHTML=sortedAreas.map(([area,count],i)=>{
+    const risk=i===0?'🔴 High':i===1?'🟡 Medium':'🟢 Low';
+    return `<div style="padding:10px 0;border-bottom:1px solid var(--border);">
+      <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+        <span style="font-weight:700;">${area} – ${AREA_NAMES[area]}</span>
+        <span style="font-size:12px;font-weight:600;">${risk}</span>
+      </div>
+      <div style="font-size:12px;color:var(--muted);">${count} occurrences</div>
+      <div style="height:4px;background:var(--border);border-radius:2px;margin-top:6px;">
+        <div style="height:4px;width:${(count/maxArea*100).toFixed(0)}%;background:${i===0?'var(--red)':i===1?'var(--orange)':'var(--green)'};border-radius:2px;"></div>
+      </div>
+    </div>`;
+  }).join('');
+
+  // Recommendations
+  const recs=[];
+  if(topOcc[0]) recs.push(`🎯 Priority: Address "${topOcc[0].label}" — highest occurrence (${topOcc[0].count} cases)`);
+  const maxArea2=Object.entries(areaCounts).sort((a,b)=>b[1]-a[1])[0];
+  if(maxArea2) recs.push(`📍 Focus inspections on ${maxArea2[0]} (${AREA_NAMES[maxArea2[0]]}) — highest risk area`);
+  recs.push(`📸 Use EPI Vision to analyze photos in batch — no field connectivity required`);
+  recs.push(`📊 Run weekly AI analysis to track safety trend toward SOP`);
+  document.getElementById('aiRecommendations').innerHTML=recs.map(r=>`<div style="padding:8px 0;border-bottom:1px solid var(--border);font-size:13px;line-height:1.5;">${r}</div>`).join('');
+}
+
+// ── EPI VISION DASHBOARD ──────────────────────────────────────────────────────
+function updateEPIStats(){
+  const allPhotos=allData.flatMap(i=>i.photos||[]);
+  const analyzed=allData.filter(i=>i.epi_check&&i.epi_check.length>0);
+  const nonCompliant=analyzed.filter(i=>i.epi_check.some(e=>!e.compliant));
+  const compliance=analyzed.length>0?Math.round((analyzed.length-nonCompliant.length)/analyzed.length*100):0;
+
+  document.getElementById('epiTotalPhotos').textContent=allPhotos.length;
+  document.getElementById('epiAnalyzed').textContent=analyzed.length;
+  document.getElementById('epiNonCompliant').textContent=nonCompliant.length;
+  document.getElementById('epiComplianceRate').textContent=analyzed.length>0?`${compliance}%`:'—';
+  document.getElementById('epiProgressBar').style.width=(analyzed.length>0?compliance:0)+'%';
+  document.getElementById('epiProgressBar').style.background=compliance>=80?'var(--green)':compliance>=50?'var(--orange)':'var(--red)';
+
+  // Show analyzed photos
+  if(analyzed.length>0){
+    document.getElementById('epiPhotoGrid').innerHTML=analyzed.slice(0,12).map(i=>{
+      const epi=i.epi_check[0];
+      const photo=i.photos&&i.photos[0];
+      const badges=[
+        epi.helmet?`<span class="epi-badge ${epi.helmet==='present'?'epi-ok':epi.helmet==='absent'?'epi-miss':'epi-unk'}">⛑ ${epi.helmet==='present'?'✓':'absent'==='absent'?'✗':'?'}</span>`:'',
+        epi.glasses?`<span class="epi-badge ${epi.glasses==='present'?'epi-ok':epi.glasses==='absent'?'epi-miss':'epi-unk'}">🥽 ${epi.glasses==='present'?'✓':epi.glasses==='absent'?'✗':'?'}</span>`:'',
+        epi.vest?`<span class="epi-badge ${epi.vest==='present'?'epi-ok':epi.vest==='absent'?'epi-miss':'epi-unk'}">🦺 ${epi.vest==='present'?'✓':epi.vest==='absent'?'✗':'?'}</span>`:'',
+      ].join('');
+      return `<div class="epi-photo-card" style="border:2px solid ${epi.compliant?'var(--green)':'var(--red)'};">
+        ${photo?`<img src="${photo}" onerror="this.style.display='none'"/>`:'<div style="height:130px;background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:32px;">📷</div>'}
+        <div class="epi-photo-info">
+          <div style="font-size:11px;color:var(--muted);margin-bottom:4px;">${i.area||'—'} · ${i.date||'—'}</div>
+          <div>${badges}</div>
+          <div style="font-size:11px;margin-top:4px;font-weight:700;color:${epi.compliant?'var(--green)':'var(--red)'};">${epi.compliant?'✅ Compliant':'⚠️ Non-compliant'}</div>
+        </div>
       </div>`;
     }).join('');
   }
-
-  // ── BAR CHART ──
-  const ctx = document.getElementById('inspectorChart').getContext('2d');
-  if (inspectorChartInst) inspectorChartInst.destroy();
-  inspectorChartInst = new Chart(ctx, {
-    type: 'bar',
-    data: {
-      labels: periodSorted.map(([n]) => n),
-      datasets: [{
-        label: 'Inspections',
-        data: periodSorted.map(([,v]) => v),
-        backgroundColor: periodSorted.map((_, i) =>
-          i === 0 ? '#2E86C1' : i === 1 ? '#5DADE2' : i === 2 ? '#85C1E9' : '#AED6F1'),
-        borderRadius: 6,
-      }]
-    },
-    options: {
-      responsive: true, maintainAspectRatio: true,
-      plugins: { legend: { display: false } },
-      scales: {
-        y: { beginAtZero: true, ticks: { stepSize: 1 } },
-        x: { ticks: { font: { size: 11 } } }
-      }
-    }
-  });
-
-  // ── WEEKLY CALENDAR ──
-  // Show last 8 weeks, one column per week, one row per inspector
-  const weeks = [];
-  for (let w = 7; w >= 0; w--) {
-    const ws = new Date(weekStart);
-    ws.setDate(ws.getDate() - w * 7);
-    const we = new Date(ws); we.setDate(we.getDate() + 6);
-    weeks.push({ start: ws, end: we,
-      label: ws.toLocaleDateString('en-GB',{day:'2-digit',month:'short'}) });
-  }
-  const inspNames = sorted.map(([n]) => n);
-  const calData = {};
-  allData.forEach(i => {
-    const name = i.inspector || '—';
-    const d = new Date(i.date || i.created_at?.split('T')[0]);
-    weeks.forEach((w, wi) => {
-      if (d >= w.start && d <= w.end) {
-        if (!calData[name]) calData[name] = {};
-        calData[name][wi] = (calData[name][wi] || 0) + 1;
-      }
-    });
-  });
-  const maxVal = Math.max(1, ...Object.values(calData).flatMap(v => Object.values(v)));
-  let calHtml = `<table style="border-collapse:collapse;width:100%;font-size:12px;">
-    <thead><tr><th style="text-align:left;padding:4px 8px;color:var(--muted);font-weight:600;">Inspector</th>
-    ${weeks.map(w=>`<th style="text-align:center;padding:4px 6px;color:var(--muted);font-weight:600;min-width:52px;">${w.label}</th>`).join('')}
-    </tr></thead><tbody>`;
-  inspNames.forEach(name => {
-    calHtml += `<tr><td style="padding:5px 8px;font-weight:600;color:var(--text);white-space:nowrap;">${name}</td>`;
-    weeks.forEach((w, wi) => {
-      const count = calData[name]?.[wi] || 0;
-      const intensity = count === 0 ? 0 : Math.max(0.15, count / maxVal);
-      const bg = count === 0 ? 'var(--border)' : `rgba(46,134,193,${intensity})`;
-      const color = intensity > 0.5 ? 'white' : 'var(--text)';
-      calHtml += `<td style="text-align:center;padding:4px;">
-        <div style="width:44px;height:28px;border-radius:6px;background:${bg};display:flex;align-items:center;justify-content:center;font-weight:700;color:${color};margin:0 auto;">
-          ${count > 0 ? count : ''}
-        </div></td>`;
-    });
-    calHtml += '</tr>';
-  });
-  calHtml += '</tbody></table>';
-  document.getElementById('inspectorCalendar').innerHTML = calHtml;
-
-  // ── DETAIL TABLE ──
-  const tbody = document.getElementById('inspectorTable');
-  if (!sorted.length) {
-    tbody.innerHTML = '<tr><td colspan="7"><div class="empty-state"><div class="empty-icon">👷</div><div class="empty-title">No inspector data yet</div></div></td></tr>';
-    return;
-  }
-  tbody.innerHTML = sorted.map(([name, s], idx) => {
-    const avg = s.total > 0 ? (s.occ / s.total).toFixed(1) : '0.0';
-    const medal = medals[idx] || '';
-    return `<tr>
-      <td style="font-size:18px;text-align:center;">${medal || (idx+1)}</td>
-      <td style="font-weight:700;">${name}</td>
-      <td style="text-align:center;"><span style="background:var(--light);padding:3px 10px;border-radius:6px;font-weight:600;">${s.week}</span></td>
-      <td style="text-align:center;"><span style="background:var(--light);padding:3px 10px;border-radius:6px;font-weight:600;">${s.month}</span></td>
-      <td style="text-align:center;"><span style="background:var(--accent);color:white;padding:3px 10px;border-radius:6px;font-weight:700;">${s.total}</span></td>
-      <td style="color:var(--muted);font-size:13px;">${s.lastVisit || '—'}</td>
-      <td style="text-align:center;font-weight:600;color:${parseFloat(avg)>2?'var(--red)':parseFloat(avg)>1?'var(--orange, #E67E22)':'var(--green)'};">${avg}</td>
-    </tr>`;
-  }).join('');
 }
 
+async function analyzeAllPhotos(){
+  const key = getClaudeKey();
+  if(!key){ const newKey = promptClaudeKey(); if(!newKey) return; }
+  const toAnalyze=allData.filter(i=>i.photos&&i.photos.length>0&&(!i.epi_check||i.epi_check.length===0));
+  if(!toAnalyze.length){alert('All photos with available images have already been analyzed!');return;}
+  const btn=document.getElementById('analyzeAllBtn');
+  btn.disabled=true;
+  btn.innerHTML='<span class="ai-spinner"></span>Analyzing...';
+
+  let done=0;
+  for(const insp of toAnalyze.slice(0,10)){ // Limit to 10 at a time
+    const photoUrl=insp.photos[0];
+    if(!photoUrl)continue;
+    try{
+      // Fetch photo and convert to base64
+      const imgRes=await fetch(photoUrl);
+      const blob=await imgRes.blob();
+      const b64=await new Promise(res=>{const r=new FileReader();r.onload=e=>res(e.target.result.split(',')[1]);r.readAsDataURL(blob);});
+
+      const response=await fetch('https://api.anthropic.com/v1/messages',{
+        method:'POST',
+        headers:{'Content-Type':'application/json','x-api-key':getClaudeKey(),'anthropic-version':'2023-06-01'},
+        body:JSON.stringify({
+          model:'claude-sonnet-4-20250514',
+          max_tokens:300,
+          messages:[{role:'user',content:[
+            {type:'image',source:{type:'base64',media_type:'image/jpeg',data:b64}},
+            {type:'text',text:'Analyze this construction site image for PPE compliance. Return ONLY JSON: {"workers_detected":<n>,"helmet":"present|absent|uncertain","glasses":"present|absent|uncertain","vest":"present|absent|uncertain","missing":[],"compliant":true|false}'}
+          ]}]
+        })
+      });
+      const data=await response.json();
+      const text=data.content?.map(c=>c.text||'').join('')||'';
+      const match=text.match(/\{[\s\S]*\}/);
+      if(match){
+        const result=JSON.parse(match[0]);
+        // Save to Supabase
+        await fetch(`${SUPABASE_URL}/rest/v1/inspections?id=eq.${insp.id}`,{
+          method:'PATCH',
+          headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Content-Type':'application/json','Prefer':'return=minimal'},
+          body:JSON.stringify({epi_check:[result]})
+        });
+        insp.epi_check=[result];
+        done++;
+        btn.innerHTML=`<span class="ai-spinner"></span>Analyzed ${done}/${toAnalyze.slice(0,10).length}...`;
+      }
+    }catch(e){console.warn('EPI analyze error:',e);}
+  }
+  btn.disabled=false;
+  btn.innerHTML='🔍 Analyze All Photos';
+  updateEPIStats();
+  renderTable();
+  alert(`✅ EPI Vision complete! Analyzed ${done} inspections.`);
+}
+
+async function analyzeOnePhoto(id){
+  const insp=allData.find(i=>i.id===id);
+  if(!insp||!insp.photos||!insp.photos[0])return;
+  try{
+    const imgRes=await fetch(insp.photos[0]);
+    const blob=await imgRes.blob();
+    const b64=await new Promise(res=>{const r=new FileReader();r.onload=e=>res(e.target.result.split(',')[1]);r.readAsDataURL(blob);});
+    const response=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':getClaudeKey(),'anthropic-version':'2023-06-01'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-20250514',max_tokens:300,
+        messages:[{role:'user',content:[
+          {type:'image',source:{type:'base64',media_type:'image/jpeg',data:b64}},
+          {type:'text',text:'Analyze this construction site image for PPE compliance. Return ONLY JSON: {"workers_detected":<n>,"helmet":"present|absent|uncertain","glasses":"present|absent|uncertain","vest":"present|absent|uncertain","missing":[],"compliant":true|false}'}
+        ]}]
+      })
+    });
+    const data=await response.json();
+    const text=data.content?.map(c=>c.text||'').join('')||'';
+    const match=text.match(/\{[\s\S]*\}/);
+    if(match){
+      const result=JSON.parse(match[0]);
+      await fetch(`${SUPABASE_URL}/rest/v1/inspections?id=eq.${id}`,{
+        method:'PATCH',
+        headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Content-Type':'application/json','Prefer':'return=minimal'},
+        body:JSON.stringify({epi_check:[result]})
+      });
+      insp.epi_check=[result];
+      renderTable();
+      updateEPIStats();
+    }
+  }catch(e){alert('Analysis failed: '+e.message);}
+}
+
+// ── PDF GENERATION ────────────────────────────────────────────────────────────
+function generatePDF(id){
+  const i=allData.find(x=>x.id===id);if(!i)return;
+  const active=OCCURRENCES.filter(o=>i.occurrences&&i.occurrences[o.id]);
+  const rows=active.length?active.map(o=>`<tr><td style="padding:8px 12px;border-bottom:1px solid #C5D8EA">${o.icon} ${o.label}</td></tr>`).join(''):`<tr><td style="padding:10px;color:#27AE60;font-weight:bold">✅ No non-conformities recorded.</td></tr>`;
+  const photoImgs=(i.photos||[]).filter(Boolean).map(url=>`<img src="${url}" style="width:210px;height:158px;object-fit:cover;border-radius:8px;border:2px solid #C5D8EA;margin:5px" crossorigin="anonymous"/>`).join('');
+  const isZH=i.language==='ZH';
+  const epiSection=i.epi_check&&i.epi_check.length>0?`
+    <div class="section">
+      <h3>🤖 EPI Vision AI Analysis</h3>
+      <div style="background:#F4ECF7;border:1px solid #C39BD3;border-radius:8px;padding:14px;">
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;text-align:center;">
+          <div><div style="font-size:11px;color:#7D6608;">Hard Hat</div><div style="font-size:16px;font-weight:700;color:${i.epi_check[0].helmet==='present'?'#1A6B3A':'#C0392B'}">${i.epi_check[0].helmet==='present'?'✅ Present':'❌ Absent'}</div></div>
+          <div><div style="font-size:11px;color:#7D6608;">Safety Glasses</div><div style="font-size:16px;font-weight:700;color:${i.epi_check[0].glasses==='present'?'#1A6B3A':'#C0392B'}">${i.epi_check[0].glasses==='present'?'✅ Present':'❌ Absent'}</div></div>
+          <div><div style="font-size:11px;color:#7D6608;">Reflective Vest</div><div style="font-size:16px;font-weight:700;color:${i.epi_check[0].vest==='present'?'#1A6B3A':'#C0392B'}">${i.epi_check[0].vest==='present'?'✅ Present':'❌ Absent'}</div></div>
+        </div>
+        <div style="text-align:center;margin-top:10px;font-weight:700;color:${i.epi_check[0].compliant?'#1A6B3A':'#C0392B'};">${i.epi_check[0].compliant?'✅ COMPLIANT':'⚠️ NON-COMPLIANT'}</div>
+      </div>
+    </div>`:'';
+  const html=`<!DOCTYPE html><html><head><meta charset="utf-8"/>
+  <style>*{margin:0;padding:0;box-sizing:border-box;}body{font-family:Arial,sans-serif;color:#1A2E3E;background:#fff}.header{background:linear-gradient(135deg,#1A3C5E,#0F2337);padding:30px;color:white}.brand{font-size:11px;letter-spacing:3px;text-transform:uppercase;opacity:.7;margin-bottom:8px}.title{font-size:22px;font-weight:800;margin-bottom:4px}.sub{font-size:13px;opacity:.8}.badge{display:inline-block;background:rgba(255,255,255,.15);border-radius:20px;padding:4px 14px;font-size:12px;margin-top:12px}.body{padding:28px}.section{margin-bottom:22px}h3{color:#0F2337;font-size:11px;text-transform:uppercase;letter-spacing:1.5px;border-bottom:2px solid #C5D8EA;padding-bottom:6px;margin-bottom:12px}.grid{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:10px}.cell{background:#F5F8FB;border:1px solid #C5D8EA;border-radius:8px;padding:12px}.lbl{font-size:10px;color:#5D7A8A;text-transform:uppercase;letter-spacing:1px}.val{font-size:15px;font-weight:700;margin-top:4px}table{width:100%;border-collapse:collapse;border:1px solid #C5D8EA}.notes-box{background:#F5F8FB;border:1px solid #C5D8EA;border-radius:8px;padding:14px;font-size:14px;line-height:1.7}.photos{display:flex;flex-wrap:wrap;margin-top:4px}.footer{margin-top:28px;padding-top:14px;border-top:1px solid #C5D8EA;text-align:center;font-size:11px;color:#999}.nemm{font-weight:800;color:#1A3C5E;font-size:13px}</style></head><body>
+  <div class="header"><div class="brand">NEMM UP</div><div style="display:flex;align-items:center;gap:12px;"><span style="font-family:Arial Black,Arial,sans-serif;font-weight:900;font-size:20px;color:white;">NEMM UP</span><div class="title" style="margin:0;">SafeCheck v2.0 — ${isZH?'安全检查':'Safety Inspection'}</div></div><div class="sub">${isZH?'官方检查记录':'Official Inspection Record'} — HSM Project · China</div><span class="badge">ID #${i.id}</span><span class="badge" style="margin-left:8px">${i.language||'EN'}</span></div>
+  <div class="body">
+    <div class="section"><h3>${isZH?'检查数据':'Inspection Data'}</h3><div class="grid"><div class="cell"><div class="lbl">📅 ${isZH?'日期':'Date'}</div><div class="val">${i.date||'—'}</div></div><div class="cell"><div class="lbl">⏱️ Start</div><div class="val">${i.time_start||'—'}</div></div><div class="cell"><div class="lbl">🏁 End</div><div class="val">${i.time_end||'—'}</div></div><div class="cell"><div class="lbl">⏳ Duration</div><div class="val">${i.duration||'—'}</div></div><div class="cell"><div class="lbl">📍 Area</div><div class="val">${i.area||'—'}</div></div><div class="cell"><div class="lbl">👷 Inspector</div><div class="val">${i.inspector||'—'}</div></div></div></div>
+    ${epiSection}
+    <div class="section"><h3>${isZH?'已识别的隐患':'Identified Occurrences'}</h3><table>${rows}</table></div>
+    ${i.notes?`<div class="section"><h3>${isZH?'备注':'Notes'}</h3><div class="notes-box">${i.notes}</div></div>`:''}
+    ${photoImgs?`<div class="section"><h3>${isZH?'照片':'Photos'} (${i.photos.length})</h3><div class="photos">${photoImgs}</div></div>`:''}
+    <div class="footer"><span class="nemm">NEMM UP</span> · SafeCheck v2.0 · Generated by AI Safety Dashboard · ${new Date().toLocaleString('en-GB')}</div>
+  </div></body></html>`;
+  const w=window.open('','_blank');w.document.write(html);w.document.close();w.onload=()=>{w.print();};
+}
+
+// ── DELETE ────────────────────────────────────────────────────────────────────
+async function deleteReport(id){
+  if(!confirm('Delete this inspection report? This cannot be undone.'))return;
+  const res=await fetch(`${SUPABASE_URL}/rest/v1/inspections?id=eq.${id}`,{method:'DELETE',headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY}});
+  if(res.ok){allData=allData.filter(r=>r.id!==id);render();}
+  else alert('Error deleting report.');
+}
+
+async function deleteAllReports(){
+  if(!confirm('⚠️ Delete ALL inspection reports? This cannot be undone!'))return;
+  if(!confirm('Are you absolutely sure? All data will be permanently deleted.'))return;
+  for(const r of allData){await fetch(`${SUPABASE_URL}/rest/v1/inspections?id=eq.${r.id}`,{method:'DELETE',headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY}});}
+  allData=[];render();
+}
+
+// ── INSPECTOR SECTION ─────────────────────────────────────────────────────────
+let inspectorChartInst=null;
+function getWeekStart(date){const d=new Date(date);const day=d.getDay();const diff=d.getDate()-day+(day===0?-6:1);d.setDate(diff);d.setHours(0,0,0,0);return d;}
+
+function renderInspectors(){
+  const period=document.getElementById('inspectorPeriod')?.value||'all';
+  const now=new Date();const weekStart=getWeekStart(now);const monthStart=new Date(now.getFullYear(),now.getMonth(),1);
+  function inPeriod(item){if(period==='all')return true;const d=new Date(item.date||item.created_at?.split('T')[0]);if(period==='week')return d>=weekStart;if(period==='month')return d>=monthStart;return true;}
+  const filtered=allData.filter(inPeriod);
+  const stats={};
+  allData.forEach(i=>{const name=i.inspector||'—';if(!stats[name])stats[name]={total:0,week:0,month:0,occ:0,lastVisit:''};stats[name].total++;stats[name].occ+=occCount(i);const d=new Date(i.date||i.created_at?.split('T')[0]);if(d>=weekStart)stats[name].week++;if(d>=monthStart)stats[name].month++;const ds=i.date||i.created_at?.split('T')[0]||'';if(ds>stats[name].lastVisit)stats[name].lastVisit=ds;});
+  const periodStats={};filtered.forEach(i=>{const name=i.inspector||'—';if(!periodStats[name])periodStats[name]=0;periodStats[name]++;});
+  const sorted=Object.entries(stats).sort((a,b)=>b[1].total-a[1].total);
+  const periodSorted=Object.entries(periodStats).sort((a,b)=>b[1]-a[1]);
+  const medals=['🥇','🥈','🥉'];
+  const rankingEl=document.getElementById('inspectorRanking');
+  rankingEl.innerHTML=sorted.slice(0,8).map(([name,s],idx)=>{
+    const pct=Math.round((s.total/allData.length)*100);const medal=medals[idx]||`${idx+1}.`;const avg=s.total>0?(s.occ/s.total).toFixed(1):'0';
+    return `<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);"><span style="font-size:18px;width:28px;text-align:center;">${medal}</span><div style="flex:1;"><div style="font-weight:700;font-size:14px;">${name}</div><div style="font-size:11px;color:var(--muted);">${s.total} inspections · avg ${avg} occ/visit</div><div style="height:5px;background:var(--border);border-radius:3px;margin-top:4px;"><div style="height:5px;width:${pct}%;background:var(--accent);border-radius:3px;"></div></div></div><span style="font-size:13px;font-weight:700;color:var(--accent);">${s.total}</span></div>`;
+  }).join('');
+  const ctx=document.getElementById('inspectorChart').getContext('2d');
+  if(inspectorChartInst)inspectorChartInst.destroy();
+  inspectorChartInst=new Chart(ctx,{type:'bar',data:{labels:periodSorted.map(([n])=>n),datasets:[{label:'Inspections',data:periodSorted.map(([,v])=>v),backgroundColor:periodSorted.map((_,i)=>i===0?'#2E86C1':i===1?'#5DADE2':i===2?'#85C1E9':'#AED6F1'),borderRadius:6}]},options:{responsive:true,maintainAspectRatio:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{stepSize:1}},x:{ticks:{font:{size:11}}}}}});
+  const weeks=[];for(let w=7;w>=0;w--){const ws=new Date(weekStart);ws.setDate(ws.getDate()-w*7);const we=new Date(ws);we.setDate(we.getDate()+6);weeks.push({start:ws,end:we,label:ws.toLocaleDateString('en-GB',{day:'2-digit',month:'short'})});}
+  const inspNames=sorted.map(([n])=>n);const calData={};
+  allData.forEach(i=>{const name=i.inspector||'—';const d=new Date(i.date||i.created_at?.split('T')[0]);weeks.forEach((w,wi)=>{if(d>=w.start&&d<=w.end){if(!calData[name])calData[name]={};calData[name][wi]=(calData[name][wi]||0)+1;}});});
+  const maxVal=Math.max(1,...Object.values(calData).flatMap(v=>Object.values(v)));
+  let calHtml=`<table style="border-collapse:collapse;width:100%;font-size:12px;"><thead><tr><th style="text-align:left;padding:4px 8px;color:var(--muted);font-weight:600;">Inspector</th>${weeks.map(w=>`<th style="text-align:center;padding:4px 6px;color:var(--muted);font-weight:600;min-width:52px;">${w.label}</th>`).join('')}</tr></thead><tbody>`;
+  inspNames.forEach(name=>{calHtml+=`<tr><td style="padding:5px 8px;font-weight:600;color:var(--text);white-space:nowrap;">${name}</td>`;weeks.forEach((w,wi)=>{const count=calData[name]?.[wi]||0;const intensity=count===0?0:Math.max(0.15,count/maxVal);const bg=count===0?'var(--border)':`rgba(46,134,193,${intensity})`;const color=intensity>0.5?'white':'var(--text)';calHtml+=`<td style="text-align:center;padding:4px;"><div style="width:44px;height:28px;border-radius:6px;background:${bg};display:flex;align-items:center;justify-content:center;font-weight:700;color:${color};margin:0 auto;">${count>0?count:''}</div></td>`;});calHtml+='</tr>';});
+  calHtml+='</tbody></table>';
+  document.getElementById('inspectorCalendar').innerHTML=calHtml;
+  const tbody=document.getElementById('inspectorTable');
+  tbody.innerHTML=sorted.map(([name,s],idx)=>{const avg=s.total>0?(s.occ/s.total).toFixed(1):'0.0';const medal=medals[idx]||'';return `<tr><td style="font-size:18px;text-align:center;">${medal||(idx+1)}</td><td style="font-weight:700;">${name}</td><td style="text-align:center;"><span style="background:var(--light);padding:3px 10px;border-radius:6px;font-weight:600;">${s.week}</span></td><td style="text-align:center;"><span style="background:var(--light);padding:3px 10px;border-radius:6px;font-weight:600;">${s.month}</span></td><td style="text-align:center;"><span style="background:var(--accent);color:white;padding:3px 10px;border-radius:6px;font-weight:700;">${s.total}</span></td><td style="color:var(--muted);font-size:13px;">${s.lastVisit||'—'}</td><td style="text-align:center;font-weight:600;color:${parseFloat(avg)>2?'var(--red)':parseFloat(avg)>1?'var(--orange)':'var(--green)'};">${avg}</td></tr>`;}).join('');
+}
+
+// ── UTILITIES ─────────────────────────────────────────────────────────────────
 function showEmpty(){
   document.getElementById('occList').innerHTML=`<div class="empty-state"><div class="empty-icon">📡</div><div class="empty-title">Waiting for data</div><p>Complete an inspection on the SafeCheck app to see data here.</p></div>`;
-  document.getElementById('inspTable').innerHTML=`<tr><td colspan="8"><div class="empty-state"><div class="empty-icon">📡</div><div class="empty-title">No data yet</div><p>Install SafeCheck and start inspecting!</p></div></td></tr>`;
+  document.getElementById('inspTable').innerHTML=`<tr><td colspan="11"><div class="empty-state"><div class="empty-icon">📡</div><div class="empty-title">No data yet</div></div></td></tr>`;
   document.getElementById('areaGrid').innerHTML=`<div class="empty-state"><div class="empty-icon">📍</div><div class="empty-title">No area data yet</div></div>`;
 }
 
 function exportCSV(){
   if(!allData.length){alert('No data to export yet.');return;}
-  const rows=[['ID','Date','Time Start','Time End','Duration','Area','Inspector','Language','Total Occurrences',...OCCURRENCES.map(o=>o.label)]];
-  allData.forEach(i=>{
-    const oc=OCCURRENCES.map(o=>i.occurrences&&i.occurrences[o.id]?1:0);
-    rows.push([i.id,i.date,i.time_start,i.time_end,i.duration,i.area,i.inspector,i.language,oc.reduce((a,b)=>a+b,0),...oc]);
-  });
+  const rows=[['ID','Date','Time Start','Time End','Duration','Area','Inspector','Language','Total Occurrences','EPI Compliant',...OCCURRENCES.map(o=>o.label)]];
+  allData.forEach(i=>{const oc=OCCURRENCES.map(o=>i.occurrences&&i.occurrences[o.id]?1:0);const epi=i.epi_check&&i.epi_check.length>0?i.epi_check[0].compliant?'Yes':'No':'—';rows.push([i.id,i.date,i.time_start,i.time_end,i.duration,i.area,i.inspector,i.language,oc.reduce((a,b)=>a+b,0),epi,...oc]);});
   const csv=rows.map(r=>r.map(v=>`"${String(v||'').replace(/"/g,'""')}"`).join(',')).join('\n');
-  const a=document.createElement('a');
-  a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8;'}));
-  a.download=`SafeCheck_${new Date().toISOString().split('T')[0]}.csv`;
-  a.click();
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8;'}));a.download=`SafeCheck_v2_${new Date().toISOString().split('T')[0]}.csv`;a.click();
 }
 
-setInterval(()=>{ if(sessionStorage.getItem('safecheck_auth')==='true') loadData(); },60000);
-if(sessionStorage.getItem('safecheck_auth')==='true') loadData();
+setInterval(()=>{if(sessionStorage.getItem('safecheck_auth')==='true')loadData();},60000);
+if(sessionStorage.getItem('safecheck_auth')==='true') { loadData(); updateAIKeyStatus(); }
 </script>
 </body>
 </html>
