@@ -657,6 +657,8 @@ function showSection(id, el){
   document.getElementById('pageTitle').textContent=titles[id]||'SafeCheck';
   if(id==='inspectors') renderInspectors();
   if(id==='epi') updateEPIStats();
+  if(id==='records') renderTable();
+  if(id==='areas') renderAreaGrid();
 }
 
 function isManoel(){return sessionStorage.getItem('safecheck_user')==='manoel';}
@@ -742,7 +744,10 @@ function render(){
   document.getElementById('kpiInsp').textContent=inspectors||'—';
   document.getElementById('kpiEPI').textContent=epiAnalyzed;
   document.getElementById('kpiEPISub').textContent=`${epiAnalyzed} of ${allData.length} inspections`;
-  renderRanking(); renderAreaChart(); renderTrend(); renderAreaGrid(); renderTable();
+  renderRanking(); renderAreaChart(); renderTrend(); renderAreaGrid();
+  // Only render table if records section is active
+  const activeSection = document.querySelector('.section-page.active');
+  if(!activeSection || activeSection.id === 'sec-records' || activeSection.id === 'sec-overview') renderTable();
   updateEPIStats();
   if(isPrivileged()){
     document.getElementById('inspectorLock').style.display='none';
