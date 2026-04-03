@@ -691,6 +691,10 @@ async function loadData(){
 
 function occCount(insp){
   if(!insp.occurrences) return 0;
+  if(Array.isArray(insp.occurrences)) return insp.occurrences.length;
+  if(typeof insp.occurrences === 'string'){
+    try{ const p=JSON.parse(insp.occurrences); return Object.values(p).filter(Boolean).length; }catch(e){ return 0; }
+  }
   return Object.values(insp.occurrences).filter(Boolean).length;
 }
 
@@ -747,11 +751,24 @@ function render(){
 
 function renderRanking(){
   const counts={};OCCURRENCES.forEach(o=>counts[o.id]=0);
-  allData.forEach(i=>{if(i.occurrences)Object.entries(i.occurrences).forEach(([k,v])=>{if(v&&counts[k]!==undefined)counts[k]++;});});
+  allData.forEach(i=>{
+    if(!i.occurrences) return;
+    let occ = i.occurrences;
+    if(typeof occ === 'string'){ try{ occ=JSON.parse(occ); }catch(e){ return; } }
+    if(typeof occ === 'object' && !Array.isArray(occ)){
+      Object.entries(occ).forEach(([k,v])=>{if(v&&counts[k]!==undefined)counts[k]++;});
+    }
+  });
   const sorted=OCCURRENCES.map(o=>({...o,count:counts[o.id]||0})).filter(o=>o.count>0).sort((a,b)=>b.count-a.count).slice(0,8);
   const max=sorted[0]?.count||1;
   const colors=['#E74C3C','#E67E22','#F39C12','#2E86C1','#2E86C1','#2E86C1','#5D7A8A','#5D7A8A'];
-  if(!sorted.length){document.getElementById('occList').innerHTML=`<div class="empty-state"><div class="empty-icon">✅</div><div class="empty-title">No occurrences yet</div></div>`;return;}
+  if(!sorted.length){
+    // Check if we have data but occurrences field is different format
+    const sample = allData[0];
+    const hasOcc = sample && sample.occurrences;
+    document.getElementById('occList').innerHTML=`<div class="empty-state"><div class="empty-icon">${hasOcc?'⚠️':'✅'}</div><div class="empty-title">${hasOcc?'Occurrences format issue':'No occurrences yet'}</div><p>${hasOcc?'Data: '+JSON.stringify(sample.occurrences).slice(0,100):''}</p></div>`;
+    return;
+  }
   document.getElementById('occList').innerHTML=sorted.map((o,i)=>`
     <div class="occ-item">
       <div class="occ-rank ${i===0?'r1':i===1?'r2':i===2?'r3':'rn'}">${i+1}</div>
@@ -810,9 +827,15 @@ function renderTable(){
     const photoHtml=(i.photos&&i.photos.length>0)
       ?i.photos.slice(0,3).map(url=>`<a href="${url}" target="_blank"><img src="${url}" style="width:40px;height:40px;object-fit:cover;border-radius:6px;border:1.5px solid var(--border);margin-right:3px;vertical-align:middle;" onerror="this.style.display='none'"/></a>`).join('')+(i.photos.length>3?`<span style="font-size:11px;color:var(--muted);vertical-align:middle;"> +${i.photos.length-3}</span>`:'')
       :'<span style="color:var(--muted);font-size:12px;">—</span>';
-    const epiHtml=i.epi_check&&i.epi_check.length>0
-      ?`<span style="background:#E8F8F5;color:#1A6B3A;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:700;">🤖 ${i.epi_check[0].compliant?'✅':'⚠️'}</span>`
-      :`<button onclick="analyzeOnePhoto(${i.id})" style="background:var(--ai);color:white;border:none;border-radius:6px;padding:3px 8px;font-size:11px;font-weight:600;cursor:pointer;">Analyze</button>`;
+    let epiHtml;
+    if(i.epi_check&&i.epi_check.length>0){
+      const e=i.epi_check[0];
+      const ok=e.overall_compliant!==undefined?e.overall_compliant:(e.workers?e.workers.every(w=>w.compliant):e.compliant);
+      const nc=e.non_compliant_count||(e.workers?e.workers.filter(w=>!w.compliant).length:0);
+      epiHtml=`<span style="background:${ok?'#E8F8F5':'#FDEDEC'};color:${ok?'#1A6B3A':'#C0392B'};padding:2px 8px;border-radius:20px;font-size:11px;font-weight:700;">🤖 ${ok?'✅ OK':'⚠️ '+nc+' NC'}</span>`;
+    } else {
+      epiHtml=`<button onclick="analyzeOnePhoto(${i.id})" style="background:var(--ai);color:white;border:none;border-radius:6px;padding:3px 8px;font-size:11px;font-weight:600;cursor:pointer;">Analyze</button>`;
+    }
     const deleteCell=manoel?`<td style="text-align:center;"><button onclick="deleteReport(${i.id})" style="background:none;border:none;cursor:pointer;font-size:18px;color:var(--red);opacity:0.7;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.7">🗑️</button></td>`:'<td></td>';
     return `<tr><td>${i.date||'—'}</td><td>${i.time_start||'—'}${i.time_end?' → '+i.time_end:''}</td><td><span class="td-area">${i.area||'—'}</span><br><span style="font-size:11px;color:var(--muted);">${AREA_NAMES[i.area]||''}</span></td><td>${i.inspector||'—'}</td><td>${i.duration||'—'}</td><td><span class="occ-badge ${bc}">${bl}</span></td><td>${i.language||'EN'}</td><td>${photoHtml}</td><td>${epiHtml}</td><td><button class="dl-btn" onclick="generatePDF(${i.id})">⬇️ PDF</button></td>${deleteCell}</tr>`;
   }).join('');
@@ -979,7 +1002,11 @@ function renderAIStructuredPanels(topOcc, areaCounts){
 function updateEPIStats(){
   const allPhotos=allData.flatMap(i=>i.photos||[]);
   const analyzed=allData.filter(i=>i.epi_check&&i.epi_check.length>0);
-  const nonCompliant=analyzed.filter(i=>i.epi_check.some(e=>!e.compliant));
+  const nonCompliant=analyzed.filter(i=>i.epi_check.some(e=>{
+    if(e.overall_compliant!==undefined) return !e.overall_compliant;
+    if(e.workers&&e.workers.length>0) return e.workers.some(w=>!w.compliant);
+    return !e.compliant;
+  }));
   const compliance=analyzed.length>0?Math.round((analyzed.length-nonCompliant.length)/analyzed.length*100):0;
 
   document.getElementById('epiTotalPhotos').textContent=allPhotos.length;
@@ -994,12 +1021,17 @@ function updateEPIStats(){
     document.getElementById('epiPhotoGrid').innerHTML=analyzed.slice(0,12).map(i=>{
       const epi=i.epi_check[0];
       const photo=i.photos&&i.photos[0];
+      // Support both old format (single) and new format (workers array)
+      const epiData = epi.workers && epi.workers.length > 0 ? epi.workers[0] : epi;
+      const isCompliant = epi.overall_compliant !== undefined ? epi.overall_compliant : epi.compliant;
+      function badgeIcon(val){ return val==='present'?'✓':val==='absent'?'✗':'?'; }
+      function badgeClass(val){ return val==='present'?'epi-ok':val==='absent'?'epi-miss':'epi-unk'; }
       const badges=[
-        epi.helmet?`<span class="epi-badge ${epi.helmet==='present'?'epi-ok':epi.helmet==='absent'?'epi-miss':'epi-unk'}">⛑ ${epi.helmet==='present'?'✓':'absent'==='absent'?'✗':'?'}</span>`:'',
-        epi.glasses?`<span class="epi-badge ${epi.glasses==='present'?'epi-ok':epi.glasses==='absent'?'epi-miss':'epi-unk'}">🥽 ${epi.glasses==='present'?'✓':epi.glasses==='absent'?'✗':'?'}</span>`:'',
-        epi.vest?`<span class="epi-badge ${epi.vest==='present'?'epi-ok':epi.vest==='absent'?'epi-miss':'epi-unk'}">🦺 ${epi.vest==='present'?'✓':epi.vest==='absent'?'✗':'?'}</span>`:'',
+        `<span class="epi-badge ${badgeClass(epiData.helmet)}">⛑ ${badgeIcon(epiData.helmet)}</span>`,
+        `<span class="epi-badge ${badgeClass(epiData.glasses)}">🥽 ${badgeIcon(epiData.glasses)}</span>`,
+        `<span class="epi-badge ${badgeClass(epiData.vest)}">🦺 ${badgeIcon(epiData.vest)}</span>`,
       ].join('');
-      return `<div class="epi-photo-card" style="border:2px solid ${epi.compliant?'var(--green)':'var(--red)'};">
+      return `<div class="epi-photo-card" style="border:2px solid ${isCompliant?'var(--green)':'var(--red)'};">
         ${photo?`<img src="${photo}" onerror="this.style.display='none'"/>`:'<div style="height:130px;background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:32px;">📷</div>'}
         <div class="epi-photo-info">
           <div style="font-size:11px;color:var(--muted);margin-bottom:4px;">${i.area||'—'} · ${i.date||'—'}</div>
