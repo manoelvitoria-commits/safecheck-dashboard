@@ -606,14 +606,13 @@ function updateAIKeyStatus(){
 
 // switchLang replaced
 function switchLang(el){
-  // Save auth to localStorage before switching
-  const auth = sessionStorage.getItem('safecheck_auth') || localStorage.getItem('safecheck_auth');
-  const user = sessionStorage.getItem('safecheck_user') || localStorage.getItem('safecheck_user_active');
-  if(auth==='true'){
-    localStorage.setItem('safecheck_auth','true');
-    localStorage.setItem('safecheck_user_active', user||'manoel');
-  }
-  window.location.href = el.href;
+  // Always save current auth state to localStorage before switching
+  const user = sessionStorage.getItem('safecheck_user') || 
+               localStorage.getItem('safecheck_user_active') || '';
+  localStorage.setItem('safecheck_auth', 'true');
+  localStorage.setItem('safecheck_user_active', user);
+  // Small delay to ensure localStorage is written before redirect
+  setTimeout(function(){ window.location.href = el.href; }, 100);
 }
 
 
