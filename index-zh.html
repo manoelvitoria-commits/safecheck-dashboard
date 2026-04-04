@@ -270,8 +270,8 @@ tr:hover td{background:var(--bg);}
   <div class="topbar">
     <div class="page-title" id="pageTitle">📊 Dashboard Overview</div>
     <div class="topbar-actions">
-      <button id="langEN" onclick="setLang('en')" style="padding:6px 14px;border-radius:8px;border:2px solid var(--accent);background:var(--accent);color:white;font-size:12px;font-weight:700;cursor:pointer;border:none;">🇺🇸 EN</button>
-      <button id="langZH" onclick="setLang('zh')" style="padding:6px 14px;border-radius:8px;border:2px solid var(--border);background:white;color:var(--muted);font-size:12px;font-weight:700;cursor:pointer;">🇨🇳 中文</button>
+      <a href="index.html" onclick="switchLang(this);return false;" style="padding:6px 14px;border-radius:8px;border:2px solid var(--border);background:white;color:var(--muted);font-size:12px;font-weight:700;text-decoration:none;">🇺🇸 EN</a>
+      <span style="padding:6px 14px;border-radius:8px;border:2px solid var(--accent);background:var(--accent);color:white;font-size:12px;font-weight:700;">🇨🇳 中文</span>
       <select class="filter-select" id="filterArea" onchange="loadData()">
         <option value="">所有区域</option>
         <option value="SY">SY – 板坯库</option>
