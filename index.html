@@ -1232,9 +1232,14 @@ function renderInspectors(){
 
 // ── UTILITIES ─────────────────────────────────────────────────────────────────
 function showEmpty(){
-  document.getElementById('occList').innerHTML=`<div class="empty-state"><div class="empty-icon">📡</div><div class="empty-title">Waiting for data</div><p>Complete an inspection on the SafeCheck app to see data here.</p></div>`;
-  document.getElementById('inspTable').innerHTML=`<tr><td colspan="11"><div class="empty-state"><div class="empty-icon">📡</div><div class="empty-title">No data yet</div></div></td></tr>`;
-  document.getElementById('areaGrid').innerHTML=`<div class="empty-state"><div class="empty-icon">📍</div><div class="empty-title">No area data yet</div></div>`;
+  // Only show empty state if allData is truly empty
+  if(allData && allData.length > 0) return;
+  const occEl = document.getElementById('occList');
+  if(occEl) occEl.innerHTML=`<div class="empty-state"><div class="empty-icon">📡</div><div class="empty-title">Waiting for data</div><p>Complete an inspection on the SafeCheck app to see data here.</p></div>`;
+  const inspEl = document.getElementById('inspTable');
+  if(inspEl) inspEl.innerHTML=`<tr><td colspan="11"><div class="empty-state"><div class="empty-icon">📡</div><div class="empty-title">No data yet</div></div></td></tr>`;
+  const areaEl = document.getElementById('areaGrid');
+  if(areaEl) areaEl.innerHTML=`<div class="empty-state"><div class="empty-icon">📍</div><div class="empty-title">No area data yet</div></div>`;
 }
 
 function exportCSV(){
