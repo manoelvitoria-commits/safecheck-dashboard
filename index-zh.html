@@ -240,7 +240,7 @@ tr:hover td{background:var(--bg);}
   <nav class="sidebar-nav">
     <div class="nav-label">概览</div>
     <a class="nav-item active" id="navOverview" href="#" onclick="showSection('overview',this);return false;"><span class="icon">📊</span>仪表板</a>
-    <a class="nav-item" id="navRecords" href="#" onclick="showSection('records',this);return false;"><span class="icon">📋</span>Records</a>
+    <a class="nav-item" id="navRecords" href="#" onclick="showSection('records',this);return false;"><span class="icon">📋</span>检查记录</a>
     <a class="nav-item" id="navAreas" href="#" onclick="showSection('areas',this);return false;"><span class="icon">📍</span>区域</a>
 
     <div class="nav-label" style="margin-top:16px;">AI 功能</div>
@@ -395,7 +395,7 @@ tr:hover td{background:var(--bg);}
     <div id="sec-records" class="section-page">
       <div class="card" style="padding:0;overflow:hidden;">
         <div style="padding:18px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
-          <div class="card-title" style="margin:0;">📋 Inspection Records</div>
+          <div class="card-title" style="margin:0;">📋 检查记录</div>
           <div id="deleteAllContainer"></div>
         </div>
         <div class="table-wrap">
@@ -403,7 +403,7 @@ tr:hover td{background:var(--bg);}
             <thead><tr>
               <th>日期</th><th>时间</th><th>区域</th><th>检查员</th>
               <th>时长</th><th>隐患</th><th>语言</th><th>照片</th>
-              <th>EPI AI</th><th>报告</th><th id="deleteColHeader"></th>
+              <th>PPE AI</th><th>报告</th><th id="deleteColHeader"></th>
             </tr></thead>
             <tbody id="inspTable"><tr><td colspan="11"><div class="empty-state"><div class="empty-icon">📡</div><div class="empty-title">Loading...</div></div></td></tr></tbody>
           </table>
@@ -435,10 +435,10 @@ tr:hover td{background:var(--bg);}
             <div class="ai-chip" onclick="selectAIChip(this,'sop')">🏭 SOP 准备情况</div>
           </div>
           <div class="ai-insight-box loading" id="aiInsightBox">
-            Click "Run Analysis" to generate AI-powered safety insights based on your inspection data.
+            点击"运行分析"基于检查数据生成AI安全分析报告。
           </div>
           <div style="margin-top:12px;font-size:11px;color:var(--muted);">
-            💡 AI analysis uses real inspection data from Supabase · Results in English for international team
+            💡 AI分析使用Supabase中的真实检查数据 · 结果以中文呈现
           </div>
         </div>
       </div>
@@ -447,15 +447,15 @@ tr:hover td{background:var(--bg);}
       <div class="three-col">
         <div class="card">
           <div class="card-title">🔴 主要隐患</div>
-          <div id="aiTopHazards"><div class="empty-state" style="padding:20px;"><div class="empty-icon" style="font-size:32px;">⚠️</div><p>Run analysis first</p></div></div>
+          <div id="aiTopHazards"><div class="empty-state" style="padding:20px;"><div class="empty-icon" style="font-size:32px;">⚠️</div><p>请先运行分析</p></div></div>
         </div>
         <div class="card">
           <div class="card-title">📍 最高风险区域</div>
-          <div id="aiRiskAreas"><div class="empty-state" style="padding:20px;"><div class="empty-icon" style="font-size:32px;">📍</div><p>Run analysis first</p></div></div>
+          <div id="aiRiskAreas"><div class="empty-state" style="padding:20px;"><div class="empty-icon" style="font-size:32px;">📍</div><p>请先运行分析</p></div></div>
         </div>
         <div class="card">
           <div class="card-title">💡 建议</div>
-          <div id="aiRecommendations"><div class="empty-state" style="padding:20px;"><div class="empty-icon" style="font-size:32px;">💡</div><p>Run analysis first</p></div></div>
+          <div id="aiRecommendations"><div class="empty-state" style="padding:20px;"><div class="empty-icon" style="font-size:32px;">💡</div><p>请先运行分析</p></div></div>
         </div>
       </div>
     </div>
@@ -483,11 +483,11 @@ tr:hover td{background:var(--bg);}
             <div class="epi-progress"><div class="epi-progress-fill" id="epiProgressBar" style="width:0%;background:var(--green);"></div></div>
           </div>
           <div style="font-size:13px;color:var(--muted);margin-bottom:16px;">
-            💡 This analysis runs on the dashboard (stable network) — no mobile connectivity required in the field · PPE detection.
+            💡 此分析在仪表板运行（稳定网络）— 现场无需移动网络 · PPE检测。
           </div>
           <div style="font-size:12px;color:var(--muted);margin-bottom:12px;font-weight:600;text-transform:uppercase;letter-spacing:1px;">最新PPE分析结果</div>
           <div class="epi-photo-grid" id="epiPhotoGrid">
-            <div class="empty-state"><div class="empty-icon">📸</div><div class="empty-title">No analyses yet</div><p>Click "Analyze All PPE" to start</p></div>
+            <div class="empty-state"><div class="empty-icon">📸</div><div class="empty-title">暂无分析结果</div><p>点击"分析所有PPE"开始</p></div>
           </div>
         </div>
       </div>
@@ -915,7 +915,7 @@ function render(){
   document.getElementById('kpiOcc').textContent=totalOcc;
   document.getElementById('kpiInsp').textContent=inspectors||'—';
   document.getElementById('kpiEPI').textContent=epiAnalyzed;
-  document.getElementById('kpiEPISub').textContent=`${epiAnalyzed} of ${allData.length} inspections`;
+  document.getElementById('kpiEPISub').textContent=`${epiAnalyzed} / ${allData.length} 次检查`;
   renderRanking(); renderAreaChart(); renderTrend(); renderAreaGrid(); renderTable(); updateEPIStats();
   if(isPrivileged()){
     document.getElementById('inspectorLock').style.display='none';
@@ -936,7 +936,7 @@ function renderRanking(){
   const max=sorted[0]?.count||1;
   const colors=['#E74C3C','#E67E22','#F39C12','#2E86C1','#2E86C1','#2E86C1','#5D7A8A','#5D7A8A'];
   if(!sorted.length){
-    const el=document.getElementById('occList'); if(el) el.innerHTML=`<div class="empty-state"><div class="empty-icon">✅</div><div class="empty-title">No occurrences yet</div></div>`;
+    const el=document.getElementById('occList'); if(el) el.innerHTML=`<div class="empty-state"><div class="empty-icon">✅</div><div class="empty-title">暂无隐患记录</div></div>`;
     return;
   }
   const occEl=document.getElementById('occList'); if(!occEl) return; occEl.innerHTML=sorted.map((o,i)=>`
@@ -987,9 +987,9 @@ function renderTable(){
   const delHeader=document.getElementById('deleteColHeader');
   if(delHeader) delHeader.innerHTML=manoel?'🗑️':' ';
   const deleteAllContainer=document.getElementById('deleteAllContainer');
-  if(deleteAllContainer) deleteAllContainer.innerHTML=manoel?`<button onclick="deleteAllReports()" style="background:var(--red);color:white;border:none;border-radius:8px;padding:6px 14px;font-size:12px;font-weight:700;cursor:pointer;">🗑️ Delete All</button>`:'';
+  if(deleteAllContainer) deleteAllContainer.innerHTML=manoel?`<button onclick="deleteAllReports()" style="background:var(--red);color:white;border:none;border-radius:8px;padding:6px 14px;font-size:12px;font-weight:700;cursor:pointer;">🗑️ 全部删除</button>`:'';
   if(!allData.length){
-    document.getElementById('inspTable').innerHTML=`<tr><td colspan="11"><div class="empty-state"><div class="empty-icon">📋</div><div class="empty-title">No inspections yet</div><p>Install SafeCheck and complete an inspection!</p></div></td></tr>`;
+    document.getElementById('inspTable').innerHTML=`<tr><td colspan="11"><div class="empty-state"><div class="empty-icon">📋</div><div class="empty-title">暂无检查记录</div><p>请安装SafeCheck并完成检查！</p></div></td></tr>`;
     return;
   }
   document.getElementById('inspTable').innerHTML=allData.slice(0,50).map(i=>{
@@ -1004,7 +1004,7 @@ function renderTable(){
       const nc=e.non_compliant_count||(e.workers?e.workers.filter(w=>!w.compliant).length:0);
       epiHtml=`<span style="background:${ok?'#E8F8F5':'#FDEDEC'};color:${ok?'#1A6B3A':'#C0392B'};padding:2px 8px;border-radius:20px;font-size:11px;font-weight:700;">🤖 ${ok?'✅ 合规':'⚠️ '+nc+' 不合规'}</span>`;
     } else {
-      epiHtml=`<button onclick="analyzeOnePhoto(${i.id})" style="background:var(--ai);color:white;border:none;border-radius:6px;padding:3px 8px;font-size:11px;font-weight:600;cursor:pointer;">Analyze</button>`;
+      epiHtml=`<button onclick="analyzeOnePhoto(${i.id})" style="background:var(--ai);color:white;border:none;border-radius:6px;padding:3px 8px;font-size:11px;font-weight:600;cursor:pointer;">分析</button>`;
     }
     const deleteCell=manoel?`<td style="text-align:center;"><button onclick="deleteReport(${i.id})" style="background:none;border:none;cursor:pointer;font-size:18px;color:var(--red);opacity:0.7;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.7">🗑️</button></td>`:'<td></td>';
     return `<tr><td>${i.date||'—'}</td><td>${i.time_start||'—'}${i.time_end?' → '+i.time_end:''}</td><td><span class="td-area">${i.area||'—'}</span><br><span style="font-size:11px;color:var(--muted);">${AREA_NAMES[i.area]||''}</span></td><td>${i.inspector||'—'}</td><td>${i.duration||'—'}</td><td><span class="occ-badge ${bc}">${bl}</span></td><td>${i.language||'EN'}</td><td>${photoHtml}</td><td>${epiHtml}</td><td><button class="dl-btn" onclick="generatePDF(${i.id})">⬇️ PDF</button></td>${deleteCell}</tr>`;
@@ -1029,7 +1029,7 @@ async function runAIAnalysis(mode){
   }
   mode = mode || currentAIMode;
   const btn=document.getElementById('aiRunBtn');
-  btn.innerHTML='<span class="ai-spinner"></span>Analyzing...';
+  btn.innerHTML='<span class="ai-spinner"></span>分析中...';
   btn.disabled=true;
   document.getElementById('aiInsightBox').className='ai-insight-box loading';
   document.getElementById('aiInsightBox').textContent='🤖 Claude AI is analyzing your safety data...';
@@ -1124,7 +1124,7 @@ Provide a SOP readiness assessment. What needs to be resolved before production 
     document.getElementById('aiInsightBox').textContent='⚠️ Analysis failed: '+e.message+'\n\nPossible causes:\n1. Re-enter your Claude API Key (click 🔑 in sidebar)\n2. Check if Supabase Edge Function is deployed\n3. Verify internet connection';
     console.error('AI error:', e);
   }
-  btn.innerHTML='▶ Run Analysis';
+  btn.innerHTML='▶ 运行分析';
   btn.disabled=false;
 }
 
@@ -1229,7 +1229,7 @@ function updateEPIStats(){
       </div>`;
     }).join('');
   } else {
-    document.getElementById('epiPhotoGrid').innerHTML='<div class="empty-state"><div class="empty-icon">📸</div><div class="empty-title">No photos yet</div><p>Complete inspections with photos in the SafeCheck app</p></div>';
+    document.getElementById('epiPhotoGrid').innerHTML='<div class="empty-state"><div class="empty-icon">📸</div><div class="empty-title">暂无照片</div><p>请在SafeCheck应用中完成带照片的检查</p></div>';
   }
 }
 
@@ -1240,7 +1240,7 @@ async function analyzeAllPhotos(){
   if(!toAnalyze.length){alert('所有照片已分析完毕！');return;}
   const btn=document.getElementById('analyzeAllBtn');
   btn.disabled=true;
-  btn.innerHTML='<span class="ai-spinner"></span>Analyzing...';
+  btn.innerHTML='<span class="ai-spinner"></span>分析中...';
 
   let done=0;
   for(const insp of toAnalyze.slice(0,10)){ // Limit to 10 at a time
@@ -1277,7 +1277,7 @@ async function analyzeAllPhotos(){
         });
         insp.epi_check=[result];
         done++;
-        btn.innerHTML=`<span class="ai-spinner"></span>Analyzed ${done}/${toAnalyze.slice(0,10).length}...`;
+        btn.innerHTML=`<span class="ai-spinner"></span>已分析 ${done}/${toAnalyze.slice(0,10).length}...`;
       }
     }catch(e){console.warn('EPI analyze error:',e);}
   }
@@ -1351,9 +1351,9 @@ function generatePDF(id){
       <h3>🤖 PPE Vision AI Analysis</h3>
       <div style="background:#F4ECF7;border:1px solid #C39BD3;border-radius:8px;padding:14px;">
         <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;text-align:center;">
-          <div><div style="font-size:11px;color:#7D6608;">Hard Hat</div><div style="font-size:16px;font-weight:700;color:${i.epi_check[0].helmet==='present'?'#1A6B3A':'#C0392B'}">${i.epi_check[0].helmet==='present'?'✅ Present':'❌ Absent'}</div></div>
-          <div><div style="font-size:11px;color:#7D6608;">Safety Glasses</div><div style="font-size:16px;font-weight:700;color:${i.epi_check[0].glasses==='present'?'#1A6B3A':'#C0392B'}">${i.epi_check[0].glasses==='present'?'✅ Present':'❌ Absent'}</div></div>
-          <div><div style="font-size:11px;color:#7D6608;">Reflective Vest</div><div style="font-size:16px;font-weight:700;color:${i.epi_check[0].vest==='present'?'#1A6B3A':'#C0392B'}">${i.epi_check[0].vest==='present'?'✅ Present':'❌ Absent'}</div></div>
+          <div><div style="font-size:11px;color:#7D6608;">安全帽</div><div style="font-size:16px;font-weight:700;color:${i.epi_check[0].helmet==='present'?'#1A6B3A':'#C0392B'}">${i.epi_check[0].helmet==='present'?'✅ Present':'❌ Absent'}</div></div>
+          <div><div style="font-size:11px;color:#7D6608;">防护眼镜</div><div style="font-size:16px;font-weight:700;color:${i.epi_check[0].glasses==='present'?'#1A6B3A':'#C0392B'}">${i.epi_check[0].glasses==='present'?'✅ Present':'❌ Absent'}</div></div>
+          <div><div style="font-size:11px;color:#7D6608;">反光背心</div><div style="font-size:16px;font-weight:700;color:${i.epi_check[0].vest==='present'?'#1A6B3A':'#C0392B'}">${i.epi_check[0].vest==='present'?'✅ Present':'❌ Absent'}</div></div>
         </div>
         <div style="text-align:center;margin-top:10px;font-weight:700;color:${i.epi_check[0].compliant?'#1A6B3A':'#C0392B'};">${i.epi_check[0].compliant?'✅ COMPLIANT':'⚠️ NON-COMPLIANT'}</div>
       </div>
@@ -1414,7 +1414,7 @@ function renderInspectors(){
   const inspNames=sorted.map(([n])=>n);const calData={};
   allData.forEach(i=>{const name=i.inspector||'—';const d=new Date(i.date||i.created_at?.split('T')[0]);weeks.forEach((w,wi)=>{if(d>=w.start&&d<=w.end){if(!calData[name])calData[name]={};calData[name][wi]=(calData[name][wi]||0)+1;}});});
   const maxVal=Math.max(1,...Object.values(calData).flatMap(v=>Object.values(v)));
-  let calHtml=`<table style="border-collapse:collapse;width:100%;font-size:12px;"><thead><tr><th style="text-align:left;padding:4px 8px;color:var(--muted);font-weight:600;">Inspector</th>${weeks.map(w=>`<th style="text-align:center;padding:4px 6px;color:var(--muted);font-weight:600;min-width:52px;">${w.label}</th>`).join('')}</tr></thead><tbody>`;
+  let calHtml=`<table style="border-collapse:collapse;width:100%;font-size:12px;"><thead><tr><th style="text-align:left;padding:4px 8px;color:var(--muted);font-weight:600;">检查员</th>${weeks.map(w=>`<th style="text-align:center;padding:4px 6px;color:var(--muted);font-weight:600;min-width:52px;">${w.label}</th>`).join('')}</tr></thead><tbody>`;
   inspNames.forEach(name=>{calHtml+=`<tr><td style="padding:5px 8px;font-weight:600;color:var(--text);white-space:nowrap;">${name}</td>`;weeks.forEach((w,wi)=>{const count=calData[name]?.[wi]||0;const intensity=count===0?0:Math.max(0.15,count/maxVal);const bg=count===0?'var(--border)':`rgba(46,134,193,${intensity})`;const color=intensity>0.5?'white':'var(--text)';calHtml+=`<td style="text-align:center;padding:4px;"><div style="width:44px;height:28px;border-radius:6px;background:${bg};display:flex;align-items:center;justify-content:center;font-weight:700;color:${color};margin:0 auto;">${count>0?count:''}</div></td>`;});calHtml+='</tr>';});
   calHtml+='</tbody></table>';
   document.getElementById('inspectorCalendar').innerHTML=calHtml;
@@ -1427,11 +1427,11 @@ function showEmpty(){
   // Only show empty state if allData is truly empty
   if(allData && allData.length > 0) return;
   const occEl = document.getElementById('occList');
-  if(occEl) occEl.innerHTML=`<div class="empty-state"><div class="empty-icon">📡</div><div class="empty-title">Waiting for data</div><p>Complete an inspection on the SafeCheck app to see data here.</p></div>`;
+  if(occEl) occEl.innerHTML=`<div class="empty-state"><div class="empty-icon">📡</div><div class="empty-title">等待数据</div><p>请在SafeCheck应用中完成检查以查看数据。</p></div>`;
   const inspEl = document.getElementById('inspTable');
-  if(inspEl) inspEl.innerHTML=`<tr><td colspan="11"><div class="empty-state"><div class="empty-icon">📡</div><div class="empty-title">No data yet</div></div></td></tr>`;
+  if(inspEl) inspEl.innerHTML=`<tr><td colspan="11"><div class="empty-state"><div class="empty-icon">📡</div><div class="empty-title">暂无数据</div></div></td></tr>`;
   const areaEl = document.getElementById('areaGrid');
-  if(areaEl) areaEl.innerHTML=`<div class="empty-state"><div class="empty-icon">📍</div><div class="empty-title">No area data yet</div></div>`;
+  if(areaEl) areaEl.innerHTML=`<div class="empty-state"><div class="empty-icon">📍</div><div class="empty-title">暂无区域数据</div></div>`;
 }
 
 function exportCSV(){
