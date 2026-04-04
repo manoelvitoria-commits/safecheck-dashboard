@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>SafeCheck 安全仪表板 v2.0 · NEMM Up</title>
+<title>SafeCheck 安全仪表板 v2.0 · NEMM Up · HSM</title>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
@@ -226,7 +226,7 @@ tr:hover td{background:var(--bg);}
     </div>
     <button class="login-btn" onclick="doLogin()">🔐 登录</button>
     <div class="login-error" id="loginError">❌ 用户名或密码无效。</div>
-    <div style="text-align:center;margin-top:20px;font-size:11px;color:#8B9AB0;">SafeCheck v2.0 · NEMM Up · 安赛乐米塔尔 HSM</div>
+    <div style="text-align:center;margin-top:20px;font-size:11px;color:#8B9AB0;">SafeCheck 安全仪表板 v2.0 · NEMM Up · 安赛乐米塔尔 HSM</div>
   </div>
 </div>
 
@@ -234,7 +234,7 @@ tr:hover td{background:var(--bg);}
 <div class="sidebar">
   <div class="sidebar-brand">
     <div class="brand-sub">NEMM UP</div>
-    <div class="brand-name">SafeCheck<span class="brand-v2">v2</span></div>
+    <div class="brand-name">SafeCheck<span class="brand-v2">中文版</span></div>
     <div class="brand-tag">AI 安全仪表板</div>
   </div>
   <nav class="sidebar-nav">
@@ -251,6 +251,7 @@ tr:hover td{background:var(--bg);}
     <a class="nav-item" id="navInspectors" onclick="return checkInspectorAccess(event,'inspectors',this)"><span class="icon">👷</span>检查员 <span id="inspectorLock" style="font-size:11px;opacity:0.5;">🔒</span></a>
   </nav>
   <div class="sidebar-footer">
+    <div style="padding:8px 0;font-size:11px;color:rgba(255,255,255,0.3);text-align:center;">🇨🇳 中文版 · SafeCheck v2.0</div>
     <div class="sync-status">
       <div class="sync-dot"></div>
       <span id="syncStatus">Connecting...</span>
@@ -268,10 +269,9 @@ tr:hover td{background:var(--bg);}
 <!-- MAIN -->
 <div class="main">
   <div class="topbar">
-    <div class="page-title" id="pageTitle">📊 Dashboard Overview</div>
+    <div class="page-title" id="pageTitle">📊 仪表板概览</div>
     <div class="topbar-actions">
-      <a href="index.html" onclick="switchLang(this);return false;" style="padding:6px 14px;border-radius:8px;border:2px solid var(--border);background:white;color:var(--muted);font-size:12px;font-weight:700;text-decoration:none;">🇺🇸 EN</a>
-      <span style="padding:6px 14px;border-radius:8px;border:2px solid var(--accent);background:var(--accent);color:white;font-size:12px;font-weight:700;">🇨🇳 中文</span>
+      
       <select class="filter-select" id="filterArea" onchange="loadData()">
         <option value="">所有区域</option>
         <option value="SY">SY – 板坯库</option>
@@ -328,7 +328,7 @@ tr:hover td{background:var(--bg);}
               <div id="sopDays" style="font-size:72px;font-weight:900;color:#ff2a2a;line-height:1;text-shadow:0 0 18px #ff000088,0 0 40px #ff000044;letter-spacing:4px;">---</div>
             </div>
             <div style="text-align:center;margin-top:8px;color:#aaa;font-size:11px;font-weight:700;letter-spacing:2px;font-family:'DM Sans',sans-serif;">天 / DAYS</div>
-            <div style="text-align:center;margin-top:3px;color:#666;font-size:10px;font-family:'DM Sans',sans-serif;">至10月31日<sup>st</sup>, 2026</div>
+            <div style="text-align:center;margin-top:3px;color:#666;font-size:10px;font-family:'DM Sans',sans-serif;">至10月31日 · OCT 31st, 2026<sup>st</sup>, 2026</div>
           </div>
           <div style="flex:1;min-width:160px;display:flex;flex-direction:column;gap:14px;">
             <div>
@@ -336,17 +336,17 @@ tr:hover td{background:var(--bg);}
                 <div id="sopClock" style="font-size:34px;font-weight:900;color:#ff2a2a;line-height:1;text-shadow:0 0 12px #ff000088,0 0 28px #ff000044;letter-spacing:3px;">--:--:--</div>
               </div>
               <div style="display:flex;justify-content:space-around;margin-top:6px;">
-                <span style="color:#aaa;font-size:9px;font-weight:700;letter-spacing:1px;font-family:'DM Sans',sans-serif;">小时</span>
-                <span style="color:#aaa;font-size:9px;font-weight:700;letter-spacing:1px;font-family:'DM Sans',sans-serif;">分钟</span>
-                <span style="color:#aaa;font-size:9px;font-weight:700;letter-spacing:1px;font-family:'DM Sans',sans-serif;">秒</span>
+                <span style="color:#aaa;font-size:9px;font-weight:700;letter-spacing:1px;font-family:'DM Sans',sans-serif;">小时 / HH</span>
+                <span style="color:#aaa;font-size:9px;font-weight:700;letter-spacing:1px;font-family:'DM Sans',sans-serif;">分 / MM</span>
+                <span style="color:#aaa;font-size:9px;font-weight:700;letter-spacing:1px;font-family:'DM Sans',sans-serif;">秒 / SS</span>
               </div>
-              <div style="text-align:center;margin-top:4px;color:#888;font-size:10px;font-weight:700;letter-spacing:1px;font-family:'DM Sans',sans-serif;">零事故</div>
+              <div style="text-align:center;margin-top:4px;color:#888;font-size:10px;font-weight:700;letter-spacing:1px;font-family:'DM Sans',sans-serif;">零事故 / ZERO ACCIDENTS</div>
             </div>
             <div>
               <div style="background:#111;border:2px solid #333;border-radius:10px;padding:10px;text-align:center;box-shadow:inset 0 2px 8px rgba(0,0,0,0.6);">
                 <div id="sopAccDays" style="font-size:48px;font-weight:900;color:#00e5aa;line-height:1;text-shadow:0 0 12px #00e5aa88,0 0 28px #00e5aa44;letter-spacing:3px;">---</div>
               </div>
-              <div style="text-align:center;margin-top:6px;color:#aaa;font-size:11px;font-weight:700;letter-spacing:2px;font-family:'DM Sans',sans-serif;">无事故天数</div>
+              <div style="text-align:center;margin-top:6px;color:#aaa;font-size:11px;font-weight:700;letter-spacing:2px;font-family:'DM Sans',sans-serif;">无事故天数 / ACCIDENT-FREE DAYS</div>
             </div>
           </div>
         </div>
@@ -354,34 +354,7 @@ tr:hover td{background:var(--bg);}
           SafeCheck v2.0 · NEMM Up · <span id="sopDateStr"></span>
         </div>
       </div>
-      <script>
-      (function(){
-        var ACC_START = new Date('2025-04-29T00:00:00');
-        function pad(n){ return n < 10 ? '0'+n : String(n); }
-        function updateSOP(){
-          var now = new Date();
-          var today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-          var target = new Date(2026, 9, 31);
-          var msLeft = target - today;
-          var daysLeft = msLeft > 0 ? Math.round(msLeft / 86400000) - 1 : 0;
-          document.getElementById('sopDays').textContent = daysLeft;
-          var midnight = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 0);
-          var remMs = midnight - now;
-          var totalSec = Math.floor(remMs / 1000);
-          var hh = Math.floor(totalSec / 3600);
-          var mm = Math.floor((totalSec % 3600) / 60);
-          var ss = totalSec % 60;
-          document.getElementById('sopClock').textContent = pad(hh) + ':' + pad(mm) + ':' + pad(ss);
-          var accMs = now - ACC_START;
-          var accDays = accMs > 0 ? Math.floor(accMs / 86400000) : 0;
-          document.getElementById('sopAccDays').textContent = accDays;
-          var months=['January','February','March','April','May','June','July','August','September','October','November','December'];
-          document.getElementById('sopDateStr').textContent = months[now.getMonth()] + ' ' + now.getDate() + ', ' + now.getFullYear();
-        }
-        updateSOP();
-        setInterval(updateSOP, 1000);
-      })();
-      </script>
+
 
       <!-- Area chart -->
       <div class="card">
@@ -605,16 +578,6 @@ function updateAIKeyStatus(){
 }
 
 // switchLang replaced
-function switchLang(el){
-  // Always save current auth state to localStorage before switching
-  const user = sessionStorage.getItem('safecheck_user') || 
-               localStorage.getItem('safecheck_user_active') || '';
-  localStorage.setItem('safecheck_auth', 'true');
-  localStorage.setItem('safecheck_user_active', user);
-  // Small delay to ensure localStorage is written before redirect
-  setTimeout(function(){ window.location.href = el.href; }, 100);
-}
-
 
 // ── LANGUAGE SYSTEM ─────────────────────────────────────────────────────────
 const LANG = {
@@ -1443,7 +1406,40 @@ function exportCSV(){
 
 setInterval(()=>{if(sessionStorage.getItem('safecheck_auth')==='true')loadData();},60000);
 if(sessionStorage.getItem('safecheck_auth')==='true') { loadData(); updateAIKeyStatus(); setTimeout(initLang, 100); }
-window.addEventListener('DOMContentLoaded', ()=>{ if(sessionStorage.getItem('safecheck_auth')==='true'){ setTimeout(()=>{ renderRanking(); renderTable(); }, 500); } });
+
+
+// ── SOP COUNTDOWN ─────────────────────────────────────────────────────────────
+(function(){
+  var ACC_START = new Date('2025-04-29T00:00:00');
+  function pad(n){ return n < 10 ? '0'+n : String(n); }
+  function updateSOP(){
+    var now = new Date();
+    var today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    var target = new Date(2026, 9, 31);
+    var msLeft = target - today;
+    var daysLeft = msLeft > 0 ? Math.round(msLeft / 86400000) - 1 : 0;
+    var el = document.getElementById('sopDays');
+    if(el) el.textContent = daysLeft;
+    var midnight = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 0);
+    var remMs = midnight - now;
+    var totalSec = Math.floor(remMs / 1000);
+    var hh = Math.floor(totalSec / 3600);
+    var mm = Math.floor((totalSec % 3600) / 60);
+    var ss = totalSec % 60;
+    var clockEl = document.getElementById('sopClock');
+    if(clockEl) clockEl.textContent = pad(hh) + ':' + pad(mm) + ':' + pad(ss);
+    var accMs = now - ACC_START;
+    var accDays = accMs > 0 ? Math.floor(accMs / 86400000) : 0;
+    var accEl = document.getElementById('sopAccDays');
+    if(accEl) accEl.textContent = accDays;
+    var months=['January','February','March','April','May','June','July','August','September','October','November','December'];
+    var dateEl = document.getElementById('sopDateStr');
+    if(dateEl) dateEl.textContent = months[now.getMonth()] + ' ' + now.getDate() + ', ' + now.getFullYear();
+  }
+  updateSOP();
+  setInterval(updateSOP, 1000);
+})();
+
 </script>
 </body>
 </html>
