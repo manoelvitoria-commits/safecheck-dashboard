@@ -271,7 +271,7 @@ tr:hover td{background:var(--bg);}
     <div class="page-title" id="pageTitle">📊 Dashboard Overview</div>
     <div class="topbar-actions">
       <span style="padding:6px 14px;border-radius:8px;border:2px solid var(--accent);background:var(--accent);color:white;font-size:12px;font-weight:700;">🇺🇸 EN</span>
-      <a href="index-zh.html" style="padding:6px 14px;border-radius:8px;border:2px solid var(--border);background:white;color:var(--muted);font-size:12px;font-weight:700;text-decoration:none;cursor:pointer;">🇨🇳 中文</a>
+      <a href="index-zh.html?v=1775313190" onclick="switchLang(this);return false;" style="padding:6px 14px;border-radius:8px;border:2px solid var(--border);background:white;color:var(--muted);font-size:12px;font-weight:700;text-decoration:none;cursor:pointer;">🇨🇳 中文</a>
       <select class="filter-select" id="filterArea" onchange="loadData()">
         <option value="">All Areas</option>
         <option value="SY">SY – Slab Yard</option>
@@ -602,6 +602,17 @@ function updateAIKeyStatus(){
   if(!el) return;
   const key = getClaudeKey();
   el.textContent = key ? 'Set ✅' : 'Not set ❌';
+}
+
+function switchLang(el){
+  // Save auth to localStorage before switching
+  const auth = sessionStorage.getItem('safecheck_auth') || localStorage.getItem('safecheck_auth');
+  const user = sessionStorage.getItem('safecheck_user') || localStorage.getItem('safecheck_user_active');
+  if(auth==='true'){
+    localStorage.setItem('safecheck_auth','true');
+    localStorage.setItem('safecheck_user_active', user||'manoel');
+  }
+  window.location.href = el.href;
 }
 
 function checkAuth(){
