@@ -605,8 +605,14 @@ function updateAIKeyStatus(){
 }
 
 function checkAuth(){
-  const session=sessionStorage.getItem('safecheck_auth');
-  if(session==='true'){document.getElementById('loginScreen').classList.add('hidden');return;}
+  const session=sessionStorage.getItem('safecheck_auth')||localStorage.getItem('safecheck_auth');
+  if(session==='true'){
+    sessionStorage.setItem('safecheck_auth','true');
+    const user=localStorage.getItem('safecheck_user_active');
+    if(user) sessionStorage.setItem('safecheck_user',user);
+    document.getElementById('loginScreen').classList.add('hidden');
+    return;
+  }
   const saved=localStorage.getItem('safecheck_saved');
   if(saved){
     try{
@@ -629,6 +635,8 @@ function doLogin(){
   const match=USERS.find(u=>u.username===user&&u.password===pass);
   if(match){
     localStorage.setItem('safecheck_saved',JSON.stringify({username:match.username,password:match.password}));
+    localStorage.setItem('safecheck_auth','true');
+    localStorage.setItem('safecheck_user_active',match.username);
     sessionStorage.setItem('safecheck_auth','true');
     sessionStorage.setItem('safecheck_user',match.username);
     document.getElementById('loginScreen').classList.add('hidden');
@@ -650,6 +658,8 @@ function doLogout(){
 
 function doLogoutFull(){
   localStorage.removeItem('safecheck_saved');
+  localStorage.removeItem('safecheck_auth');
+  localStorage.removeItem('safecheck_user_active');
   doLogout();
 }
 
