@@ -4,7 +4,7 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>SafeCheck 安全仪表板 v2.0 · NEMM Up</title>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap&subset=chinese-simplified" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
 :root {
@@ -239,28 +239,28 @@ tr:hover td{background:var(--bg);}
   </div>
   <nav class="sidebar-nav">
     <div class="nav-label">概览</div>
-    <a class="nav-item active" id="nav概览" href="#" onclick="showSection('overview',this);return false;"><span class="icon">📊</span>仪表板</a>
-    <a class="nav-item" id="nav检查记录" href="#" onclick="showSection('records',this);return false;"><span class="icon">📋</span>检查记录</a>
-    <a class="nav-item" id="nav区域" href="#" onclick="showSection('areas',this);return false;"><span class="icon">📍</span>区域</a>
+    <a class="nav-item active" id="navOverview" href="#" onclick="showSection('overview',this);return false;"><span class="icon">📊</span>仪表板</a>
+    <a class="nav-item" id="navRecords" href="#" onclick="showSection('records',this);return false;"><span class="icon">📋</span>Records</a>
+    <a class="nav-item" id="navAreas" href="#" onclick="showSection('areas',this);return false;"><span class="icon">📍</span>区域</a>
 
     <div class="nav-label" style="margin-top:16px;">AI 功能</div>
     <a class="nav-item ai-nav" id="navAI" href="#" onclick="showSection('ai',this);return false;"><span class="icon">🤖</span>AI 分析师</a>
     <a class="nav-item ai-nav" id="navEPI" href="#" onclick="showSection('epi',this);return false;"><span class="icon">📸</span>PPE 视觉</a>
 
     <div class="nav-label" style="margin-top:16px;">团队</div>
-    <a class="nav-item" id="nav检查员" onclick="return check检查员Access(event,'inspectors',this)"><span class="icon">👷</span>检查员 <span id="inspectorLock" style="font-size:11px;opacity:0.5;">🔒</span></a>
+    <a class="nav-item" id="navInspectors" onclick="return checkInspectorAccess(event,'inspectors',this)"><span class="icon">👷</span>检查员 <span id="inspectorLock" style="font-size:11px;opacity:0.5;">🔒</span></a>
   </nav>
   <div class="sidebar-footer">
     <div class="sync-status">
       <div class="sync-dot"></div>
-      <span id="syncStatus">连接中...</span>
+      <span id="syncStatus">Connecting...</span>
     </div>
     <div style="margin-top:10px;display:flex;gap:6px;">
       <button onclick="loadData()" style="flex:1;padding:6px;border-radius:6px;border:1px solid rgba(255,255,255,0.15);background:transparent;color:rgba(255,255,255,0.5);font-size:11px;cursor:pointer;">↻ 同步</button>
       <button onclick="doLogoutFull()" style="flex:1;padding:6px;border-radius:6px;border:1px solid rgba(255,255,255,0.15);background:transparent;color:rgba(255,255,255,0.5);font-size:11px;cursor:pointer;">⏏ 退出</button>
     </div>
     <div style="margin-top:8px;">
-      <button onclick="promptClaudeKey()" style="width:100%;padding:6px;border-radius:6px;border:1px solid rgba(108,52,131,0.5);background:rgba(108,52,131,0.2);color:rgba(200,160,230,0.8);font-size:11px;cursor:pointer;" title="Set Claude AI API Key">🔑 AI密钥: <span id="aiKeyStatus"></span></button>
+      <button onclick="promptClaudeKey()" style="width:100%;padding:6px;border-radius:6px;border:1px solid rgba(108,52,131,0.5);background:rgba(108,52,131,0.2);color:rgba(200,160,230,0.8);font-size:11px;cursor:pointer;" title="Set Claude AI API Key">🔑 AI Key: <span id="aiKeyStatus"></span></button>
     </div>
   </div>
 </div>
@@ -268,12 +268,12 @@ tr:hover td{background:var(--bg);}
 <!-- MAIN -->
 <div class="main">
   <div class="topbar">
-    <div class="page-title" id="pageTitle">📊 仪表板 概览</div>
+    <div class="page-title" id="pageTitle">📊 Dashboard Overview</div>
     <div class="topbar-actions">
-      <a href="index.html?v=1775313190" onclick="switchLang(this);return false;" style="padding:6px 14px;border-radius:8px;border:2px solid var(--border);background:white;color:var(--muted);font-size:12px;font-weight:700;text-decoration:none;cursor:pointer;">🇺🇸 EN</a>
-      <span style="padding:6px 14px;border-radius:8px;border:2px solid var(--accent);background:var(--accent);color:white;font-size:12px;font-weight:700;">🇨🇳 中文</span>
-      <select class="filter-select" id="filter区域" onchange="loadData()">
-        <option value="">All 区域</option>
+      <button id="langEN" onclick="setLang('en')" style="padding:6px 14px;border-radius:8px;border:2px solid var(--accent);background:var(--accent);color:white;font-size:12px;font-weight:700;cursor:pointer;border:none;">🇺🇸 EN</button>
+      <button id="langZH" onclick="setLang('zh')" style="padding:6px 14px;border-radius:8px;border:2px solid var(--border);background:white;color:var(--muted);font-size:12px;font-weight:700;cursor:pointer;">🇨🇳 中文</button>
+      <select class="filter-select" id="filterArea" onchange="loadData()">
+        <option value="">所有区域</option>
         <option value="SY">SY – 板坯库</option>
         <option value="RHF">RHF – 加热炉</option>
         <option value="MRL">MRL – 主轧制区</option>
@@ -299,10 +299,10 @@ tr:hover td{background:var(--bg);}
 
       <!-- KPIs -->
       <div class="kpi-grid">
-        <div class="kpi-card blue"><div class="kpi-icon">📋</div><div class="kpi-value" id="kpi总计">—</div><div class="kpi-label">检查总次数</div></div>
+        <div class="kpi-card blue"><div class="kpi-icon">📋</div><div class="kpi-value" id="kpiTotal">—</div><div class="kpi-label">检查总次数</div></div>
         <div class="kpi-card red"><div class="kpi-icon">⚠️</div><div class="kpi-value" id="kpiOcc">—</div><div class="kpi-label">隐患总数</div></div>
-        <div class="kpi-card green"><div class="kpi-icon">👷</div><div class="kpi-value" id="kpiInsp">—</div><div class="kpi-label">Active 检查员</div></div>
-        <div class="kpi-card ai-card"><div class="kpi-icon">🤖</div><div class="kpi-value" id="kpiEPI">—</div><div class="kpi-label">PPE 分析</div><div class="kpi-sub" id="kpiEPISub">AI已分析照片 (PPE)</div></div>
+        <div class="kpi-card green"><div class="kpi-icon">👷</div><div class="kpi-value" id="kpiInsp">—</div><div class="kpi-label">活跃检查员</div></div>
+        <div class="kpi-card ai-card"><div class="kpi-icon">🤖</div><div class="kpi-value" id="kpiEPI">—</div><div class="kpi-label">PPE 分析</div><div class="kpi-sub" id="kpiEPISub">Photos analyzed by AI (PPE)</div></div>
       </div>
 
       <!-- Charts row -->
@@ -336,36 +336,36 @@ tr:hover td{background:var(--bg);}
                 <div id="sopClock" style="font-size:34px;font-weight:900;color:#ff2a2a;line-height:1;text-shadow:0 0 12px #ff000088,0 0 28px #ff000044;letter-spacing:3px;">--:--:--</div>
               </div>
               <div style="display:flex;justify-content:space-around;margin-top:6px;">
-                <span style="color:#aaa;font-size:9px;font-weight:700;letter-spacing:1px;font-family:'DM Sans',sans-serif;">小时/时</span>
-                <span style="color:#aaa;font-size:9px;font-weight:700;letter-spacing:1px;font-family:'DM Sans',sans-serif;">分钟/分</span>
-                <span style="color:#aaa;font-size:9px;font-weight:700;letter-spacing:1px;font-family:'DM Sans',sans-serif;">秒/秒</span>
+                <span style="color:#aaa;font-size:9px;font-weight:700;letter-spacing:1px;font-family:'DM Sans',sans-serif;">小时</span>
+                <span style="color:#aaa;font-size:9px;font-weight:700;letter-spacing:1px;font-family:'DM Sans',sans-serif;">分钟</span>
+                <span style="color:#aaa;font-size:9px;font-weight:700;letter-spacing:1px;font-family:'DM Sans',sans-serif;">秒</span>
               </div>
-              <div style="text-align:center;margin-top:4px;color:#888;font-size:10px;font-weight:700;letter-spacing:1px;font-family:'DM Sans',sans-serif;">零事故 / ZERO ACCIDENTS</div>
+              <div style="text-align:center;margin-top:4px;color:#888;font-size:10px;font-weight:700;letter-spacing:1px;font-family:'DM Sans',sans-serif;">零事故</div>
             </div>
             <div>
               <div style="background:#111;border:2px solid #333;border-radius:10px;padding:10px;text-align:center;box-shadow:inset 0 2px 8px rgba(0,0,0,0.6);">
                 <div id="sopAccDays" style="font-size:48px;font-weight:900;color:#00e5aa;line-height:1;text-shadow:0 0 12px #00e5aa88,0 0 28px #00e5aa44;letter-spacing:3px;">---</div>
               </div>
-              <div style="text-align:center;margin-top:6px;color:#aaa;font-size:11px;font-weight:700;letter-spacing:2px;font-family:'DM Sans',sans-serif;">ACCIDENT-FREE 天 / DAYS</div>
+              <div style="text-align:center;margin-top:6px;color:#aaa;font-size:11px;font-weight:700;letter-spacing:2px;font-family:'DM Sans',sans-serif;">无事故天数</div>
             </div>
           </div>
         </div>
         <div style="text-align:center;margin-top:12px;color:#444;font-size:9px;font-family:'DM Sans',sans-serif;letter-spacing:1px;">
-          SafeCheck v2.0 · NEMM Up · <span id="sop日期Str"></span>
+          SafeCheck v2.0 · NEMM Up · <span id="sopDateStr"></span>
         </div>
       </div>
       <script>
       (function(){
-        var ACC_START = new 日期('2025-04-29T00:00:00');
+        var ACC_START = new Date('2025-04-29T00:00:00');
         function pad(n){ return n < 10 ? '0'+n : String(n); }
         function updateSOP(){
-          var now = new 日期();
-          var today = new 日期(now.getFullYear(), now.getMonth(), now.get日期());
-          var target = new 日期(2026, 9, 31);
+          var now = new Date();
+          var today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+          var target = new Date(2026, 9, 31);
           var msLeft = target - today;
           var daysLeft = msLeft > 0 ? Math.round(msLeft / 86400000) - 1 : 0;
           document.getElementById('sopDays').textContent = daysLeft;
-          var midnight = new 日期(now.getFullYear(), now.getMonth(), now.get日期() + 1, 0, 0, 0);
+          var midnight = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 0);
           var remMs = midnight - now;
           var totalSec = Math.floor(remMs / 1000);
           var hh = Math.floor(totalSec / 3600);
@@ -376,16 +376,16 @@ tr:hover td{background:var(--bg);}
           var accDays = accMs > 0 ? Math.floor(accMs / 86400000) : 0;
           document.getElementById('sopAccDays').textContent = accDays;
           var months=['January','February','March','April','May','June','July','August','September','October','November','December'];
-          document.getElementById('sop日期Str').textContent = months[now.getMonth()] + ' ' + now.get日期() + ', ' + now.getFullYear();
+          document.getElementById('sopDateStr').textContent = months[now.getMonth()] + ' ' + now.getDate() + ', ' + now.getFullYear();
         }
         updateSOP();
         setInterval(updateSOP, 1000);
       })();
       </script>
 
-      <!-- 区域 chart -->
+      <!-- Area chart -->
       <div class="card">
-        <div class="card-title">📍 各区域隐患数</div>
+        <div class="card-title">📍 各区域隐患</div>
         <canvas id="areaChart"></canvas>
       </div>
 
@@ -395,7 +395,7 @@ tr:hover td{background:var(--bg);}
     <div id="sec-records" class="section-page">
       <div class="card" style="padding:0;overflow:hidden;">
         <div style="padding:18px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
-          <div class="card-title" style="margin:0;">📋 Inspection 检查记录</div>
+          <div class="card-title" style="margin:0;">📋 Inspection Records</div>
           <div id="deleteAllContainer"></div>
         </div>
         <div class="table-wrap">
@@ -414,7 +414,7 @@ tr:hover td{background:var(--bg);}
     <!-- ══ AREAS ══ -->
     <div id="sec-areas" class="section-page">
       <div class="card">
-        <div class="card-title">📍 区域 Risk Assessment</div>
+        <div class="card-title">📍 Area Risk Assessment</div>
         <div class="area-grid" id="areaGrid"><div class="empty-state"><div class="empty-icon">📍</div><div class="empty-title">Loading...</div></div></div>
       </div>
     </div>
@@ -428,17 +428,17 @@ tr:hover td{background:var(--bg);}
         </div>
         <div class="ai-panel-body">
           <div class="ai-btn-row" style="margin-bottom:16px;">
-            <div class="ai-chip active" onclick="selectAIChip(this,'general')">📊 General 概览</div>
+            <div class="ai-chip active" onclick="selectAIChip(this,'general')">📊 综合概览</div>
             <div class="ai-chip" onclick="selectAIChip(this,'risk')">🎯 风险评估</div>
             <div class="ai-chip" onclick="selectAIChip(this,'trend')">📈 趋势分析</div>
-            <div class="ai-chip" onclick="selectAIChip(this,'inspector')">👷 检查员 Performance</div>
+            <div class="ai-chip" onclick="selectAIChip(this,'inspector')">👷 检查员绩效</div>
             <div class="ai-chip" onclick="selectAIChip(this,'sop')">🏭 SOP 准备情况</div>
           </div>
           <div class="ai-insight-box loading" id="aiInsightBox">
-            点击"运行分析"基于检查数据生成AI安全分析报告。
+            Click "Run Analysis" to generate AI-powered safety insights based on your inspection data.
           </div>
           <div style="margin-top:12px;font-size:11px;color:var(--muted);">
-            💡 AI分析使用Supabase中的真实检查数据 · 结果以中文呈现
+            💡 AI analysis uses real inspection data from Supabase · Results in English for international team
           </div>
         </div>
       </div>
@@ -447,15 +447,15 @@ tr:hover td{background:var(--bg);}
       <div class="three-col">
         <div class="card">
           <div class="card-title">🔴 主要隐患</div>
-          <div id="aiTopHazards"><div class="empty-state" style="padding:20px;"><div class="empty-icon" style="font-size:32px;">⚠️</div><p>请先运行分析</p></div></div>
+          <div id="aiTopHazards"><div class="empty-state" style="padding:20px;"><div class="empty-icon" style="font-size:32px;">⚠️</div><p>Run analysis first</p></div></div>
         </div>
         <div class="card">
-          <div class="card-title">📍 Highest Risk 区域</div>
-          <div id="aiRisk区域"><div class="empty-state" style="padding:20px;"><div class="empty-icon" style="font-size:32px;">📍</div><p>请先运行分析</p></div></div>
+          <div class="card-title">📍 最高风险区域</div>
+          <div id="aiRiskAreas"><div class="empty-state" style="padding:20px;"><div class="empty-icon" style="font-size:32px;">📍</div><p>Run analysis first</p></div></div>
         </div>
         <div class="card">
           <div class="card-title">💡 建议</div>
-          <div id="aiRecommendations"><div class="empty-state" style="padding:20px;"><div class="empty-icon" style="font-size:32px;">💡</div><p>请先运行分析</p></div></div>
+          <div id="aiRecommendations"><div class="empty-state" style="padding:20px;"><div class="empty-icon" style="font-size:32px;">💡</div><p>Run analysis first</p></div></div>
         </div>
       </div>
     </div>
@@ -464,15 +464,15 @@ tr:hover td{background:var(--bg);}
     <div id="sec-epi" class="section-page">
       <div class="epi-panel">
         <div class="epi-panel-header">
-          <div class="epi-panel-title">📸 PPE 视觉 — Batch PPE Analysis <span style="font-size:11px;opacity:0.7;font-weight:400;">由 Claude AI 提供支持 Vision</span></div>
-          <button class="analyze-all-btn" id="analyzeAllBtn" onclick="analyzeAll照片()">
-            <span>🔍 分析所有PPE</span>
+          <div class="epi-panel-title">📸 PPE 视觉 — 批量PPE分析 <span style="font-size:11px;opacity:0.7;font-weight:400;">由 Claude AI 视觉提供支持</span></div>
+          <button class="analyze-all-btn" id="analyzeAllBtn" onclick="analyzeAllPhotos()">
+            <span>🔍 Analyze All PPE</span>
           </button>
         </div>
         <div class="epi-panel-body">
           <div class="epi-grid">
-            <div class="epi-stat"><div class="epi-stat-val" id="epi总计照片">—</div><div class="epi-stat-lbl">总计 照片</div></div>
-            <div class="epi-stat"><div class="epi-stat-val" id="epi已分析" style="color:var(--green);">—</div><div class="epi-stat-lbl">已分析</div></div>
+            <div class="epi-stat"><div class="epi-stat-val" id="epiTotalPhotos">—</div><div class="epi-stat-lbl">照片总数</div></div>
+            <div class="epi-stat"><div class="epi-stat-val" id="epiAnalyzed" style="color:var(--green);">—</div><div class="epi-stat-lbl">已分析</div></div>
             <div class="epi-stat"><div class="epi-stat-val" id="epiNonCompliant" style="color:var(--red);">—</div><div class="epi-stat-lbl">不合规</div></div>
           </div>
           <div style="margin-bottom:16px;">
@@ -483,11 +483,11 @@ tr:hover td{background:var(--bg);}
             <div class="epi-progress"><div class="epi-progress-fill" id="epiProgressBar" style="width:0%;background:var(--green);"></div></div>
           </div>
           <div style="font-size:13px;color:var(--muted);margin-bottom:16px;">
-            💡 此分析在仪表板运行（稳定网络）— 现场无需移动网络 · PPE检测.
+            💡 This analysis runs on the dashboard (stable network) — no mobile connectivity required in the field · PPE detection.
           </div>
           <div style="font-size:12px;color:var(--muted);margin-bottom:12px;font-weight:600;text-transform:uppercase;letter-spacing:1px;">最新PPE分析结果</div>
           <div class="epi-photo-grid" id="epiPhotoGrid">
-            <div class="empty-state"><div class="empty-icon">📸</div><div class="empty-title">暂无分析结果</div><p>点击"分析所有PPE"开始</p></div>
+            <div class="empty-state"><div class="empty-icon">📸</div><div class="empty-title">No analyses yet</div><p>Click "Analyze All PPE" to start</p></div>
           </div>
         </div>
       </div>
@@ -497,8 +497,8 @@ tr:hover td{background:var(--bg);}
     <div id="sec-inspectors" class="section-page">
       <div class="card">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
-          <div class="card-title" style="margin:0;">👷 检查员 Activity</div>
-          <select id="inspectorPeriod" onchange="render检查员()" style="padding:6px 12px;border-radius:8px;border:1.5px solid var(--border);background:var(--bg);color:var(--text);font-size:13px;font-weight:600;cursor:pointer;">
+          <div class="card-title" style="margin:0;">👷 检查员活动</div>
+          <select id="inspectorPeriod" onchange="renderInspectors()" style="padding:6px 12px;border-radius:8px;border:1.5px solid var(--border);background:var(--bg);color:var(--text);font-size:13px;font-weight:600;cursor:pointer;">
             <option value="all">所有时间</option>
             <option value="week">本周</option>
             <option value="month">本月</option>
@@ -506,11 +506,11 @@ tr:hover td{background:var(--bg);}
         </div>
         <div class="two-col">
           <div>
-            <div style="font-size:12px;font-weight:700;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:12px;">🏆 Top 检查员</div>
+            <div style="font-size:12px;font-weight:700;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:12px;">🏆 优秀检查员</div>
             <div id="inspectorRanking"></div>
           </div>
           <div>
-            <div style="font-size:12px;font-weight:700;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:12px;">📊 Inspections per 检查员</div>
+            <div style="font-size:12px;font-weight:700;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:12px;">📊 各检查员检查次数</div>
             <canvas id="inspectorChart" style="max-height:200px;"></canvas>
           </div>
         </div>
@@ -539,7 +539,7 @@ tr:hover td{background:var(--bg);}
 </div><!-- /main -->
 
 <script>
-const SUPABASE_URL='https://ocqfsccrvpdnjjl共kvk.supabase.co';
+const SUPABASE_URL='https://ocqfsccrvpdnjjlofkvk.supabase.co';
 const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9jcWZzY2NydnBkbmpqbG9ma3ZrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ1OTMwMTksImV4cCI6MjA5MDE2OTAxOX0.Uq0bMvtwmWm8lpIXAtUaPND7zDwW6QUKvOwbDhuKECI';
 // ── CLAUDE API KEY (stored in localStorage, never in code) ────────────────────
 function getClaudeKey() {
@@ -549,7 +549,7 @@ function setClaudeKey(key) {
   localStorage.setItem('safecheck_claude_key', key);
 }
 function promptClaudeKey() {
-  const key = prompt('🔑 请输入您的Anthropic Claude API密钥以启用AI功能：\n（密钥仅存储在您的浏览器本地）');
+  const key = prompt('🔑 请输入Claude API密钥以启用AI功能：\n（密钥仅存储在您的浏览器本地）');
   if (key && key.startsWith('sk-ant-')) {
     setClaudeKey(key);
     alert('✅ Claude API密钥已保存！AI功能已启用。');
@@ -578,7 +578,7 @@ const OCCURRENCES=[
   {id:'no_harness',label:'未佩戴安全带',icon:'🪢'},
   {id:'no_mask',label:'未佩戴防尘口罩',icon:'😷'},
   {id:'unsafe',label:'不安全状况',icon:'⚠️'},
-  {id:'disorder',label:'Disorganized 区域',icon:'🗃️'},
+  {id:'disorder',label:'区域混乱',icon:'🗃️'},
   {id:'no_sign',label:'缺少安全标识',icon:'🚧'},
   {id:'electric',label:'电气危险',icon:'⚡'},
   {id:'fall_risk',label:'坠落风险',icon:'🕳️'},
@@ -592,7 +592,7 @@ const OCCURRENCES=[
 ];
 
 const AREAS=['SY','RHF','MRL','DC','WTA','CY'];
-const AREA_NAMES={SY:'板坯库',RHF:'加热炉',MRL:'Main Rolling 区域',DC:'卷取机',WTA:'Water Treatment 区域',CY:'卷材库'};
+const AREA_NAMES={SY:'板坯库',RHF:'加热炉',MRL:'主轧制区',DC:'卷取机',WTA:'水处理区',CY:'卷材库'};
 
 let allData=[], aCI=null, tCI=null, currentAIChip='general';
 
@@ -601,9 +601,10 @@ function updateAIKeyStatus(){
   const el = document.getElementById('aiKeyStatus');
   if(!el) return;
   const key = getClaudeKey();
-  el.textContent = key ? '已设置 ✅' : '未设置 ❌';
+  el.textContent = key ? 'Set ✅' : 'Not set ❌';
 }
 
+// switchLang replaced
 function switchLang(el){
   // Save auth to localStorage before switching
   const auth = sessionStorage.getItem('safecheck_auth') || localStorage.getItem('safecheck_auth');
@@ -613,6 +614,148 @@ function switchLang(el){
     localStorage.setItem('safecheck_user_active', user||'manoel');
   }
   window.location.href = el.href;
+}
+
+
+// ── LANGUAGE SYSTEM ─────────────────────────────────────────────────────────
+const LANG = {
+  en: {
+    dashboard: 'Dashboard', records: 'Records', areas: 'Areas',
+    aiAnalyst: 'AI Analyst', ppeVision: 'PPE Vision', inspectors: 'Inspectors',
+    totalInsp: 'Total Inspections', totalOcc: 'Total Occurrences',
+    activeInsp: 'Active Inspectors', ppeAnal: 'PPE Analyses',
+    overview: '📊 仪表板概览', recTitle: '📋 检查记录',
+    areaTitle: '📍 区域风险评估', aiTitle: '🤖 AI 安全分析师',
+    epiTitle: '📸 PPE 视觉分析', inspTitle: '👷 检查员活动',
+    refresh: '↻ Refresh', csv: '⬇ CSV', sync: '↻ Sync', logout: '⏏ Logout',
+    allAreas: 'All Areas', allTime: 'All Time', last7: 'Last 7 days',
+    last30: 'Last 30 days', last90: 'Last 90 days',
+    occRank: '⚠️ OCCURRENCE RANKING', trend: '📈 14-Day Trend',
+    areaChart: '📍 Occurrences by Area', runAnalysis: '▶ Run Analysis',
+    analyzeAll: '🔍 Analyze All PPE', connecting: 'Connecting...',
+    connError: '连接错误', waiting: '等待数据',
+    noOcc: '暂无隐患记录', deleteAll: '🗑️ 全部删除',
+    date: 'Date', time: 'Time', area: 'Area', inspector: 'Inspector',
+    duration: 'Duration', occurrences: 'Occurrences', lang: 'Lang',
+    photos: 'Photos', report: 'Report', topHazards: '🔴 Top Hazards',
+    riskAreas: '📍 Highest Risk Areas', recommendations: '💡 Recommendations',
+    totalPhotos: 'Total Photos', analyzed: 'Analyzed', nonCompliant: 'Non-Compliant',
+    ppeRate: 'PPE Compliance Rate', topInspectors: '🏆 Top Inspectors',
+    inspChart: '📊 Inspections per Inspector', heatmap: '📅 Weekly Activity Heatmap',
+    thisWeek: 'This Week', thisMonth: 'This Month', total: 'Total',
+    lastVisit: 'Last Visit', avgOcc: 'Avg Occ/Visit',
+    ppeAILabel: 'PPE AI', high: '🔴 高风险', med: '🟡 中等风险', low: '🟢 低风险',
+    compliant: '✅ 合规', nonComp: '⚠️ 不合规', analyzePPE: '🤖 Analyze PPE',
+    records: 'records · Live',
+  },
+  zh: {
+    dashboard: '仪表板', records: '检查记录', areas: '区域',
+    aiAnalyst: 'AI 分析师', ppeVision: 'PPE 视觉', inspectors: '检查员',
+    totalInsp: '检查总次数', totalOcc: '隐患总数',
+    activeInsp: '活跃检查员', ppeAnal: 'PPE 分析',
+    overview: '📊 仪表板概览', recTitle: '📋 检查记录',
+    areaTitle: '📍 区域风险评估', aiTitle: '🤖 AI 安全分析师',
+    epiTitle: '📸 PPE 视觉分析', inspTitle: '👷 检查员活动',
+    refresh: '↻ 刷新', csv: '⬇ 导出CSV', sync: '↻ 同步', logout: '⏏ 退出',
+    allAreas: '所有区域', allTime: '所有时间', last7: '最近7天',
+    last30: '最近30天', last90: '最近90天',
+    occRank: '⚠️ 隐患排名', trend: '📈 14天趋势',
+    areaChart: '📍 各区域隐患数', runAnalysis: '▶ 运行分析',
+    analyzeAll: '🔍 分析所有PPE', connecting: '连接中...',
+    connError: '连接错误', waiting: '等待数据',
+    noOcc: '暂无隐患记录', deleteAll: '🗑️ 全部删除',
+    date: '日期', time: '时间', area: '区域', inspector: '检查员',
+    duration: '时长', occurrences: '隐患', lang: '语言',
+    photos: '照片', report: '报告', topHazards: '🔴 主要隐患',
+    riskAreas: '📍 最高风险区域', recommendations: '💡 建议',
+    totalPhotos: '照片总数', analyzed: '已分析', nonCompliant: '不合规',
+    ppeRate: 'PPE 合规率', topInspectors: '🏆 优秀检查员',
+    inspChart: '📊 各检查员检查次数', heatmap: '📅 每周活动热力图',
+    thisWeek: '本周', thisMonth: '本月', total: '总计',
+    lastVisit: '最后检查', avgOcc: '平均隐患/次',
+    ppeAILabel: 'PPE AI', high: '🔴 高风险', med: '🟡 中等风险', low: '🟢 低风险',
+    compliant: '✅ 合规', nonComp: '⚠️ 不合规', analyzePPE: '🤖 分析PPE',
+    records: '条记录 · 实时',
+  }
+};
+
+let currentLang = localStorage.getItem('safecheck_lang') || 'en';
+
+function setLang(lang) {
+  currentLang = lang;
+  localStorage.setItem('safecheck_lang', lang);
+  const L = LANG[lang];
+  const isZH = lang === 'zh';
+  
+  // Update lang buttons
+  document.getElementById('langEN').style.background = isZH ? 'white' : 'var(--accent)';
+  document.getElementById('langEN').style.color = isZH ? 'var(--muted)' : 'white';
+  document.getElementById('langEN').style.border = isZH ? '2px solid var(--border)' : 'none';
+  document.getElementById('langZH').style.background = isZH ? 'var(--accent)' : 'white';
+  document.getElementById('langZH').style.color = isZH ? 'white' : 'var(--muted)';
+  document.getElementById('langZH').style.border = isZH ? 'none' : '2px solid var(--border)';
+  
+  // Update filter options
+  const filterArea = document.getElementById('filterArea');
+  if(filterArea) {
+    filterArea.options[0].text = L.allAreas;
+  }
+  const filterPeriod = document.getElementById('filterPeriod');
+  if(filterPeriod) {
+    filterPeriod.options[0].text = L.allTime;
+    filterPeriod.options[1].text = L.last7;
+    filterPeriod.options[2].text = L.last30;
+    filterPeriod.options[3].text = L.last90;
+  }
+
+  // Update nav items text
+  const navTexts = {
+    navOverview: '📊 ' + L.dashboard,
+    navRecords: '📋 ' + L.records,
+    navAreas: '📍 ' + L.areas,
+    navAI: '🤖 ' + L.aiAnalyst,
+    navEPI: '📸 ' + L.ppeVision,
+    navInspectors: '👷 ' + L.inspectors,
+  };
+  Object.entries(navTexts).forEach(([id, text]) => {
+    const el = document.getElementById(id);
+    if(el) { const icon = el.querySelector('.icon'); if(icon) { el.childNodes[1].textContent = text.slice(3); } }
+  });
+
+  // Update KPI labels
+  document.querySelector('#kpiTotal + .kpi-label') && (document.querySelectorAll('.kpi-label')[0].textContent = L.totalInsp);
+  document.querySelectorAll('.kpi-label')[1] && (document.querySelectorAll('.kpi-label')[1].textContent = L.totalOcc);
+  document.querySelectorAll('.kpi-label')[2] && (document.querySelectorAll('.kpi-label')[2].textContent = L.activeInsp);
+  document.querySelectorAll('.kpi-label')[3] && (document.querySelectorAll('.kpi-label')[3].textContent = L.ppeAnal);
+
+  // Update card titles
+  document.querySelectorAll('.card-title').forEach(el => {
+    const t = el.textContent.trim();
+    if(t.includes('Occurrence Ranking') || t.includes('隐患排名')) el.textContent = L.occRank;
+    if(t.includes('14-Day') || t.includes('14天')) el.textContent = L.trend;
+    if(t.includes('Occurrences by Area') || t.includes('各区域')) el.textContent = L.areaChart;
+    if(t.includes('Top Hazards') || t.includes('主要隐患')) el.textContent = L.topHazards;
+    if(t.includes('Highest Risk') || t.includes('最高风险')) el.textContent = L.riskAreas;
+    if(t.includes('Recommendations') || t.includes('建议')) el.textContent = L.recommendations;
+    if(t.includes('Top Inspectors') || t.includes('优秀')) el.textContent = L.topInspectors;
+    if(t.includes('Inspections per') || t.includes('各检查员')) el.textContent = L.inspChart;
+    if(t.includes('Weekly Activity') || t.includes('每周')) el.textContent = L.heatmap;
+  });
+
+  // Sync status
+  const syncEl = document.getElementById('syncStatus');
+  if(syncEl && (syncEl.textContent.includes('records') || syncEl.textContent.includes('条记录'))) {
+    const n = syncEl.textContent.split(' ')[0];
+    syncEl.textContent = n + ' ' + L.records;
+  }
+
+  // Re-render to update dynamic content
+  if(allData.length > 0) render();
+}
+
+function initLang() {
+  const saved = localStorage.getItem('safecheck_lang') || 'en';
+  if(saved === 'zh') setLang('zh');
 }
 
 function checkAuth(){
@@ -682,18 +825,18 @@ function showSection(id, el){
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
   document.getElementById('sec-'+id).classList.add('active');
   if(el) el.classList.add('active');
-  const titles={overview:'📊 仪表板 概览',records:'📋 Inspection 检查记录',areas:'📍 区域 Risk Assessment',ai:'🤖 AI 安全分析师',epi:'📸 PPE 视觉 Analysis',inspectors:'👷 检查员 Activity'};
+  const titles={overview:'📊 仪表板概览',records:'📋 检查记录',areas:'📍 区域风险评估',ai:'🤖 AI 安全分析师',epi:'📸 PPE 视觉分析',inspectors:'👷 检查员活动'};
   document.getElementById('pageTitle').textContent=titles[id]||'SafeCheck';
-  if(id==='inspectors') render检查员();
+  if(id==='inspectors') renderInspectors();
   if(id==='epi') updateEPIStats();
   if(id==='records') renderTable();
-  if(id==='areas') render区域Grid();
+  if(id==='areas') renderAreaGrid();
 }
 
 function isManoel(){return sessionStorage.getItem('safecheck_user')==='manoel';}
 function isPrivileged(){const u=sessionStorage.getItem('safecheck_user');return u==='manoel'||u==='pierre';}
 
-function check检查员Access(e,id,el){
+function checkInspectorAccess(e,id,el){
   if(!isPrivileged()){e.preventDefault();alert('🔒 访问受限。此功能仅限授权用户使用。');return false;}
   showSection(id,el);return false;
 }
@@ -702,18 +845,18 @@ function check检查员Access(e,id,el){
 async function loadData(){
   document.getElementById('syncStatus').textContent='同步中...';
   try{
-    const area=document.getElementById('filter区域').value;
+    const area=document.getElementById('filterArea').value;
     const period=document.getElementById('filterPeriod').value;
-    let url=`${SUPABASE_URL}/rest/v1/次检查?select=*&order=created_at.desc&limit=500`;
+    let url=`${SUPABASE_URL}/rest/v1/inspections?select=*&order=created_at.desc&limit=500`;
     if(area) url+=`&area=eq.${area}`;
-    if(period){const d=new 日期();d.set日期(d.get日期()-parseInt(period));url+=`&created_at=gte.${d.toISOString()}`;}
+    if(period){const d=new Date();d.setDate(d.getDate()-parseInt(period));url+=`&created_at=gte.${d.toISOString()}`;}
     const r=await fetch(url,{headers:{'apikey':SUPABASE_KEY,'Authorization':`Bearer ${SUPABASE_KEY}`}});
     if(!r.ok) throw new Error(`HTTP ${r.status}`);
     allData=await r.json();
     checkAndSendHazardAlerts(allData);
     render();
-    document.getElementById('syncStatus').textContent=`${allData.length} 条记录 · 实时`;
-    document.getElementById('sopInsp总计').textContent=allData.length;
+    document.getElementById('syncStatus').textContent=`${allData.length} records · Live`;
+    document.getElementById('sopInspTotal').textContent=allData.length;
   }catch(e){
     document.getElementById('syncStatus').textContent='连接错误';
     showEmpty();
@@ -723,7 +866,7 @@ async function loadData(){
 function occCount(insp){
   if(!insp.occurrences) return 0;
   if(Array.isArray(insp.occurrences)) return insp.occurrences.length;
-  if(type共 insp.occurrences === 'string'){
+  if(typeof insp.occurrences === 'string'){
     try{ const p=JSON.parse(insp.occurrences); return Object.values(p).filter(Boolean).length; }catch(e){ return 0; }
   }
   return Object.values(insp.occurrences).filter(Boolean).length;
@@ -736,8 +879,8 @@ function saveAlertedId(key){const ids=getAlertedIds();ids.add(key);localStorage.
 
 function checkAndSendHazardAlerts(data){
   const alertedIds=getAlertedIds();
-  const cut共f=new 日期(日期.now()-48*3600*1000);
-  const recent=data.filter(i=>new 日期(i.created_at||i.date)>=cut共f);
+  const cutoff=new Date(Date.now()-48*3600*1000);
+  const recent=data.filter(i=>new Date(i.created_at||i.date)>=cutoff);
   recent.forEach(insp=>{
     if(!insp.occurrences)return;
     ALERT_HAZARDS.forEach(hazardId=>{
@@ -745,7 +888,7 @@ function checkAndSendHazardAlerts(data){
       const alertKey=`${insp.id}_${hazardId}`;
       if(alertedIds.has(alertKey))return;
       saveAlertedId(alertKey);
-      const hazardLabel=hazardId==='electric'?'⚡ 电气危险':'🔥 火灾隐患';
+      const hazardLabel=hazardId==='electric'?'⚡ Electrical Hazard':'🔥 Fire Hazard';
       const areaName=AREA_NAMES[insp.area]||insp.area||'—';
       fetch('https://api.emailjs.com/api/v1.0/email/send',{
         method:'POST',headers:{'Content-Type':'application/json'},
@@ -755,8 +898,8 @@ function checkAndSendHazardAlerts(data){
         if(r.ok){
           const t=document.createElement('div');
           t.style.cssText='position:fixed;top:20px;right:20px;z-index:99999;background:#E74C3C;color:white;padding:14px 20px;border-radius:12px;font-weight:700;font-size:14px;box-shadow:0 4px 20px rgba(0,0,0,0.3);';
-          t.innerHTML=`🚨 Alert sent: ${hazardLabel}<br><span style="font-weight:400;font-size:12px;">检查员: ${insp.inspector} · ${insp.area}</span>`;
-          document.body.appendChild(t);set时间out(()=>t.remove(),6000);
+          t.innerHTML=`🚨 Alert sent: ${hazardLabel}<br><span style="font-weight:400;font-size:12px;">Inspector: ${insp.inspector} · ${insp.area}</span>`;
+          document.body.appendChild(t);setTimeout(()=>t.remove(),6000);
         }
       }).catch(()=>{});
     });
@@ -767,13 +910,13 @@ function checkAndSendHazardAlerts(data){
 function render(){
   const totalOcc=allData.reduce((s,i)=>s+occCount(i),0);
   const inspectors=new Set(allData.map(i=>i.inspector).filter(Boolean)).size;
-  const epi已分析=allData.filter(i=>i.epi_check&&i.epi_check.length>0).length;
-  document.getElementById('kpi总计').textContent=allData.length;
+  const epiAnalyzed=allData.filter(i=>i.epi_check&&i.epi_check.length>0).length;
+  document.getElementById('kpiTotal').textContent=allData.length;
   document.getElementById('kpiOcc').textContent=totalOcc;
   document.getElementById('kpiInsp').textContent=inspectors||'—';
-  document.getElementById('kpiEPI').textContent=epi已分析;
-  document.getElementById('kpiEPISub').textContent=`${epi已分析} 共 ${allData.length} 次检查`;
-  renderRanking(); render区域Chart(); renderTrend(); render区域Grid(); renderTable(); updateEPIStats();
+  document.getElementById('kpiEPI').textContent=epiAnalyzed;
+  document.getElementById('kpiEPISub').textContent=`${epiAnalyzed} of ${allData.length} inspections`;
+  renderRanking(); renderAreaChart(); renderTrend(); renderAreaGrid(); renderTable(); updateEPIStats();
   if(isPrivileged()){
     document.getElementById('inspectorLock').style.display='none';
   }
@@ -784,8 +927,8 @@ function renderRanking(){
   allData.forEach(i=>{
     if(!i.occurrences) return;
     let occ = i.occurrences;
-    if(type共 occ === 'string'){ try{ occ=JSON.parse(occ); }catch(e){ return; } }
-    if(type共 occ === 'object' && !Array.isArray(occ)){
+    if(typeof occ === 'string'){ try{ occ=JSON.parse(occ); }catch(e){ return; } }
+    if(typeof occ === 'object' && !Array.isArray(occ)){
       Object.entries(occ).forEach(([k,v])=>{if(v&&counts[k]!==undefined)counts[k]++;});
     }
   });
@@ -793,7 +936,7 @@ function renderRanking(){
   const max=sorted[0]?.count||1;
   const colors=['#E74C3C','#E67E22','#F39C12','#2E86C1','#2E86C1','#2E86C1','#5D7A8A','#5D7A8A'];
   if(!sorted.length){
-    const el=document.getElementById('occList'); if(el) el.innerHTML=`<div class="empty-state"><div class="empty-icon">✅</div><div class="empty-title">暂无隐患记录</div></div>`;
+    const el=document.getElementById('occList'); if(el) el.innerHTML=`<div class="empty-state"><div class="empty-icon">✅</div><div class="empty-title">No occurrences yet</div></div>`;
     return;
   }
   const occEl=document.getElementById('occList'); if(!occEl) return; occEl.innerHTML=sorted.map((o,i)=>`
@@ -808,34 +951,34 @@ function renderRanking(){
     </div>`).join('');
 }
 
-function render区域Chart(){
+function renderAreaChart(){
   const ac={};AREAS.forEach(a=>ac[a]=0);
   allData.forEach(i=>{if(i.area&&ac[i.area]!==undefined)ac[i.area]+=occCount(i);});
   const ctx=document.getElementById('areaChart').getContext('2d');
   if(aCI)aCI.destroy();
   const max=Math.max(...Object.values(ac),1);
-  aCI=new Chart(ctx,{type:'bar',data:{labels:AREAS.map(a=>`${a} – ${AREA_NAMES[a]}`),datasets:[{label:'隐患',data:AREAS.map(a=>ac[a]),backgroundColor:AREAS.map(a=>{const r=ac[a]/max;return r>0.7?'rgba(231,76,60,0.8)':r>0.4?'rgba(230,126,34,0.8)':'rgba(46,134,193,0.8)';}),borderRadius:8,borderSkipped:false}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,grid:{color:'rgba(0,0,0,0.05)'}},x:{grid:{display:false},ticks:{font:{size:11}}}}}});
+  aCI=new Chart(ctx,{type:'bar',data:{labels:AREAS.map(a=>`${a} – ${AREA_NAMES[a]}`),datasets:[{label:'Occurrences',data:AREAS.map(a=>ac[a]),backgroundColor:AREAS.map(a=>{const r=ac[a]/max;return r>0.7?'rgba(231,76,60,0.8)':r>0.4?'rgba(230,126,34,0.8)':'rgba(46,134,193,0.8)';}),borderRadius:8,borderSkipped:false}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,grid:{color:'rgba(0,0,0,0.05)'}},x:{grid:{display:false},ticks:{font:{size:11}}}}}});
 }
 
 function renderTrend(){
-  const by日期={};
-  allData.forEach(i=>{const d=i.date||i.created_at?.split('T')[0]||'?';if(!by日期[d])by日期[d]=0;by日期[d]+=occCount(i);});
-  const dates=Object.keys(by日期).sort().slice(-14);
+  const byDate={};
+  allData.forEach(i=>{const d=i.date||i.created_at?.split('T')[0]||'?';if(!byDate[d])byDate[d]=0;byDate[d]+=occCount(i);});
+  const dates=Object.keys(byDate).sort().slice(-14);
   const ctx=document.getElementById('trendChart').getContext('2d');
   if(tCI)tCI.destroy();
-  tCI=new Chart(ctx,{type:'line',data:{labels:dates,datasets:[{label:'隐患',data:dates.map(d=>by日期[d]),borderColor:'#2E86C1',backgroundColor:'rgba(46,134,193,0.08)',borderWidth:2.5,pointBackgroundColor:'#2E86C1',pointRadius:5,fill:true,tension:0.4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,grid:{color:'rgba(0,0,0,0.05)'}},x:{grid:{display:false}}}}});
+  tCI=new Chart(ctx,{type:'line',data:{labels:dates,datasets:[{label:'Occurrences',data:dates.map(d=>byDate[d]),borderColor:'#2E86C1',backgroundColor:'rgba(46,134,193,0.08)',borderWidth:2.5,pointBackgroundColor:'#2E86C1',pointRadius:5,fill:true,tension:0.4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,grid:{color:'rgba(0,0,0,0.05)'}},x:{grid:{display:false}}}}});
 }
 
-function render区域Grid(){
+function renderAreaGrid(){
   const ac={},ai={};AREAS.forEach(a=>{ac[a]=0;ai[a]=0;});
   allData.forEach(i=>{if(i.area&&ac[i.area]!==undefined){ai[i.area]++;ac[i.area]+=occCount(i);}});
   const max=Math.max(...Object.values(ac),1);
   document.getElementById('areaGrid').innerHTML=AREAS.map(area=>{
-    const occ=ac[area],insp=ai[area],平均=insp>0?(occ/insp).toFixed(1):0;
+    const occ=ac[area],insp=ai[area],avg=insp>0?(occ/insp).toFixed(1):0;
     const r=occ/max,s=r>0.6?'high':r>0.3?'med':'low';
     const sl=s==='high'?'🔴 高风险':s==='med'?'🟡 中等风险':'🟢 低风险';
     const bc=s==='high'?'#E74C3C':s==='med'?'#E67E22':'#27AE60';
-    return `<div class="area-card"><span class="area-status status-${s}">${sl}</span><div class="area-name">${area}</div><div style="font-size:12px;color:var(--accent);font-weight:600;margin-bottom:4px;">${AREA_NAMES[area]}</div><div class="area-count">${insp} 次检查 · ${occ} 次隐患 · 平均 ${平均}/次</div><div class="area-bar"><div class="area-bar-fill" style="width:${(r*100).toFixed(0)}%;background:${bc}"></div></div></div>`;
+    return `<div class="area-card"><span class="area-status status-${s}">${sl}</span><div class="area-name">${area}</div><div style="font-size:12px;color:var(--accent);font-weight:600;margin-bottom:4px;">${AREA_NAMES[area]}</div><div class="area-count">${insp} inspections · ${occ} occurrences · avg ${avg}/visit</div><div class="area-bar"><div class="area-bar-fill" style="width:${(r*100).toFixed(0)}%;background:${bc}"></div></div></div>`;
   }).join('');
 }
 
@@ -844,13 +987,13 @@ function renderTable(){
   const delHeader=document.getElementById('deleteColHeader');
   if(delHeader) delHeader.innerHTML=manoel?'🗑️':' ';
   const deleteAllContainer=document.getElementById('deleteAllContainer');
-  if(deleteAllContainer) deleteAllContainer.innerHTML=manoel?`<button onclick="deleteAll报告s()" style="background:var(--red);color:white;border:none;border-radius:8px;padding:6px 14px;font-size:12px;font-weight:700;cursor:pointer;">🗑️ 全部删除</button>`:'';
+  if(deleteAllContainer) deleteAllContainer.innerHTML=manoel?`<button onclick="deleteAllReports()" style="background:var(--red);color:white;border:none;border-radius:8px;padding:6px 14px;font-size:12px;font-weight:700;cursor:pointer;">🗑️ Delete All</button>`:'';
   if(!allData.length){
-    document.getElementById('inspTable').innerHTML=`<tr><td colspan="11"><div class="empty-state"><div class="empty-icon">📋</div><div class="empty-title">暂无检查记录</div><p>请安装SafeCheck并完成检查！</p></div></td></tr>`;
+    document.getElementById('inspTable').innerHTML=`<tr><td colspan="11"><div class="empty-state"><div class="empty-icon">📋</div><div class="empty-title">No inspections yet</div><p>Install SafeCheck and complete an inspection!</p></div></td></tr>`;
     return;
   }
   document.getElementById('inspTable').innerHTML=allData.slice(0,50).map(i=>{
-    const c=occCount(i),bc=c===0?'ok':c>=3?'high':'warn',bl=c===0?'✅ 合规':`⚠️ ${c}`;
+    const c=occCount(i),bc=c===0?'ok':c>=3?'high':'warn',bl=c===0?'✅ OK':`⚠️ ${c}次`;
     const photoHtml=(i.photos&&i.photos.length>0)
       ?i.photos.slice(0,3).map(url=>`<a href="${url}" target="_blank"><img src="${url}" style="width:40px;height:40px;object-fit:cover;border-radius:6px;border:1.5px solid var(--border);margin-right:3px;vertical-align:middle;" onerror="this.style.display='none'"/></a>`).join('')+(i.photos.length>3?`<span style="font-size:11px;color:var(--muted);vertical-align:middle;"> +${i.photos.length-3}</span>`:'')
       :'<span style="color:var(--muted);font-size:12px;">—</span>';
@@ -863,8 +1006,8 @@ function renderTable(){
     } else {
       epiHtml=`<button onclick="analyzeOnePhoto(${i.id})" style="background:var(--ai);color:white;border:none;border-radius:6px;padding:3px 8px;font-size:11px;font-weight:600;cursor:pointer;">Analyze</button>`;
     }
-    const deleteCell=manoel?`<td style="text-align:center;"><button onclick="delete报告(${i.id})" style="background:none;border:none;cursor:pointer;font-size:18px;color:var(--red);opacity:0.7;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.7">🗑️</button></td>`:'<td></td>';
-    return `<tr><td>${i.date||'—'}</td><td>${i.time_start||'—'}${i.time_end?' → '+i.time_end:''}</td><td><span class="td-area">${i.area||'—'}</span><br><span style="font-size:11px;color:var(--muted);">${AREA_NAMES[i.area]||''}</span></td><td>${i.inspector||'—'}</td><td>${i.duration||'—'}</td><td><span class="occ-badge ${bc}">${bl}</span></td><td>${i.language||'EN'}</td><td>${photoHtml}</td><td>${epiHtml}</td><td><button class="dl-btn" onclick="generatePDF(${i.id})">⬇️ 报告</button></td>${deleteCell}</tr>`;
+    const deleteCell=manoel?`<td style="text-align:center;"><button onclick="deleteReport(${i.id})" style="background:none;border:none;cursor:pointer;font-size:18px;color:var(--red);opacity:0.7;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.7">🗑️</button></td>`:'<td></td>';
+    return `<tr><td>${i.date||'—'}</td><td>${i.time_start||'—'}${i.time_end?' → '+i.time_end:''}</td><td><span class="td-area">${i.area||'—'}</span><br><span style="font-size:11px;color:var(--muted);">${AREA_NAMES[i.area]||''}</span></td><td>${i.inspector||'—'}</td><td>${i.duration||'—'}</td><td><span class="occ-badge ${bc}">${bl}</span></td><td>${i.language||'EN'}</td><td>${photoHtml}</td><td>${epiHtml}</td><td><button class="dl-btn" onclick="generatePDF(${i.id})">⬇️ PDF</button></td>${deleteCell}</tr>`;
   }).join('');
 }
 
@@ -886,7 +1029,7 @@ async function runAIAnalysis(mode){
   }
   mode = mode || currentAIMode;
   const btn=document.getElementById('aiRunBtn');
-  btn.innerHTML='<span class="ai-spinner"></span>分析中...';
+  btn.innerHTML='<span class="ai-spinner"></span>Analyzing...';
   btn.disabled=true;
   document.getElementById('aiInsightBox').className='ai-insight-box loading';
   document.getElementById('aiInsightBox').textContent='🤖 Claude AI is analyzing your safety data...';
@@ -901,66 +1044,66 @@ async function runAIAnalysis(mode){
   allData.forEach(i=>{if(i.area)areaCounts[i.area]=(areaCounts[i.area]||0)+occCount(i);});
   const inspCounts={};
   allData.forEach(i=>{if(i.inspector)inspCounts[i.inspector]=(inspCounts[i.inspector]||0)+1;});
-  const now=new 日期();const sop=new 日期('2026-10-31');
+  const now=new Date();const sop=new Date('2026-10-31');
   const daysToSOP=Math.floor((sop-now)/86400000);
-  const epi已分析=allData.filter(i=>i.epi_check&&i.epi_check.length>0).length;
+  const epiAnalyzed=allData.filter(i=>i.epi_check&&i.epi_check.length>0).length;
 
   const prompts={
-    general:`You are a safety analyst for NEMM Up / ArcelorMittal HSM project in China (Hot Strip Mill). 请用中文分析此安全检查数据，并提供4-5段综合概述。
+    general:`You are a safety analyst for NEMM Up / ArcelorMittal HSM project in China (Hot Strip Mill). Analyze this safety inspection data and provide a comprehensive overview in 4-5 paragraphs.
 
 Data Summary:
-- 总计 次检查: ${totalInsp}
-- 总计 occurrences/non-conformities: ${totalOcc}
-- 距SOP天数 (Start 共 Production): ${daysToSOP} days (Oct 31, 2026)
+- Total inspections: ${totalInsp}
+- Total occurrences/non-conformities: ${totalOcc}
+- Days to SOP (Start of Production): ${daysToSOP} days (Oct 31, 2026)
 - Active inspectors: ${Object.keys(inspCounts).length}
-- PPE 视觉 AI analyses: ${epi已分析}
+- PPE Vision AI analyses: ${epiAnalyzed}
 - Top occurrences: ${topOcc.map(o=>`${o.label}(${o.count})`).join(', ')}
-- 隐患 by area: ${Object.entries(areaCounts).map(([a,c])=>`${a}:${c}`).join(', ')}
-- 检查员 activity: ${Object.entries(inspCounts).map(([n,c])=>`${n}:${c}`).join(', ')}
+- Occurrences by area: ${Object.entries(areaCounts).map(([a,c])=>`${a}:${c}`).join(', ')}
+- Inspector activity: ${Object.entries(inspCounts).map(([n,c])=>`${n}:${c}`).join(', ')}
 
-Provide actionable insights. Be specific and pr共essional. Focus on safety priorities for a steel mill construction site.`,
+请用中文提供可操作的见解。请具体、专业。重点关注钢铁厂建设工地的安全优先事项。`,
 
     risk:`You are a safety risk analyst. Based on this data, provide a risk assessment for the HSM project.
 
 Data:
-- 隐患 by area: ${Object.entries(areaCounts).map(([a,c])=>`${AREA_NAMES[a]}(${a}):${c} occurrences`).join(', ')}
+- Occurrences by area: ${Object.entries(areaCounts).map(([a,c])=>`${AREA_NAMES[a]}(${a}):${c} occurrences`).join(', ')}
 - Top hazards: ${topOcc.map(o=>`${o.label}:${o.count}`).join(', ')}
-- 距SOP天数: ${daysToSOP}
+- Days to SOP: ${daysToSOP}
 
 Identify the highest risk areas and hazards. Rate each area (High/Medium/Low risk) and explain why. Provide specific mitigation recommendations for the top 3 risks.`,
 
-    trend:`You are a safety trend analyst. 请用中文分析HSM项目的检查趋势。
+    trend:`You are a safety trend analyst. Analyze inspection trends for the HSM project.
 
 Data:
-- 总计 次检查: ${totalInsp} over the inspection period
-- Recent data (last 30 days): ${allData.filter(i=>new 日期(i.date||i.created_at)>new 日期(日期.now()-30*86400000)).length} 次检查
-- 检查员 growth: ${Object.keys(inspCounts).length} active inspectors
-- Occurrence rate: ${(totalOcc/totalInsp).toFixed(1)} 平均 per inspection
+- Total inspections: ${totalInsp} over the inspection period
+- Recent data (last 30 days): ${allData.filter(i=>new Date(i.date||i.created_at)>new Date(Date.now()-30*86400000)).length} inspections
+- Inspector growth: ${Object.keys(inspCounts).length} active inspectors
+- Occurrence rate: ${(totalOcc/totalInsp).toFixed(1)} avg per inspection
 
-Analyze if safety is improving or deteriorating. Identify positive trends and areas 共 concern. Project the safety status at SOP (${daysToSOP} days away).`,
+Analyze if safety is improving or deteriorating. Identify positive trends and areas of concern. Project the safety status at SOP (${daysToSOP} days away).`,
 
-    inspector:`You are an inspector performance analyst. 请用中文评估检查团队的绩效表现。
+    inspector:`You are an inspector performance analyst. Evaluate the inspection team performance.
 
-检查员 data:
-${Object.entries(inspCounts).map(([n,c])=>`- ${n}: ${c} 次检查`).join('\n')}
-- 总计 次检查: ${totalInsp}
-- 总计 occurrences found: ${totalOcc}
+Inspector data:
+${Object.entries(inspCounts).map(([n,c])=>`- ${n}: ${c} inspections`).join('\n')}
+- Total inspections: ${totalInsp}
+- Total occurrences found: ${totalOcc}
 
 Evaluate team performance, identify top performers, and recommend how to optimize inspection coverage. Consider the multilingual team (Brazilian + Chinese workers).`,
 
-    sop:`You are a project readiness analyst for the HSM Steel Mill project. With ${daysToSOP} days to SOP (Start 共 Production Oct 31, 2026), 请用中文评估安全准备情况。
+    sop:`You are a project readiness analyst for the HSM Steel Mill project. With ${daysToSOP} days to SOP (Start of Production Oct 31, 2026), assess safety readiness.
 
 Current status:
 - Inspections completed: ${totalInsp}
 - Outstanding safety issues: ${totalOcc} occurrences recorded
-- PPE compliance analyses: ${epi已分析}
+- PPE compliance analyses: ${epiAnalyzed}
 - Highest risk area: ${Object.entries(areaCounts).sort((a,b)=>b[1]-a[1])[0]?.[0]||'N/A'}
 
-请用中文提供SOP准备情况评估报告。 What needs to be resolved before production starts? What is the current safety trajectory? Provide a clear GO/NO-GO recommendation with conditions.`
+Provide a SOP readiness assessment. What needs to be resolved before production starts? What is the current safety trajectory? Provide a clear GO/NO-GO recommendation with conditions.`
   };
 
   try{
-    const response=await fetch('https://ocqfsccrvpdnjjl共kvk.supabase.co/functions/v1/dynamic-function',{
+    const response=await fetch('https://ocqfsccrvpdnjjlofkvk.supabase.co/functions/v1/dynamic-function',{
       method:'POST',
       headers:{'Content-Type':'application/json','apikey':'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9jcWZzY2NydnBkbmpqbG9ma3ZrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ1OTMwMTksImV4cCI6MjA5MDE2OTAxOX0.Uq0bMvtwmWm8lpIXAtUaPND7zDwW6QUKvOwbDhuKECI','Authorization':'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9jcWZzY2NydnBkbmpqbG9ma3ZrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ1OTMwMTksImV4cCI6MjA5MDE2OTAxOX0.Uq0bMvtwmWm8lpIXAtUaPND7zDwW6QUKvOwbDhuKECI','x-claude-key':getClaudeKey()},
       body:JSON.stringify({
@@ -978,10 +1121,10 @@ Current status:
     renderAIStructuredPanels(topOcc, areaCounts);
   }catch(e){
     document.getElementById('aiInsightBox').className='ai-insight-box';
-    document.getElementById('aiInsightBox').textContent='⚠️ 分析失败：'+e.message+'\n\nPossible causes:\n1. 重新输入您的Claude API密钥（点击侧边栏🔑）\n2. 检查Supabase Edge Function是否已部署\n3. 检查网络连接';
+    document.getElementById('aiInsightBox').textContent='⚠️ Analysis failed: '+e.message+'\n\nPossible causes:\n1. Re-enter your Claude API Key (click 🔑 in sidebar)\n2. Check if Supabase Edge Function is deployed\n3. Verify internet connection';
     console.error('AI error:', e);
   }
-  btn.innerHTML='▶ 运行分析';
+  btn.innerHTML='▶ Run Analysis';
   btn.disabled=false;
 }
 
@@ -1000,9 +1143,9 @@ function renderAIStructuredPanels(topOcc, areaCounts){
     </div>`).join('');
 
   // Risk areas
-  const sorted区域=Object.entries(areaCounts).sort((a,b)=>b[1]-a[1]).slice(0,3);
-  const max区域=sorted区域[0]?.[1]||1;
-  document.getElementById('aiRisk区域').innerHTML=sorted区域.map(([area,count],i)=>{
+  const sortedAreas=Object.entries(areaCounts).sort((a,b)=>b[1]-a[1]).slice(0,3);
+  const maxArea=sortedAreas[0]?.[1]||1;
+  document.getElementById('aiRiskAreas').innerHTML=sortedAreas.map(([area,count],i)=>{
     const risk=i===0?'🔴 High':i===1?'🟡 中等风险':'🟢 Low';
     return `<div style="padding:10px 0;border-bottom:1px solid var(--border);">
       <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
@@ -1011,7 +1154,7 @@ function renderAIStructuredPanels(topOcc, areaCounts){
       </div>
       <div style="font-size:12px;color:var(--muted);">${count} occurrences</div>
       <div style="height:4px;background:var(--border);border-radius:2px;margin-top:6px;">
-        <div style="height:4px;width:${(count/max区域*100).toFixed(0)}%;background:${i===0?'var(--red)':i===1?'var(--orange)':'var(--green)'};border-radius:2px;"></div>
+        <div style="height:4px;width:${(count/maxArea*100).toFixed(0)}%;background:${i===0?'var(--red)':i===1?'var(--orange)':'var(--green)'};border-radius:2px;"></div>
       </div>
     </div>`;
   }).join('');
@@ -1019,16 +1162,16 @@ function renderAIStructuredPanels(topOcc, areaCounts){
   // Recommendations
   const recs=[];
   if(topOcc[0]) recs.push(`🎯 Priority: Address "${topOcc[0].label}" — highest occurrence (${topOcc[0].count} cases)`);
-  const max区域2=Object.entries(areaCounts).sort((a,b)=>b[1]-a[1])[0];
-  if(max区域2) recs.push(`📍 Focus 次检查 on ${max区域2[0]} (${AREA_NAMES[max区域2[0]]}) — highest risk area`);
-  recs.push(`📸 Use PPE 视觉 to analyze photos in batch — no field connectivity required`);
+  const maxArea2=Object.entries(areaCounts).sort((a,b)=>b[1]-a[1])[0];
+  if(maxArea2) recs.push(`📍 Focus inspections on ${maxArea2[0]} (${AREA_NAMES[maxArea2[0]]}) — highest risk area`);
+  recs.push(`📸 Use PPE Vision to analyze photos in batch — no field connectivity required`);
   recs.push(`📊 Run weekly AI analysis to track safety trend toward SOP`);
   document.getElementById('aiRecommendations').innerHTML=recs.map(r=>`<div style="padding:8px 0;border-bottom:1px solid var(--border);font-size:13px;line-height:1.5;">${r}</div>`).join('');
 }
 
 // ── EPI VISION DASHBOARD ──────────────────────────────────────────────────────
 function updateEPIStats(){
-  const all照片=allData.flatMap(i=>i.photos||[]);
+  const allPhotos=allData.flatMap(i=>i.photos||[]);
   const analyzed=allData.filter(i=>i.epi_check&&i.epi_check.length>0);
   const nonCompliant=analyzed.filter(i=>i.epi_check.some(e=>{
     if(e.overall_compliant!==undefined) return !e.overall_compliant;
@@ -1037,17 +1180,17 @@ function updateEPIStats(){
   }));
   const compliance=analyzed.length>0?Math.round((analyzed.length-nonCompliant.length)/analyzed.length*100):0;
 
-  document.getElementById('epi总计照片').textContent=all照片.length;
-  document.getElementById('epi已分析').textContent=analyzed.length;
+  document.getElementById('epiTotalPhotos').textContent=allPhotos.length;
+  document.getElementById('epiAnalyzed').textContent=analyzed.length;
   document.getElementById('epiNonCompliant').textContent=nonCompliant.length;
   document.getElementById('epiComplianceRate').textContent=analyzed.length>0?`${compliance}%`:'—';
   document.getElementById('epiProgressBar').style.width=(analyzed.length>0?compliance:0)+'%';
   document.getElementById('epiProgressBar').style.background=compliance>=80?'var(--green)':compliance>=50?'var(--orange)':'var(--red)';
 
   // Show ALL photos with inspection data
-  const with照片 = allData.filter(i=>i.photos&&i.photos.length>0);
-  if(with照片.length>0){
-    document.getElementById('epiPhotoGrid').innerHTML=with照片.slice(0,24).map(i=>{
+  const withPhotos = allData.filter(i=>i.photos&&i.photos.length>0);
+  if(withPhotos.length>0){
+    document.getElementById('epiPhotoGrid').innerHTML=withPhotos.slice(0,24).map(i=>{
       const hasEPI = i.epi_check&&i.epi_check.length>0;
       if(!hasEPI){
         // Not yet analyzed — show photo with Analyze button
@@ -1056,7 +1199,7 @@ function updateEPIStats(){
           ${photo?`<img src="${photo}" onerror="this.style.display='none'" style="width:100%;height:130px;object-fit:cover;"/>`:'<div style="height:130px;background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:32px;">📷</div>'}
           <div class="epi-photo-info">
             <div style="font-size:11px;color:var(--muted);margin-bottom:6px;">${i.area||'—'} · ${i.date||'—'}</div>
-            <button id="btn-${i.id}" onclick="analyzeOnePhoto(${i.id})" style="width:100%;background:var(--ai);color:white;border:none;border-radius:8px;padding:6px;font-size:12px;font-weight:600;cursor:pointer;">🤖 分析PPE</button>
+            <button id="btn-${i.id}" onclick="analyzeOnePhoto(${i.id})" style="width:100%;background:var(--ai);color:white;border:none;border-radius:8px;padding:6px;font-size:12px;font-weight:600;cursor:pointer;">🤖 Analyze PPE</button>
             <div class="epi-progress-bar-wrap" id="prog-${i.id}">
               <div class="epi-progress-bar-anim" id="prog-bar-${i.id}" style="width:100%;"></div>
             </div>
@@ -1086,21 +1229,21 @@ function updateEPIStats(){
       </div>`;
     }).join('');
   } else {
-    document.getElementById('epiPhotoGrid').innerHTML='<div class="empty-state"><div class="empty-icon">📸</div><div class="empty-title">暂无照片</div><p>请在SafeCheck应用中完成带照片的检查</p></div>';
+    document.getElementById('epiPhotoGrid').innerHTML='<div class="empty-state"><div class="empty-icon">📸</div><div class="empty-title">No photos yet</div><p>Complete inspections with photos in the SafeCheck app</p></div>';
   }
 }
 
-async function analyzeAll照片(){
+async function analyzeAllPhotos(){
   const key = getClaudeKey();
   if(!key){ const newKey = promptClaudeKey(); if(!newKey) return; }
   const toAnalyze=allData.filter(i=>i.photos&&i.photos.length>0&&(!i.epi_check||i.epi_check.length===0));
   if(!toAnalyze.length){alert('所有照片已分析完毕！');return;}
   const btn=document.getElementById('analyzeAllBtn');
   btn.disabled=true;
-  btn.innerHTML='<span class="ai-spinner"></span>分析中...';
+  btn.innerHTML='<span class="ai-spinner"></span>Analyzing...';
 
   let done=0;
-  for(const insp 共 toAnalyze.slice(0,10)){ // Limit to 10 at a time
+  for(const insp of toAnalyze.slice(0,10)){ // Limit to 10 at a time
     const photoUrl=insp.photos[0];
     if(!photoUrl)continue;
     try{
@@ -1109,7 +1252,7 @@ async function analyzeAll照片(){
       const blob=await imgRes.blob();
       const b64=await new Promise(res=>{const r=new FileReader();r.onload=e=>res(e.target.result.split(',')[1]);r.readAsDataURL(blob);});
 
-      const response=await fetch('https://ocqfsccrvpdnjjl共kvk.supabase.co/functions/v1/dynamic-function',{
+      const response=await fetch('https://ocqfsccrvpdnjjlofkvk.supabase.co/functions/v1/dynamic-function',{
         method:'POST',
         headers:{'Content-Type':'application/json','apikey':'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9jcWZzY2NydnBkbmpqbG9ma3ZrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ1OTMwMTksImV4cCI6MjA5MDE2OTAxOX0.Uq0bMvtwmWm8lpIXAtUaPND7zDwW6QUKvOwbDhuKECI','Authorization':'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9jcWZzY2NydnBkbmpqbG9ma3ZrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ1OTMwMTksImV4cCI6MjA5MDE2OTAxOX0.Uq0bMvtwmWm8lpIXAtUaPND7zDwW6QUKvOwbDhuKECI','x-claude-key':getClaudeKey()},
         body:JSON.stringify({
@@ -1127,22 +1270,22 @@ async function analyzeAll照片(){
       if(match){
         const result=JSON.parse(match[0]);
         // Save to Supabase
-        await fetch(`${SUPABASE_URL}/rest/v1/次检查?id=eq.${insp.id}`,{
+        await fetch(`${SUPABASE_URL}/rest/v1/inspections?id=eq.${insp.id}`,{
           method:'PATCH',
           headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Content-Type':'application/json','Prefer':'return=minimal'},
           body:JSON.stringify({epi_check:[result]})
         });
         insp.epi_check=[result];
         done++;
-        btn.innerHTML=`<span class="ai-spinner"></span>已分析 ${done}/${toAnalyze.slice(0,10).length}...`;
+        btn.innerHTML=`<span class="ai-spinner"></span>Analyzed ${done}/${toAnalyze.slice(0,10).length}...`;
       }
     }catch(e){console.warn('EPI analyze error:',e);}
   }
   btn.disabled=false;
-  btn.innerHTML='🔍 分析所有PPE';
+  btn.innerHTML='🔍 Analyze All PPE';
   updateEPIStats();
   renderTable();
-  alert(`✅ PPE 视觉 complete! 已分析 ${done} 次检查.`);
+  alert(`✅ PPE Vision complete! Analyzed ${done} inspections.`);
 }
 
 async function analyzeOnePhoto(id){
@@ -1160,7 +1303,7 @@ async function analyzeOnePhoto(id){
     const blob=await imgRes.blob();
     const b64=await new Promise(res=>{const r=new FileReader();r.onload=e=>res(e.target.result.split(',')[1]);r.readAsDataURL(blob);});
     if(status){status.textContent='🤖 AI分析PPE中...';}
-    const response=await fetch('https://ocqfsccrvpdnjjl共kvk.supabase.co/functions/v1/dynamic-function',{
+    const response=await fetch('https://ocqfsccrvpdnjjlofkvk.supabase.co/functions/v1/dynamic-function',{
       method:'POST',
       headers:{'Content-Type':'application/json','apikey':'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9jcWZzY2NydnBkbmpqbG9ma3ZrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ1OTMwMTksImV4cCI6MjA5MDE2OTAxOX0.Uq0bMvtwmWm8lpIXAtUaPND7zDwW6QUKvOwbDhuKECI','Authorization':'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9jcWZzY2NydnBkbmpqbG9ma3ZrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ1OTMwMTksImV4cCI6MjA5MDE2OTAxOX0.Uq0bMvtwmWm8lpIXAtUaPND7zDwW6QUKvOwbDhuKECI','x-claude-key':getClaudeKey()},
       body:JSON.stringify({
@@ -1176,7 +1319,7 @@ async function analyzeOnePhoto(id){
     const match=text.match(/\{[\s\S]*\}/);
     if(match){
       const result=JSON.parse(match[0]);
-      await fetch(`${SUPABASE_URL}/rest/v1/次检查?id=eq.${id}`,{
+      await fetch(`${SUPABASE_URL}/rest/v1/inspections?id=eq.${id}`,{
         method:'PATCH',
         headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Content-Type':'application/json','Prefer':'return=minimal'},
         body:JSON.stringify({epi_check:[result]})
@@ -1192,7 +1335,7 @@ async function analyzeOnePhoto(id){
     if(prog){prog.classList.remove('active');}
     if(status){status.textContent='❌ Analysis failed';}
     if(btn){btn.disabled=false;btn.textContent='🤖 分析PPE';}
-    alert('分析失败：'+e.message);
+    alert('Analysis failed: '+e.message);
   }
 }
 
@@ -1205,7 +1348,7 @@ function generatePDF(id){
   const isZH=i.language==='ZH';
   const epiSection=i.epi_check&&i.epi_check.length>0?`
     <div class="section">
-      <h3>🤖 PPE 视觉 AI Analysis</h3>
+      <h3>🤖 PPE Vision AI Analysis</h3>
       <div style="background:#F4ECF7;border:1px solid #C39BD3;border-radius:8px;padding:14px;">
         <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;text-align:center;">
           <div><div style="font-size:11px;color:#7D6608;">Hard Hat</div><div style="font-size:16px;font-weight:700;color:${i.epi_check[0].helmet==='present'?'#1A6B3A':'#C0392B'}">${i.epi_check[0].helmet==='present'?'✅ Present':'❌ Absent'}</div></div>
@@ -1217,66 +1360,66 @@ function generatePDF(id){
     </div>`:'';
   const html=`<!DOCTYPE html><html><head><meta charset="utf-8"/>
   <style>*{margin:0;padding:0;box-sizing:border-box;}body{font-family:Arial,sans-serif;color:#1A2E3E;background:#fff}.header{background:linear-gradient(135deg,#1A3C5E,#0F2337);padding:30px;color:white}.brand{font-size:11px;letter-spacing:3px;text-transform:uppercase;opacity:.7;margin-bottom:8px}.title{font-size:22px;font-weight:800;margin-bottom:4px}.sub{font-size:13px;opacity:.8}.badge{display:inline-block;background:rgba(255,255,255,.15);border-radius:20px;padding:4px 14px;font-size:12px;margin-top:12px}.body{padding:28px}.section{margin-bottom:22px}h3{color:#0F2337;font-size:11px;text-transform:uppercase;letter-spacing:1.5px;border-bottom:2px solid #C5D8EA;padding-bottom:6px;margin-bottom:12px}.grid{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:10px}.cell{background:#F5F8FB;border:1px solid #C5D8EA;border-radius:8px;padding:12px}.lbl{font-size:10px;color:#5D7A8A;text-transform:uppercase;letter-spacing:1px}.val{font-size:15px;font-weight:700;margin-top:4px}table{width:100%;border-collapse:collapse;border:1px solid #C5D8EA}.notes-box{background:#F5F8FB;border:1px solid #C5D8EA;border-radius:8px;padding:14px;font-size:14px;line-height:1.7}.photos{display:flex;flex-wrap:wrap;margin-top:4px}.footer{margin-top:28px;padding-top:14px;border-top:1px solid #C5D8EA;text-align:center;font-size:11px;color:#999}.nemm{font-weight:800;color:#1A3C5E;font-size:13px}</style></head><body>
-  <div class="header"><div class="brand">NEMM UP</div><div style="display:flex;align-items:center;gap:12px;"><span style="font-family:Arial Black,Arial,sans-serif;font-weight:900;font-size:20px;color:white;">NEMM UP</span><div class="title" style="margin:0;">SafeCheck v2.0 — ${isZH?'安全检查':'安全检查'}</div></div><div class="sub">${isZH?'官方检查记录':'Official Inspection Record'} — HSM 项目 · China</div><span class="badge">ID #${i.id}</span><span class="badge" style="margin-left:8px">${i.language||'EN'}</span></div>
+  <div class="header"><div class="brand">NEMM UP</div><div style="display:flex;align-items:center;gap:12px;"><span style="font-family:Arial Black,Arial,sans-serif;font-weight:900;font-size:20px;color:white;">NEMM UP</span><div class="title" style="margin:0;">SafeCheck v2.0 — ${isZH?'安全检查':'Safety Inspection'}</div></div><div class="sub">${isZH?'官方检查记录':'Official Inspection Record'} — HSM Project · China</div><span class="badge">ID #${i.id}</span><span class="badge" style="margin-left:8px">${i.language||'EN'}</span></div>
   <div class="body">
-    <div class="section"><h3>${isZH?'检查数据':'检查数据'}</h3><div class="grid"><div class="cell"><div class="lbl">📅 ${isZH?'日期':'日期'}</div><div class="val">${i.date||'—'}</div></div><div class="cell"><div class="lbl">⏱️ Start</div><div class="val">${i.time_start||'—'}</div></div><div class="cell"><div class="lbl">🏁 End</div><div class="val">${i.time_end||'—'}</div></div><div class="cell"><div class="lbl">⏳ 时长</div><div class="val">${i.duration||'—'}</div></div><div class="cell"><div class="lbl">📍 区域</div><div class="val">${i.area||'—'}</div></div><div class="cell"><div class="lbl">👷 检查员</div><div class="val">${i.inspector||'—'}</div></div></div></div>
+    <div class="section"><h3>${isZH?'检查数据':'Inspection Data'}</h3><div class="grid"><div class="cell"><div class="lbl">📅 ${isZH?'日期':'Date'}</div><div class="val">${i.date||'—'}</div></div><div class="cell"><div class="lbl">⏱️ Start</div><div class="val">${i.time_start||'—'}</div></div><div class="cell"><div class="lbl">🏁 End</div><div class="val">${i.time_end||'—'}</div></div><div class="cell"><div class="lbl">⏳ Duration</div><div class="val">${i.duration||'—'}</div></div><div class="cell"><div class="lbl">📍 Area</div><div class="val">${i.area||'—'}</div></div><div class="cell"><div class="lbl">👷 Inspector</div><div class="val">${i.inspector||'—'}</div></div></div></div>
     ${epiSection}
-    <div class="section"><h3>${isZH?'已识别的隐患':'Identified 隐患'}</h3><table>${rows}</table></div>
-    ${i.notes?`<div class="section"><h3>${isZH?'备注':'备注'}</h3><div class="notes-box">${i.notes}</div></div>`:''}
-    ${photoImgs?`<div class="section"><h3>${isZH?'照片':'照片'} (${i.photos.length})</h3><div class="photos">${photoImgs}</div></div>`:''}
-    <div class="footer"><span class="nemm">NEMM UP</span> · SafeCheck v2.0 · Generated by AI 安全仪表板 · ${new 日期().toLocaleString('zh-CN')}</div>
+    <div class="section"><h3>${isZH?'已识别的隐患':'Identified Occurrences'}</h3><table>${rows}</table></div>
+    ${i.notes?`<div class="section"><h3>${isZH?'备注':'Notes'}</h3><div class="notes-box">${i.notes}</div></div>`:''}
+    ${photoImgs?`<div class="section"><h3>${isZH?'照片':'Photos'} (${i.photos.length})</h3><div class="photos">${photoImgs}</div></div>`:''}
+    <div class="footer"><span class="nemm">NEMM UP</span> · SafeCheck v2.0 · Generated by AI Safety Dashboard · ${new Date().toLocaleString('zh-CN')}</div>
   </div></body></html>`;
   const w=window.open('','_blank');w.document.write(html);w.document.close();w.onload=()=>{w.print();};
 }
 
 // ── DELETE ────────────────────────────────────────────────────────────────────
-async function delete报告(id){
-  if(!confirm('删除 this inspection report? This cannot be undone.'))return;
-  const res=await fetch(`${SUPABASE_URL}/rest/v1/次检查?id=eq.${id}`,{method:'DELETE',headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY}});
+async function deleteReport(id){
+  if(!confirm('确定要删除此检查记录？此操作不可撤销。'))return;
+  const res=await fetch(`${SUPABASE_URL}/rest/v1/inspections?id=eq.${id}`,{method:'DELETE',headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY}});
   if(res.ok){allData=allData.filter(r=>r.id!==id);render();}
   else alert('删除记录时出错。');
 }
 
-async function deleteAll报告s(){
-  if(!confirm('⚠️ 删除 ALL inspection reports? This cannot be undone!'))return;
+async function deleteAllReports(){
+  if(!confirm('⚠️ 确定要删除所有检查记录？此操作不可撤销！'))return;
   if(!confirm('您确定吗？所有数据将被永久删除。'))return;
-  for(const r 共 allData){await fetch(`${SUPABASE_URL}/rest/v1/次检查?id=eq.${r.id}`,{method:'DELETE',headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY}});}
+  for(const r of allData){await fetch(`${SUPABASE_URL}/rest/v1/inspections?id=eq.${r.id}`,{method:'DELETE',headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY}});}
   allData=[];render();
 }
 
 // ── INSPECTOR SECTION ─────────────────────────────────────────────────────────
 let inspectorChartInst=null;
-function getWeekStart(date){const d=new 日期(date);const day=d.getDay();const diff=d.get日期()-day+(day===0?-6:1);d.set日期(diff);d.setHours(0,0,0,0);return d;}
+function getWeekStart(date){const d=new Date(date);const day=d.getDay();const diff=d.getDate()-day+(day===0?-6:1);d.setDate(diff);d.setHours(0,0,0,0);return d;}
 
-function render检查员(){
+function renderInspectors(){
   const period=document.getElementById('inspectorPeriod')?.value||'all';
-  const now=new 日期();const weekStart=getWeekStart(now);const monthStart=new 日期(now.getFullYear(),now.getMonth(),1);
-  function inPeriod(item){if(period==='all')return true;const d=new 日期(item.date||item.created_at?.split('T')[0]);if(period==='week')return d>=weekStart;if(period==='month')return d>=monthStart;return true;}
+  const now=new Date();const weekStart=getWeekStart(now);const monthStart=new Date(now.getFullYear(),now.getMonth(),1);
+  function inPeriod(item){if(period==='all')return true;const d=new Date(item.date||item.created_at?.split('T')[0]);if(period==='week')return d>=weekStart;if(period==='month')return d>=monthStart;return true;}
   const filtered=allData.filter(inPeriod);
   const stats={};
-  allData.forEach(i=>{const name=i.inspector||'—';if(!stats[name])stats[name]={total:0,week:0,month:0,occ:0,lastVisit:''};stats[name].total++;stats[name].occ+=occCount(i);const d=new 日期(i.date||i.created_at?.split('T')[0]);if(d>=weekStart)stats[name].week++;if(d>=monthStart)stats[name].month++;const ds=i.date||i.created_at?.split('T')[0]||'';if(ds>stats[name].lastVisit)stats[name].lastVisit=ds;});
+  allData.forEach(i=>{const name=i.inspector||'—';if(!stats[name])stats[name]={total:0,week:0,month:0,occ:0,lastVisit:''};stats[name].total++;stats[name].occ+=occCount(i);const d=new Date(i.date||i.created_at?.split('T')[0]);if(d>=weekStart)stats[name].week++;if(d>=monthStart)stats[name].month++;const ds=i.date||i.created_at?.split('T')[0]||'';if(ds>stats[name].lastVisit)stats[name].lastVisit=ds;});
   const periodStats={};filtered.forEach(i=>{const name=i.inspector||'—';if(!periodStats[name])periodStats[name]=0;periodStats[name]++;});
   const sorted=Object.entries(stats).sort((a,b)=>b[1].total-a[1].total);
   const periodSorted=Object.entries(periodStats).sort((a,b)=>b[1]-a[1]);
   const medals=['🥇','🥈','🥉'];
   const rankingEl=document.getElementById('inspectorRanking');
   rankingEl.innerHTML=sorted.slice(0,8).map(([name,s],idx)=>{
-    const pct=Math.round((s.total/allData.length)*100);const medal=medals[idx]||`${idx+1}.`;const 平均=s.total>0?(s.occ/s.total).toFixed(1):'0';
-    return `<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);"><span style="font-size:18px;width:28px;text-align:center;">${medal}</span><div style="flex:1;"><div style="font-weight:700;font-size:14px;">${name}</div><div style="font-size:11px;color:var(--muted);">${s.total} 次检查 · 平均 ${平均} occ/次</div><div style="height:5px;background:var(--border);border-radius:3px;margin-top:4px;"><div style="height:5px;width:${pct}%;background:var(--accent);border-radius:3px;"></div></div></div><span style="font-size:13px;font-weight:700;color:var(--accent);">${s.total}</span></div>`;
+    const pct=Math.round((s.total/allData.length)*100);const medal=medals[idx]||`${idx+1}.`;const avg=s.total>0?(s.occ/s.total).toFixed(1):'0';
+    return `<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);"><span style="font-size:18px;width:28px;text-align:center;">${medal}</span><div style="flex:1;"><div style="font-weight:700;font-size:14px;">${name}</div><div style="font-size:11px;color:var(--muted);">${s.total} inspections · avg ${avg} occ/visit</div><div style="height:5px;background:var(--border);border-radius:3px;margin-top:4px;"><div style="height:5px;width:${pct}%;background:var(--accent);border-radius:3px;"></div></div></div><span style="font-size:13px;font-weight:700;color:var(--accent);">${s.total}</span></div>`;
   }).join('');
   const ctx=document.getElementById('inspectorChart').getContext('2d');
   if(inspectorChartInst)inspectorChartInst.destroy();
   inspectorChartInst=new Chart(ctx,{type:'bar',data:{labels:periodSorted.map(([n])=>n),datasets:[{label:'Inspections',data:periodSorted.map(([,v])=>v),backgroundColor:periodSorted.map((_,i)=>i===0?'#2E86C1':i===1?'#5DADE2':i===2?'#85C1E9':'#AED6F1'),borderRadius:6}]},options:{responsive:true,maintainAspectRatio:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{stepSize:1}},x:{ticks:{font:{size:11}}}}}});
-  const weeks=[];for(let w=7;w>=0;w--){const ws=new 日期(weekStart);ws.set日期(ws.get日期()-w*7);const we=new 日期(ws);we.set日期(we.get日期()+6);weeks.push({start:ws,end:we,label:ws.toLocale日期String('en-GB',{day:'2-digit',month:'short'})});}
+  const weeks=[];for(let w=7;w>=0;w--){const ws=new Date(weekStart);ws.setDate(ws.getDate()-w*7);const we=new Date(ws);we.setDate(we.getDate()+6);weeks.push({start:ws,end:we,label:ws.toLocaleDateString('zh-CN',{day:'2-digit',month:'short'})});}
   const inspNames=sorted.map(([n])=>n);const calData={};
-  allData.forEach(i=>{const name=i.inspector||'—';const d=new 日期(i.date||i.created_at?.split('T')[0]);weeks.forEach((w,wi)=>{if(d>=w.start&&d<=w.end){if(!calData[name])calData[name]={};calData[name][wi]=(calData[name][wi]||0)+1;}});});
+  allData.forEach(i=>{const name=i.inspector||'—';const d=new Date(i.date||i.created_at?.split('T')[0]);weeks.forEach((w,wi)=>{if(d>=w.start&&d<=w.end){if(!calData[name])calData[name]={};calData[name][wi]=(calData[name][wi]||0)+1;}});});
   const maxVal=Math.max(1,...Object.values(calData).flatMap(v=>Object.values(v)));
-  let calHtml=`<table style="border-collapse:collapse;width:100%;font-size:12px;"><thead><tr><th style="text-align:left;padding:4px 8px;color:var(--muted);font-weight:600;">检查员</th>${weeks.map(w=>`<th style="text-align:center;padding:4px 6px;color:var(--muted);font-weight:600;min-width:52px;">${w.label}</th>`).join('')}</tr></thead><tbody>`;
+  let calHtml=`<table style="border-collapse:collapse;width:100%;font-size:12px;"><thead><tr><th style="text-align:left;padding:4px 8px;color:var(--muted);font-weight:600;">Inspector</th>${weeks.map(w=>`<th style="text-align:center;padding:4px 6px;color:var(--muted);font-weight:600;min-width:52px;">${w.label}</th>`).join('')}</tr></thead><tbody>`;
   inspNames.forEach(name=>{calHtml+=`<tr><td style="padding:5px 8px;font-weight:600;color:var(--text);white-space:nowrap;">${name}</td>`;weeks.forEach((w,wi)=>{const count=calData[name]?.[wi]||0;const intensity=count===0?0:Math.max(0.15,count/maxVal);const bg=count===0?'var(--border)':`rgba(46,134,193,${intensity})`;const color=intensity>0.5?'white':'var(--text)';calHtml+=`<td style="text-align:center;padding:4px;"><div style="width:44px;height:28px;border-radius:6px;background:${bg};display:flex;align-items:center;justify-content:center;font-weight:700;color:${color};margin:0 auto;">${count>0?count:''}</div></td>`;});calHtml+='</tr>';});
   calHtml+='</tbody></table>';
   document.getElementById('inspectorCalendar').innerHTML=calHtml;
   const tbody=document.getElementById('inspectorTable');
-  tbody.innerHTML=sorted.map(([name,s],idx)=>{const 平均=s.total>0?(s.occ/s.total).toFixed(1):'0.0';const medal=medals[idx]||'';return `<tr><td style="font-size:18px;text-align:center;">${medal||(idx+1)}</td><td style="font-weight:700;">${name}</td><td style="text-align:center;"><span style="background:var(--light);padding:3px 10px;border-radius:6px;font-weight:600;">${s.week}</span></td><td style="text-align:center;"><span style="background:var(--light);padding:3px 10px;border-radius:6px;font-weight:600;">${s.month}</span></td><td style="text-align:center;"><span style="background:var(--accent);color:white;padding:3px 10px;border-radius:6px;font-weight:700;">${s.total}</span></td><td style="color:var(--muted);font-size:13px;">${s.lastVisit||'—'}</td><td style="text-align:center;font-weight:600;color:${parseFloat(平均)>2?'var(--red)':parseFloat(平均)>1?'var(--orange)':'var(--green)'};">${平均}</td></tr>`;}).join('');
+  tbody.innerHTML=sorted.map(([name,s],idx)=>{const avg=s.total>0?(s.occ/s.total).toFixed(1):'0.0';const medal=medals[idx]||'';return `<tr><td style="font-size:18px;text-align:center;">${medal||(idx+1)}</td><td style="font-weight:700;">${name}</td><td style="text-align:center;"><span style="background:var(--light);padding:3px 10px;border-radius:6px;font-weight:600;">${s.week}</span></td><td style="text-align:center;"><span style="background:var(--light);padding:3px 10px;border-radius:6px;font-weight:600;">${s.month}</span></td><td style="text-align:center;"><span style="background:var(--accent);color:white;padding:3px 10px;border-radius:6px;font-weight:700;">${s.total}</span></td><td style="color:var(--muted);font-size:13px;">${s.lastVisit||'—'}</td><td style="text-align:center;font-weight:600;color:${parseFloat(avg)>2?'var(--red)':parseFloat(avg)>1?'var(--orange)':'var(--green)'};">${avg}</td></tr>`;}).join('');
 }
 
 // ── UTILITIES ─────────────────────────────────────────────────────────────────
@@ -1284,24 +1427,24 @@ function showEmpty(){
   // Only show empty state if allData is truly empty
   if(allData && allData.length > 0) return;
   const occEl = document.getElementById('occList');
-  if(occEl) occEl.innerHTML=`<div class="empty-state"><div class="empty-icon">📡</div><div class="empty-title">等待数据</div><p>请在SafeCheck应用中完成检查以查看数据。</p></div>`;
+  if(occEl) occEl.innerHTML=`<div class="empty-state"><div class="empty-icon">📡</div><div class="empty-title">Waiting for data</div><p>Complete an inspection on the SafeCheck app to see data here.</p></div>`;
   const inspEl = document.getElementById('inspTable');
-  if(inspEl) inspEl.innerHTML=`<tr><td colspan="11"><div class="empty-state"><div class="empty-icon">📡</div><div class="empty-title">暂无数据</div></div></td></tr>`;
+  if(inspEl) inspEl.innerHTML=`<tr><td colspan="11"><div class="empty-state"><div class="empty-icon">📡</div><div class="empty-title">No data yet</div></div></td></tr>`;
   const areaEl = document.getElementById('areaGrid');
-  if(areaEl) areaEl.innerHTML=`<div class="empty-state"><div class="empty-icon">📍</div><div class="empty-title">暂无区域数据</div></div>`;
+  if(areaEl) areaEl.innerHTML=`<div class="empty-state"><div class="empty-icon">📍</div><div class="empty-title">No area data yet</div></div>`;
 }
 
 function exportCSV(){
   if(!allData.length){alert('暂无数据可导出。');return;}
-  const rows=[['ID','日期','时间 Start','时间 End','时长','区域','检查员','语言uage','隐患总数','PPE Compliant',...OCCURRENCES.map(o=>o.label)]];
+  const rows=[['ID','Date','Time Start','Time End','Duration','Area','Inspector','Language','Total Occurrences','PPE Compliant',...OCCURRENCES.map(o=>o.label)]];
   allData.forEach(i=>{const oc=OCCURRENCES.map(o=>i.occurrences&&i.occurrences[o.id]?1:0);const epi=i.epi_check&&i.epi_check.length>0?i.epi_check[0].compliant?'Yes':'No':'—';rows.push([i.id,i.date,i.time_start,i.time_end,i.duration,i.area,i.inspector,i.language,oc.reduce((a,b)=>a+b,0),epi,...oc]);});
   const csv=rows.map(r=>r.map(v=>`"${String(v||'').replace(/"/g,'""')}"`).join(',')).join('\n');
-  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8;'}));a.download=`SafeCheck_v2_${new 日期().toISOString().split('T')[0]}.csv`;a.click();
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8;'}));a.download=`SafeCheck_ZH_v2_${new Date().toISOString().split('T')[0]}.csv`;a.click();
 }
 
 setInterval(()=>{if(sessionStorage.getItem('safecheck_auth')==='true')loadData();},60000);
-if(sessionStorage.getItem('safecheck_auth')==='true') { loadData(); updateAIKeyStatus(); }
-window.addEventListener('DOMContentLoaded', ()=>{ if(sessionStorage.getItem('safecheck_auth')==='true'){ set时间out(()=>{ renderRanking(); renderTable(); }, 500); } });
+if(sessionStorage.getItem('safecheck_auth')==='true') { loadData(); updateAIKeyStatus(); setTimeout(initLang, 100); }
+window.addEventListener('DOMContentLoaded', ()=>{ if(sessionStorage.getItem('safecheck_auth')==='true'){ setTimeout(()=>{ renderRanking(); renderTable(); }, 500); } });
 </script>
 </body>
 </html>
