@@ -270,8 +270,8 @@ tr:hover td{background:var(--bg);}
   <div class="topbar">
     <div class="page-title" id="pageTitle">📊 Dashboard Overview</div>
     <div class="topbar-actions">
-      <span style="padding:6px 14px;border-radius:8px;border:2px solid var(--accent);background:var(--accent);color:white;font-size:12px;font-weight:700;">🇺🇸 EN</span>
-      <a href="index-zh.html?v=1775313190" onclick="switchLang(this);return false;" style="padding:6px 14px;border-radius:8px;border:2px solid var(--border);background:white;color:var(--muted);font-size:12px;font-weight:700;text-decoration:none;cursor:pointer;">🇨🇳 中文</a>
+      <button id="langEN" onclick="setLang('en')" style="padding:6px 14px;border-radius:8px;border:2px solid var(--accent);background:var(--accent);color:white;font-size:12px;font-weight:700;cursor:pointer;border:none;">🇺🇸 EN</button>
+      <button id="langZH" onclick="setLang('zh')" style="padding:6px 14px;border-radius:8px;border:2px solid var(--border);background:white;color:var(--muted);font-size:12px;font-weight:700;cursor:pointer;">🇨🇳 中文</button>
       <select class="filter-select" id="filterArea" onchange="loadData()">
         <option value="">All Areas</option>
         <option value="SY">SY – Slab Yard</option>
@@ -604,6 +604,7 @@ function updateAIKeyStatus(){
   el.textContent = key ? 'Set ✅' : 'Not set ❌';
 }
 
+// switchLang replaced
 function switchLang(el){
   // Save auth to localStorage before switching
   const auth = sessionStorage.getItem('safecheck_auth') || localStorage.getItem('safecheck_auth');
@@ -613,6 +614,148 @@ function switchLang(el){
     localStorage.setItem('safecheck_user_active', user||'manoel');
   }
   window.location.href = el.href;
+}
+
+
+// ── LANGUAGE SYSTEM ─────────────────────────────────────────────────────────
+const LANG = {
+  en: {
+    dashboard: 'Dashboard', records: 'Records', areas: 'Areas',
+    aiAnalyst: 'AI Analyst', ppeVision: 'PPE Vision', inspectors: 'Inspectors',
+    totalInsp: 'Total Inspections', totalOcc: 'Total Occurrences',
+    activeInsp: 'Active Inspectors', ppeAnal: 'PPE Analyses',
+    overview: '📊 Dashboard Overview', recTitle: '📋 Inspection Records',
+    areaTitle: '📍 Area Risk Assessment', aiTitle: '🤖 AI Safety Analyst',
+    epiTitle: '📸 PPE Vision Analysis', inspTitle: '👷 Inspector Activity',
+    refresh: '↻ Refresh', csv: '⬇ CSV', sync: '↻ Sync', logout: '⏏ Logout',
+    allAreas: 'All Areas', allTime: 'All Time', last7: 'Last 7 days',
+    last30: 'Last 30 days', last90: 'Last 90 days',
+    occRank: '⚠️ OCCURRENCE RANKING', trend: '📈 14-Day Trend',
+    areaChart: '📍 Occurrences by Area', runAnalysis: '▶ Run Analysis',
+    analyzeAll: '🔍 Analyze All PPE', connecting: 'Connecting...',
+    connError: 'Connection error', waiting: 'Waiting for data',
+    noOcc: 'No occurrences yet', deleteAll: '🗑️ Delete All',
+    date: 'Date', time: 'Time', area: 'Area', inspector: 'Inspector',
+    duration: 'Duration', occurrences: 'Occurrences', lang: 'Lang',
+    photos: 'Photos', report: 'Report', topHazards: '🔴 Top Hazards',
+    riskAreas: '📍 Highest Risk Areas', recommendations: '💡 Recommendations',
+    totalPhotos: 'Total Photos', analyzed: 'Analyzed', nonCompliant: 'Non-Compliant',
+    ppeRate: 'PPE Compliance Rate', topInspectors: '🏆 Top Inspectors',
+    inspChart: '📊 Inspections per Inspector', heatmap: '📅 Weekly Activity Heatmap',
+    thisWeek: 'This Week', thisMonth: 'This Month', total: 'Total',
+    lastVisit: 'Last Visit', avgOcc: 'Avg Occ/Visit',
+    ppeAILabel: 'PPE AI', high: '🔴 High Risk', med: '🟡 Medium', low: '🟢 Low Risk',
+    compliant: '✅ Compliant', nonComp: '⚠️ Non-compliant', analyzePPE: '🤖 Analyze PPE',
+    records: 'records · Live',
+  },
+  zh: {
+    dashboard: '仪表板', records: '检查记录', areas: '区域',
+    aiAnalyst: 'AI 分析师', ppeVision: 'PPE 视觉', inspectors: '检查员',
+    totalInsp: '检查总次数', totalOcc: '隐患总数',
+    activeInsp: '活跃检查员', ppeAnal: 'PPE 分析',
+    overview: '📊 仪表板概览', recTitle: '📋 检查记录',
+    areaTitle: '📍 区域风险评估', aiTitle: '🤖 AI 安全分析师',
+    epiTitle: '📸 PPE 视觉分析', inspTitle: '👷 检查员活动',
+    refresh: '↻ 刷新', csv: '⬇ 导出CSV', sync: '↻ 同步', logout: '⏏ 退出',
+    allAreas: '所有区域', allTime: '所有时间', last7: '最近7天',
+    last30: '最近30天', last90: '最近90天',
+    occRank: '⚠️ 隐患排名', trend: '📈 14天趋势',
+    areaChart: '📍 各区域隐患数', runAnalysis: '▶ 运行分析',
+    analyzeAll: '🔍 分析所有PPE', connecting: '连接中...',
+    connError: '连接错误', waiting: '等待数据',
+    noOcc: '暂无隐患记录', deleteAll: '🗑️ 全部删除',
+    date: '日期', time: '时间', area: '区域', inspector: '检查员',
+    duration: '时长', occurrences: '隐患', lang: '语言',
+    photos: '照片', report: '报告', topHazards: '🔴 主要隐患',
+    riskAreas: '📍 最高风险区域', recommendations: '💡 建议',
+    totalPhotos: '照片总数', analyzed: '已分析', nonCompliant: '不合规',
+    ppeRate: 'PPE 合规率', topInspectors: '🏆 优秀检查员',
+    inspChart: '📊 各检查员检查次数', heatmap: '📅 每周活动热力图',
+    thisWeek: '本周', thisMonth: '本月', total: '总计',
+    lastVisit: '最后检查', avgOcc: '平均隐患/次',
+    ppeAILabel: 'PPE AI', high: '🔴 高风险', med: '🟡 中等风险', low: '🟢 低风险',
+    compliant: '✅ 合规', nonComp: '⚠️ 不合规', analyzePPE: '🤖 分析PPE',
+    records: '条记录 · 实时',
+  }
+};
+
+let currentLang = localStorage.getItem('safecheck_lang') || 'en';
+
+function setLang(lang) {
+  currentLang = lang;
+  localStorage.setItem('safecheck_lang', lang);
+  const L = LANG[lang];
+  const isZH = lang === 'zh';
+  
+  // Update lang buttons
+  document.getElementById('langEN').style.background = isZH ? 'white' : 'var(--accent)';
+  document.getElementById('langEN').style.color = isZH ? 'var(--muted)' : 'white';
+  document.getElementById('langEN').style.border = isZH ? '2px solid var(--border)' : 'none';
+  document.getElementById('langZH').style.background = isZH ? 'var(--accent)' : 'white';
+  document.getElementById('langZH').style.color = isZH ? 'white' : 'var(--muted)';
+  document.getElementById('langZH').style.border = isZH ? 'none' : '2px solid var(--border)';
+  
+  // Update filter options
+  const filterArea = document.getElementById('filterArea');
+  if(filterArea) {
+    filterArea.options[0].text = L.allAreas;
+  }
+  const filterPeriod = document.getElementById('filterPeriod');
+  if(filterPeriod) {
+    filterPeriod.options[0].text = L.allTime;
+    filterPeriod.options[1].text = L.last7;
+    filterPeriod.options[2].text = L.last30;
+    filterPeriod.options[3].text = L.last90;
+  }
+
+  // Update nav items text
+  const navTexts = {
+    navOverview: '📊 ' + L.dashboard,
+    navRecords: '📋 ' + L.records,
+    navAreas: '📍 ' + L.areas,
+    navAI: '🤖 ' + L.aiAnalyst,
+    navEPI: '📸 ' + L.ppeVision,
+    navInspectors: '👷 ' + L.inspectors,
+  };
+  Object.entries(navTexts).forEach(([id, text]) => {
+    const el = document.getElementById(id);
+    if(el) { const icon = el.querySelector('.icon'); if(icon) { el.childNodes[1].textContent = text.slice(3); } }
+  });
+
+  // Update KPI labels
+  document.querySelector('#kpiTotal + .kpi-label') && (document.querySelectorAll('.kpi-label')[0].textContent = L.totalInsp);
+  document.querySelectorAll('.kpi-label')[1] && (document.querySelectorAll('.kpi-label')[1].textContent = L.totalOcc);
+  document.querySelectorAll('.kpi-label')[2] && (document.querySelectorAll('.kpi-label')[2].textContent = L.activeInsp);
+  document.querySelectorAll('.kpi-label')[3] && (document.querySelectorAll('.kpi-label')[3].textContent = L.ppeAnal);
+
+  // Update card titles
+  document.querySelectorAll('.card-title').forEach(el => {
+    const t = el.textContent.trim();
+    if(t.includes('Occurrence Ranking') || t.includes('隐患排名')) el.textContent = L.occRank;
+    if(t.includes('14-Day') || t.includes('14天')) el.textContent = L.trend;
+    if(t.includes('Occurrences by Area') || t.includes('各区域')) el.textContent = L.areaChart;
+    if(t.includes('Top Hazards') || t.includes('主要隐患')) el.textContent = L.topHazards;
+    if(t.includes('Highest Risk') || t.includes('最高风险')) el.textContent = L.riskAreas;
+    if(t.includes('Recommendations') || t.includes('建议')) el.textContent = L.recommendations;
+    if(t.includes('Top Inspectors') || t.includes('优秀')) el.textContent = L.topInspectors;
+    if(t.includes('Inspections per') || t.includes('各检查员')) el.textContent = L.inspChart;
+    if(t.includes('Weekly Activity') || t.includes('每周')) el.textContent = L.heatmap;
+  });
+
+  // Sync status
+  const syncEl = document.getElementById('syncStatus');
+  if(syncEl && (syncEl.textContent.includes('records') || syncEl.textContent.includes('条记录'))) {
+    const n = syncEl.textContent.split(' ')[0];
+    syncEl.textContent = n + ' ' + L.records;
+  }
+
+  // Re-render to update dynamic content
+  if(allData.length > 0) render();
+}
+
+function initLang() {
+  const saved = localStorage.getItem('safecheck_lang') || 'en';
+  if(saved === 'zh') setLang('zh');
 }
 
 function checkAuth(){
@@ -1300,7 +1443,7 @@ function exportCSV(){
 }
 
 setInterval(()=>{if(sessionStorage.getItem('safecheck_auth')==='true')loadData();},60000);
-if(sessionStorage.getItem('safecheck_auth')==='true') { loadData(); updateAIKeyStatus(); }
+if(sessionStorage.getItem('safecheck_auth')==='true') { loadData(); updateAIKeyStatus(); setTimeout(initLang, 100); }
 window.addEventListener('DOMContentLoaded', ()=>{ if(sessionStorage.getItem('safecheck_auth')==='true'){ setTimeout(()=>{ renderRanking(); renderTable(); }, 500); } });
 </script>
 </body>
