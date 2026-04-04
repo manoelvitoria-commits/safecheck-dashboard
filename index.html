@@ -233,13 +233,13 @@ tr:hover td{background:var(--bg);}
   </div>
   <nav class="sidebar-nav">
     <div class="nav-label">Overview</div>
-    <a class="nav-item active" id="navOverview" onclick="showSection('overview',this)"><span class="icon">📊</span>Dashboard</a>
-    <a class="nav-item" id="navRecords" onclick="showSection('records',this)"><span class="icon">📋</span>Records</a>
-    <a class="nav-item" id="navAreas" onclick="showSection('areas',this)"><span class="icon">📍</span>Areas</a>
+    <a class="nav-item active" id="navOverview" href="#" onclick="showSection('overview',this);return false;"><span class="icon">📊</span>Dashboard</a>
+    <a class="nav-item" id="navRecords" href="#" onclick="showSection('records',this);return false;"><span class="icon">📋</span>Records</a>
+    <a class="nav-item" id="navAreas" href="#" onclick="showSection('areas',this);return false;"><span class="icon">📍</span>Areas</a>
 
     <div class="nav-label" style="margin-top:16px;">AI Features</div>
-    <a class="nav-item ai-nav" id="navAI" onclick="showSection('ai',this)"><span class="icon">🤖</span>AI Analyst</a>
-    <a class="nav-item ai-nav" id="navEPI" onclick="showSection('epi',this)"><span class="icon">📸</span>EPI Vision</a>
+    <a class="nav-item ai-nav" id="navAI" href="#" onclick="showSection('ai',this);return false;"><span class="icon">🤖</span>AI Analyst</a>
+    <a class="nav-item ai-nav" id="navEPI" href="#" onclick="showSection('epi',this);return false;"><span class="icon">📸</span>EPI Vision</a>
 
     <div class="nav-label" style="margin-top:16px;">Team</div>
     <a class="nav-item" id="navInspectors" onclick="return checkInspectorAccess(event,'inspectors',this)"><span class="icon">👷</span>Inspectors <span id="inspectorLock" style="font-size:11px;opacity:0.5;">🔒</span></a>
@@ -744,11 +744,7 @@ function render(){
   document.getElementById('kpiInsp').textContent=inspectors||'—';
   document.getElementById('kpiEPI').textContent=epiAnalyzed;
   document.getElementById('kpiEPISub').textContent=`${epiAnalyzed} of ${allData.length} inspections`;
-  renderRanking(); renderAreaChart(); renderTrend(); renderAreaGrid();
-  // Only render table if records section is active
-  const activeSection = document.querySelector('.section-page.active');
-  if(!activeSection || activeSection.id === 'sec-records' || activeSection.id === 'sec-overview') renderTable();
-  updateEPIStats();
+  renderRanking(); renderAreaChart(); renderTrend(); renderAreaGrid(); renderTable(); updateEPIStats();
   if(isPrivileged()){
     document.getElementById('inspectorLock').style.display='none';
   }
@@ -768,13 +764,10 @@ function renderRanking(){
   const max=sorted[0]?.count||1;
   const colors=['#E74C3C','#E67E22','#F39C12','#2E86C1','#2E86C1','#2E86C1','#5D7A8A','#5D7A8A'];
   if(!sorted.length){
-    // Check if we have data but occurrences field is different format
-    const sample = allData[0];
-    const hasOcc = sample && sample.occurrences;
-    document.getElementById('occList').innerHTML=`<div class="empty-state"><div class="empty-icon">${hasOcc?'⚠️':'✅'}</div><div class="empty-title">${hasOcc?'Occurrences format issue':'No occurrences yet'}</div><p>${hasOcc?'Data: '+JSON.stringify(sample.occurrences).slice(0,100):''}</p></div>`;
+    const el=document.getElementById('occList'); if(el) el.innerHTML=`<div class="empty-state"><div class="empty-icon">✅</div><div class="empty-title">No occurrences yet</div></div>`;
     return;
   }
-  document.getElementById('occList').innerHTML=sorted.map((o,i)=>`
+  const occEl=document.getElementById('occList'); if(!occEl) return; occEl.innerHTML=sorted.map((o,i)=>`
     <div class="occ-item">
       <div class="occ-rank ${i===0?'r1':i===1?'r2':i===2?'r3':'rn'}">${i+1}</div>
       <div class="occ-icon">${o.icon}</div>
@@ -1254,6 +1247,7 @@ function exportCSV(){
 
 setInterval(()=>{if(sessionStorage.getItem('safecheck_auth')==='true')loadData();},60000);
 if(sessionStorage.getItem('safecheck_auth')==='true') { loadData(); updateAIKeyStatus(); }
+window.addEventListener('DOMContentLoaded', ()=>{ if(sessionStorage.getItem('safecheck_auth')==='true'){ setTimeout(()=>{ renderRanking(); renderTable(); }, 500); } });
 </script>
 </body>
 </html>
