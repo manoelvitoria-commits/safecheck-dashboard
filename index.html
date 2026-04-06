@@ -270,8 +270,6 @@ tr:hover td{background:var(--bg);}
   <div class="topbar">
     <div class="page-title" id="pageTitle">📊 Dashboard Overview</div>
     <div class="topbar-actions">
-      <button id="langEN" onclick="setLang('en')" style="padding:6px 14px;border-radius:8px;border:2px solid var(--accent);background:var(--accent);color:white;font-size:12px;font-weight:700;cursor:pointer;border:none;">🇺🇸 EN</button>
-      <button id="langZH" onclick="setLang('zh')" style="padding:6px 14px;border-radius:8px;border:2px solid var(--border);background:white;color:var(--muted);font-size:12px;font-weight:700;cursor:pointer;">🇨🇳 中文</button>
       <select class="filter-select" id="filterArea" onchange="loadData()">
         <option value="">All Areas</option>
         <option value="SY">SY – Slab Yard</option>
@@ -578,16 +576,6 @@ function updateAIKeyStatus(){
 }
 
 // switchLang replaced
-function switchLang(el){
-  // Always save current auth state to localStorage before switching
-  const user = sessionStorage.getItem('safecheck_user') || 
-               localStorage.getItem('safecheck_user_active') || '';
-  localStorage.setItem('safecheck_auth', 'true');
-  localStorage.setItem('safecheck_user_active', user);
-  // Small delay to ensure localStorage is written before redirect
-  setTimeout(function(){ window.location.href = el.href; }, 100);
-}
-
 
 // ── LANGUAGE SYSTEM ─────────────────────────────────────────────────────────
 const LANG = {
@@ -653,25 +641,6 @@ const LANG = {
 
 let currentLang = localStorage.getItem('safecheck_lang') || 'en';
 
-function setLang(lang) {
-  currentLang = lang;
-  localStorage.setItem('safecheck_lang', lang);
-  const L = LANG[lang];
-  const isZH = lang === 'zh';
-  
-  // Update lang buttons
-  document.getElementById('langEN').style.background = isZH ? 'white' : 'var(--accent)';
-  document.getElementById('langEN').style.color = isZH ? 'var(--muted)' : 'white';
-  document.getElementById('langEN').style.border = isZH ? '2px solid var(--border)' : 'none';
-  document.getElementById('langZH').style.background = isZH ? 'var(--accent)' : 'white';
-  document.getElementById('langZH').style.color = isZH ? 'white' : 'var(--muted)';
-  document.getElementById('langZH').style.border = isZH ? 'none' : '2px solid var(--border)';
-  
-  // Update filter options
-  const filterArea = document.getElementById('filterArea');
-  if(filterArea) {
-    filterArea.options[0].text = L.allAreas;
-  }
   const filterPeriod = document.getElementById('filterPeriod');
   if(filterPeriod) {
     filterPeriod.options[0].text = L.allTime;
