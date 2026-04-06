@@ -354,34 +354,7 @@ tr:hover td{background:var(--bg);}
           SafeCheck v2.0 · NEMM Up · <span id="sopDateStr"></span>
         </div>
       </div>
-      <script>
-      (function(){
-        var ACC_START = new Date('2025-04-29T00:00:00');
-        function pad(n){ return n < 10 ? '0'+n : String(n); }
-        function updateSOP(){
-          var now = new Date();
-          var today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-          var target = new Date(2026, 9, 31);
-          var msLeft = target - today;
-          var daysLeft = msLeft > 0 ? Math.round(msLeft / 86400000) - 1 : 0;
-          document.getElementById('sopDays').textContent = daysLeft;
-          var midnight = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 0);
-          var remMs = midnight - now;
-          var totalSec = Math.floor(remMs / 1000);
-          var hh = Math.floor(totalSec / 3600);
-          var mm = Math.floor((totalSec % 3600) / 60);
-          var ss = totalSec % 60;
-          document.getElementById('sopClock').textContent = pad(hh) + ':' + pad(mm) + ':' + pad(ss);
-          var accMs = now - ACC_START;
-          var accDays = accMs > 0 ? Math.floor(accMs / 86400000) : 0;
-          document.getElementById('sopAccDays').textContent = accDays;
-          var months=['January','February','March','April','May','June','July','August','September','October','November','December'];
-          document.getElementById('sopDateStr').textContent = months[now.getMonth()] + ' ' + now.getDate() + ', ' + now.getFullYear();
-        }
-        updateSOP();
-        setInterval(updateSOP, 1000);
-      })();
-      </script>
+
 
       <!-- Area chart -->
       <div class="card">
@@ -1444,6 +1417,39 @@ function exportCSV(){
 setInterval(()=>{if(sessionStorage.getItem('safecheck_auth')==='true')loadData();},60000);
 if(sessionStorage.getItem('safecheck_auth')==='true') { loadData(); updateAIKeyStatus(); setTimeout(initLang, 100); }
 window.addEventListener('DOMContentLoaded', ()=>{ if(sessionStorage.getItem('safecheck_auth')==='true'){ setTimeout(()=>{ renderRanking(); renderTable(); }, 500); } });
+
+// ── SOP COUNTDOWN ─────────────────────────────────────────────────────────────
+(function(){
+  var ACC_START = new Date('2025-04-29T00:00:00');
+  function pad(n){ return n < 10 ? '0'+n : String(n); }
+  function updateSOP(){
+    var now = new Date();
+    var today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    var target = new Date(2026, 9, 31);
+    var msLeft = target - today;
+    var daysLeft = msLeft > 0 ? Math.round(msLeft / 86400000) - 1 : 0;
+    var el = document.getElementById('sopDays');
+    if(el) el.textContent = daysLeft;
+    var midnight = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 0);
+    var remMs = midnight - now;
+    var totalSec = Math.floor(remMs / 1000);
+    var hh = Math.floor(totalSec / 3600);
+    var mm = Math.floor((totalSec % 3600) / 60);
+    var ss = totalSec % 60;
+    var clockEl = document.getElementById('sopClock');
+    if(clockEl) clockEl.textContent = pad(hh) + ':' + pad(mm) + ':' + pad(ss);
+    var accMs = now - ACC_START;
+    var accDays = accMs > 0 ? Math.floor(accMs / 86400000) : 0;
+    var accEl = document.getElementById('sopAccDays');
+    if(accEl) accEl.textContent = accDays;
+    var months=['January','February','March','April','May','June','July','August','September','October','November','December'];
+    var dateEl = document.getElementById('sopDateStr');
+    if(dateEl) dateEl.textContent = months[now.getMonth()] + ' ' + now.getDate() + ', ' + now.getFullYear();
+  }
+  updateSOP();
+  setInterval(updateSOP, 1000);
+})();
+
 </script>
 </body>
 </html>
