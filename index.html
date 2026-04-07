@@ -641,6 +641,11 @@ const LANG = {
 
 let currentLang = localStorage.getItem('safecheck_lang') || 'en';
 
+function setLang(lang) {
+  currentLang = lang;
+  localStorage.setItem('safecheck_lang', lang);
+  const L = LANG[lang] || LANG.en;
+
   const filterPeriod = document.getElementById('filterPeriod');
   if(filterPeriod) {
     filterPeriod.options[0].text = L.allTime;
