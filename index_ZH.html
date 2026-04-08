@@ -6,6 +6,7 @@
 <title>SafeCheck 安全仪表板 v2.0 · NEMM Up · HSM</title>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
 :root {
   --navy:#0D1F35; --dark:#0A1628; --blue:#1A3C5E; --accent:#2E86C1;
@@ -288,6 +289,8 @@ tr:hover td{background:var(--bg);}
         <option value="90">最近90天</option>
       </select>
       <button class="btn btn-outline" onclick="exportCSV()">⬇ 导出CSV</button>
+      <button class="btn btn-outline" onclick="exportExcel()" style="background:#1D6F42;color:white;border-color:#1D6F42;">⬇ Excel</button>
+      <button class="btn btn-outline" onclick="exportPDFReport()" style="background:#C0392B;color:white;border-color:#C0392B;">📄 PDF报告</button>
       <button class="btn btn-primary" onclick="loadData()">↻ 刷新</button>
     </div>
   </div>
@@ -1394,6 +1397,87 @@ function showEmpty(){
   if(inspEl) inspEl.innerHTML=`<tr><td colspan="11"><div class="empty-state"><div class="empty-icon">📡</div><div class="empty-title">暂无数据</div></div></td></tr>`;
   const areaEl = document.getElementById('areaGrid');
   if(areaEl) areaEl.innerHTML=`<div class="empty-state"><div class="empty-icon">📍</div><div class="empty-title">暂无区域数据</div></div>`;
+}
+
+
+// ── EXCEL EXPORT ──────────────────────────────────────────────────────────────
+function exportExcel(){
+  if(!allData.length){alert('暂无数据可导出。');return;}
+  const headers=['ID','日期','Time Start','Time End','时长','区域','检查员','Language','Notes','隐患总数','PPE AI - Helmet','PPE AI - Glasses','PPE AI - Vest','PPE AI - Ref. Pants',...OCCURRENCES.map(o=>o.label)];
+  const rows=allData.map(i=>{
+    const oc=OCCURRENCES.map(o=>i.occurrences&&i.occurrences[o.id]?1:0);
+    const epi=i.epi_check;
+    const getEPI=(field)=>{if(!epi)return '—';if(Array.isArray(epi)&&epi.length>0)return epi[0][field]||'—';if(typeof epi==='object')return epi[field]||'—';return '—';};
+    const pants=getEPI('reflective_pants');
+    const pantsVal=pants==='present'||pants===true?'合格':pants==='absent'||pants===false?'未检测到':'不可见';
+    return [i.id,i.date,i.time_start,i.time_end,i.duration,i.area,i.inspector,i.language,i.notes||'',oc.reduce((a,b)=>a+b,0),
+      getEPI('helmet')==='present'?'合格':getEPI('helmet')==='absent'?'缺失':'—',
+      getEPI('glasses')==='present'||getEPI('safety_glasses')===true?'合格':getEPI('glasses')==='absent'?'缺失':'—',
+      getEPI('vest')==='present'||getEPI('reflective_vest')===true?'合格':getEPI('vest')==='absent'?'缺失':'—',
+      pantsVal,...oc];
+  });
+  const ws=XLSX.utils.aoa_to_sheet([headers,...rows]);
+  ws['!cols']=[{wch:14},{wch:12},{wch:10},{wch:10},{wch:10},{wch:8},{wch:16},{wch:8},{wch:30},{wch:14},{wch:14},{wch:14},{wch:14},{wch:16},...OCCURRENCES.map(()=>({wch:20}))];
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,ws,'检查次数');
+  const areas={};const inspectors={};
+  allData.forEach(i=>{const a=i.area||'—';const ins=i.inspector||'—';const oc=OCCURRENCES.filter(o=>i.occurrences&&i.occurrences[o.id]).length;if(!areas[a])areas[a]={count:0,occ:0};areas[a].count++;areas[a].occ+=oc;if(!inspectors[ins])inspectors[ins]={count:0,occ:0};inspectors[ins].count++;inspectors[ins].occ+=oc;});
+  const summaryRows=[['SafeCheck v2.0 — 汇总报告'],['NEMM UP · ArcelorMittal HSM · 生成时间: '+new Date().toLocaleString('zh-CN')],[''],['概览'],['检查总次数',allData.length],['隐患总数',allData.reduce((s,i)=>s+OCCURRENCES.filter(o=>i.occurrences&&i.occurrences[o.id]).length,0)],[''],['按区域','检查次数','隐患总数','平均隐患/次'],...Object.entries(areas).sort((a,b)=>b[1].count-a[1].count).map(([a,v])=>[a,v.count,v.occ,(v.occ/v.count).toFixed(1)]),[''],['按检查员','检查次数','隐患总数','平均隐患/次'],...Object.entries(inspectors).sort((a,b)=>b[1].count-a[1].count).map(([n,v])=>[n,v.count,v.occ,(v.occ/v.count).toFixed(1)])];
+  const ws2=XLSX.utils.aoa_to_sheet(summaryRows);
+  ws2['!cols']=[{wch:28},{wch:16},{wch:20},{wch:20}];
+  XLSX.utils.book_append_sheet(wb,ws2,'Summary');
+  XLSX.writeFile(wb,'SafeCheck_Report_'+new Date().toISOString().split('T')[0]+'.xlsx');
+}
+
+// ── PDF CONSOLIDATED REPORT ───────────────────────────────────────────────────
+function exportPDFReport(){
+  if(!allData.length){alert('暂无数据可导出。');return;}
+  const totalOcc=allData.reduce((s,i)=>s+OCCURRENCES.filter(o=>i.occurrences&&i.occurrences[o.id]).length,0);
+  const avgOcc=(totalOcc/allData.length).toFixed(1);
+  const occCount={};
+  allData.forEach(i=>OCCURRENCES.forEach(o=>{if(i.occurrences&&i.occurrences[o.id]){occCount[o.id]=(occCount[o.id]||0)+1;}}));
+  const topOcc=OCCURRENCES.filter(o=>occCount[o.id]).sort((a,b)=>(occCount[b.id]||0)-(occCount[a.id]||0)).slice(0,10);
+  const areaStats={};const inspStats={};
+  allData.forEach(i=>{
+    const a=i.area||'—';const n=i.inspector||'—';
+    const oc=OCCURRENCES.filter(o=>i.occurrences&&i.occurrences[o.id]).length;
+    if(!areaStats[a])areaStats[a]={count:0,occ:0};areaStats[a].count++;areaStats[a].occ+=oc;
+    if(!inspStats[n])inspStats[n]={count:0,occ:0};inspStats[n].count++;inspStats[n].occ+=oc;
+  });
+  const tableRows=allData.slice(0,100).map(i=>{
+    const oc=OCCURRENCES.filter(o=>i.occurrences&&i.occurrences[o.id]);
+    const color=oc.length>0?'#C0392B':'#27AE60';
+    const occLabel=oc.length>0?'⚠️ '+oc.length:'✅ 0';
+    const details=oc.slice(0,3).map(o=>o.label).join(', ')+(oc.length>3?' +'+(oc.length-3)+' more':'');
+    return '<tr><td>'+(i.date||'—')+'</td><td>'+(i.area||'—')+'</td><td>'+(i.inspector||'—')+'</td><td>'+(i.duration||'—')+'</td>'
+      +'<td style="color:'+color+';font-weight:700;">'+occLabel+'</td>'
+      +'<td style="font-size:11px;">'+details+'</td></tr>';
+  }).join('');
+  const areaRows=Object.entries(areaStats).sort((a,b)=>b[1].occ-a[1].occ)
+    .map(([a,v])=>'<tr><td>'+a+'</td><td>'+v.count+'</td><td style="font-weight:700;">'+v.occ+'</td><td>'+(v.occ/v.count).toFixed(1)+'</td></tr>').join('');
+  const inspRows=Object.entries(inspStats).sort((a,b)=>b[1].count-a[1].count)
+    .map(([n,v])=>'<tr><td>'+n+'</td><td>'+v.count+'</td><td style="font-weight:700;">'+v.occ+'</td><td>'+(v.occ/v.count).toFixed(1)+'</td></tr>').join('');
+  const occRows=topOcc.map(o=>'<tr><td>'+o.icon+' '+o.label+'</td><td style="font-weight:700;color:#C0392B;">'+occCount[o.id]+'</td><td>'+Math.round(occCount[o.id]/allData.length*100)+'%</td></tr>').join('');
+  const css='*{margin:0;padding:0;box-sizing:border-box;}body{font-family:Arial,sans-serif;color:#1A2E3E;font-size:13px;}.header{background:linear-gradient(135deg,#1A3C5E,#0F2337);padding:28px 32px;color:white;}.brand{font-size:10px;letter-spacing:3px;text-transform:uppercase;opacity:.7;margin-bottom:6px;}.title{font-size:20px;font-weight:800;margin-bottom:3px;}.sub{font-size:12px;opacity:.8;}.badges{margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;}.badge{background:rgba(255,255,255,.15);border-radius:20px;padding:3px 12px;font-size:11px;}.body{padding:24px 32px;}.section{margin-bottom:20px;}h3{color:#0F2337;font-size:10px;text-transform:uppercase;letter-spacing:1.5px;border-bottom:2px solid #C5D8EA;padding-bottom:5px;margin-bottom:10px;}.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px;}.kpi{background:#F5F8FB;border:1px solid #C5D8EA;border-radius:8px;padding:12px;text-align:center;}.kpi-val{font-size:22px;font-weight:800;color:#1A3C5E;}.kpi-lbl{font-size:10px;color:#5D7A8A;text-transform:uppercase;letter-spacing:1px;margin-top:3px;}.two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px;}table{width:100%;border-collapse:collapse;font-size:12px;}th{background:#1A3C5E;color:white;padding:7px 10px;text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:1px;}td{padding:7px 10px;border-bottom:1px solid #E8F0F8;}tr:nth-child(even) td{background:#F5F8FB;}.footer{margin-top:20px;padding-top:12px;border-top:1px solid #C5D8EA;text-align:center;font-size:10px;color:#999;}';
+  const html='<!DOCTYPE html><html><head><meta charset="utf-8"/><style>'+css+'</style></head><body>'
+    +'<div class="header"><div class="brand">NEMM UP · SafeCheck v2.0</div>'
+    +'<div class="title">Consolidated Safety Inspection Report</div>'
+    +'<div class="sub">ArcelorMittal HSM Project · China</div>'
+    +'<div class="badges"><span class="badge">'+allData.length+' Inspections</span>'
+    +'<span class="badge">'+totalOcc+' Occurrences</span>'
+    +'<span class="badge">Generated: '+new Date().toLocaleString('zh-CN')+'</span></div></div>'
+    +'<div class="body"><div class="kpi-grid">'
+    +'<div class="kpi"><div class="kpi-val">'+allData.length+'</div><div class="kpi-lbl">Total Inspections</div></div>'
+    +'<div class="kpi"><div class="kpi-val">'+totalOcc+'</div><div class="kpi-lbl">Total Occurrences</div></div>'
+    +'<div class="kpi"><div class="kpi-val">'+avgOcc+'</div><div class="kpi-lbl">Avg Occ/Inspection</div></div>'
+    +'<div class="kpi"><div class="kpi-val">'+Object.keys(inspStats).length+'</div><div class="kpi-lbl">Active Inspectors</div></div></div>'
+    +'<div class="two-col"><div class="section"><h3>Top Occurrences</h3><table><thead><tr><th>Occurrence</th><th>Count</th><th>%</th></tr></thead><tbody>'+occRows+'</tbody></table></div>'
+    +'<div><div class="section"><h3>By Area</h3><table><thead><tr><th>Area</th><th>Insp.</th><th>Occ.</th><th>Avg</th></tr></thead><tbody>'+areaRows+'</tbody></table></div>'
+    +'<div class="section" style="margin-top:12px;"><h3>By Inspector</h3><table><thead><tr><th>Inspector</th><th>Insp.</th><th>Occ.</th><th>Avg</th></tr></thead><tbody>'+inspRows+'</tbody></table></div></div></div>'
+    +'<div class="section"><h3>Inspection Records'+(allData.length>100?' (first 100)':'')+'</h3>'
+    +'<table><thead><tr><th>Date</th><th>Area</th><th>Inspector</th><th>Duration</th><th>Occ.</th><th>Details</th></tr></thead><tbody>'+tableRows+'</tbody></table></div>'
+    +'<div class="footer"><strong>NEMM UP</strong> · SafeCheck v2.0 · ArcelorMittal HSM · '+new Date().toLocaleString('zh-CN')+'</div></div></body></html>';
+  const w=window.open('','_blank');w.document.write(html);w.document.close();w.onload=()=>{w.print();};
 }
 
 function exportCSV(){
