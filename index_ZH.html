@@ -1310,7 +1310,7 @@ async function analyzeAllPhotos(){
           max_tokens:300,
           messages:[{role:'user',content:[
             {type:'image',source:{type:'base64',media_type:'image/jpeg',data:b64}},
-            {type:'text',text:'You are a construction site safety inspector AI. Analyze this image for TWO things: 1) PPE COMPLIANCE (if workers visible): check hard hat, safety glasses, reflective vest. 2) SITE SAFETY HAZARDS (always): look for dangerous conditions regardless of workers — exposed/loose cables, unprotected electrical outlets or panels, missing cable covers, fire hazards, blocked exits, unsecured equipment, unsafe installations. RULES: If workers present: compliant=true only if ALL workers wear ALL PPE AND no site hazards. If NO workers but site hazards detected: compliant=false, list hazards in missing[]. If NO workers and NO hazards: compliant=true, workers_detected=0. Return ONLY valid JSON: {"workers_detected":0,"helmet":"na","glasses":"na","vest":"na","missing":[],"compliant":true,"hazard_type":"none","site_hazards":[]}'}
+            {type:'text',text:'你是一名建筑工地安全检查AI。请分析此图像的两个方面：1) PPE合规性（如有工人）：检查安全帽、安全眼镜、反光背心。2) 现场安全隐患（始终检查）：无论是否有工人，均需发现危险情况——裸露/松散电缆、无保护电气插座或面板、缺少电缆盖、火灾隐患、紧急出口被堵、设备不固定、不安全装置。规则：若有工人：仅当所有工人穿戴全部PPE且无现场隐患时compliant=true。若无工人但发现安全隐患（松散电缆、裸露线路、无保护插座）：compliant=false，在missing[]中列出隐患。若无工人且无隐患：compliant=true，workers_detected=0。请仅返回有效JSON（所有文字用中文）：{"workers_detected":0,"helmet":"不适用","glasses":"不适用","vest":"不适用","missing":[],"compliant":true,"hazard_type":"无","site_hazards":[]}'}
           ]}]
         })
       });
@@ -1360,7 +1360,7 @@ async function analyzeOnePhoto(id){
         model:'claude-sonnet-4-20250514',max_tokens:300,
         messages:[{role:'user',content:[
           {type:'image',source:{type:'base64',media_type:'image/jpeg',data:b64}},
-          {type:'text',text:'You are a construction site safety inspector AI. Analyze this image for TWO things: 1) PPE COMPLIANCE (if workers visible): check hard hat, safety glasses, reflective vest. 2) SITE SAFETY HAZARDS (always): look for dangerous conditions regardless of workers — exposed/loose cables, unprotected electrical outlets or panels, missing cable covers, fire hazards, blocked exits, unsecured equipment, unsafe installations. RULES: If workers present: compliant=true only if ALL workers wear ALL PPE AND no site hazards. If NO workers but site hazards detected: compliant=false, list hazards in missing[]. If NO workers and NO hazards: compliant=true, workers_detected=0. Return ONLY valid JSON: {"workers_detected":0,"helmet":"na","glasses":"na","vest":"na","missing":[],"compliant":true,"hazard_type":"none","site_hazards":[]}'}
+          {type:'text',text:'你是一名建筑工地安全检查AI。请分析此图像的两个方面：1) PPE合规性（如有工人）：检查安全帽、安全眼镜、反光背心。2) 现场安全隐患（始终检查）：无论是否有工人，均需发现危险情况——裸露/松散电缆、无保护电气插座或面板、缺少电缆盖、火灾隐患、紧急出口被堵、设备不固定、不安全装置。规则：若有工人：仅当所有工人穿戴全部PPE且无现场隐患时compliant=true。若无工人但发现安全隐患（松散电缆、裸露线路、无保护插座）：compliant=false，在missing[]中列出隐患。若无工人且无隐患：compliant=true，workers_detected=0。请仅返回有效JSON（所有文字用中文）：{"workers_detected":0,"helmet":"不适用","glasses":"不适用","vest":"不适用","missing":[],"compliant":true,"hazard_type":"无","site_hazards":[]}'}
         ]}]
       })
     });
