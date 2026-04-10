@@ -1313,7 +1313,7 @@ async function analyzeAllPhotos(){
           max_tokens:300,
           messages:[{role:'user',content:[
             {type:'image',source:{type:'base64',media_type:'image/jpeg',data:b64}},
-            {type:'text',text:'你是一名建筑工地安全检查AI。请分析此图像的两个方面：1) PPE合规性（如有工人）：检查安全帽、安全眼镜、反光背心。2) 现场安全隐患（始终检查）：无论是否有工人，均需发现危险情况——裸露/松散电缆、无保护电气插座或面板、缺少电缆盖、火灾隐患、紧急出口被堵、设备不固定、不安全装置。规则：若有工人：仅当所有工人穿戴全部PPE且无现场隐患时compliant=true。若无工人但发现安全隐患（松散电缆、裸露线路、无保护插座）：compliant=false，在missing[]中列出隐患。若无工人且无隐患：compliant=true，workers_detected=0。请仅返回有效JSON（所有文字用中文）：{"workers_detected":0,"helmet":"不适用","glasses":"不适用","vest":"不适用","missing":[],"compliant":true,"hazard_type":"无","site_hazards":[]}'}
+            {type:'text',text:'你是建筑工地安全检查AI。检查图像：1)工人PPE安全帽眼镜背心。2)现场危险：明火最高优先级烟雾裸露电缆无保护插座出口被堵设备未固定。发现明火则compliant为false hazard_type为fire site_hazards写发现明火。工人全穿PPE无危险则compliant为true。无工人有危险则compliant为false。无工人无危险则compliant为true。仅返回JSON：workers_detected helmet glasses vest missing compliant hazard_type site_hazards中文描述'}
           ]}]
         })
       });
@@ -1363,7 +1363,7 @@ async function analyzeOnePhoto(id){
         model:'claude-sonnet-4-20250514',max_tokens:300,
         messages:[{role:'user',content:[
           {type:'image',source:{type:'base64',media_type:'image/jpeg',data:b64}},
-          {type:'text',text:'你是一名建筑工地安全检查AI。请分析此图像的两个方面：1) PPE合规性（如有工人）：检查安全帽、安全眼镜、反光背心。2) 现场安全隐患（始终检查）：无论是否有工人，均需发现危险情况——裸露/松散电缆、无保护电气插座或面板、缺少电缆盖、火灾隐患、紧急出口被堵、设备不固定、不安全装置。规则：若有工人：仅当所有工人穿戴全部PPE且无现场隐患时compliant=true。若无工人但发现安全隐患（松散电缆、裸露线路、无保护插座）：compliant=false，在missing[]中列出隐患。若无工人且无隐患：compliant=true，workers_detected=0。请仅返回有效JSON（所有文字用中文）：{"workers_detected":0,"helmet":"不适用","glasses":"不适用","vest":"不适用","missing":[],"compliant":true,"hazard_type":"无","site_hazards":[]}'}
+          {type:'text',text:'你是建筑工地安全检查AI。检查图像：1)工人PPE安全帽眼镜背心。2)现场危险：明火最高优先级烟雾裸露电缆无保护插座出口被堵设备未固定。发现明火则compliant为false hazard_type为fire site_hazards写发现明火。工人全穿PPE无危险则compliant为true。无工人有危险则compliant为false。无工人无危险则compliant为true。仅返回JSON：workers_detected helmet glasses vest missing compliant hazard_type site_hazards中文描述'}
         ]}]
       })
     });
