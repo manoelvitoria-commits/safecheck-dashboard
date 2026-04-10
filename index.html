@@ -1275,7 +1275,7 @@ function updateEPIStats(){
         <div class="epi-photo-info">
           <div style="font-size:11px;color:var(--muted);margin-bottom:4px;">${i.area||'—'} · ${i.date||'—'}</div>
           <div>${badges}</div>
-          ${(epi.site_hazards&&epi.site_hazards.length>0)?`<div style="font-size:10px;color:#E67E22;margin-top:3px;">⚡ ${(Array.isArray(epi.site_hazards)?epi.site_hazards:typeof epi.site_hazards==='string'?[epi.site_hazards]:[]).slice(0,2).join(' · ')}</div>`:''}
+          ${(epi.site_hazards&&epi.site_hazards.length>0)?`<div style="font-size:10px;color:#E67E22;margin-top:3px;">⚡ ${(Array.isArray(epi.site_hazards)?epi.site_hazards:typeof epi.site_hazards==='string'?[epi.site_hazards]:[]).slice(0,2).map(translateToEN).join(' · ')}</div>`:''}
           <div style="font-size:11px;margin-top:4px;font-weight:700;color:${isCompliant?'var(--green)':'var(--red)'};">${isCompliant?'✅ Compliant':'⚠️ Non-compliant'}</div>
         </div>
       </div>`;
@@ -1597,6 +1597,58 @@ function createUser(){
   updateAlertRecipients();
 }
 
+
+function translateToEN(text) {
+  if (!text) return text;
+  const dict = {
+    '发现明火': 'active fire detected',
+    '燃气灶具正在燃烧': 'gas stove burning',
+    '存在火灾安全隐患': 'fire safety hazard present',
+    '天花板上裸露的松散电缆': 'exposed loose cables on ceiling',
+    '裸露的松散电缆': 'exposed loose cables',
+    '无保护的电气连接': 'unprotected electrical connections',
+    '无保护的电气插座': 'unprotected electrical outlets',
+    '无保护的电气面板': 'unprotected electrical panel',
+    '悬挂电缆造成绊倒危险': 'trip hazard from dangling cables',
+    '电缆走线不当，缺少保护套': 'improper cable routing without protective covers',
+    '缺少电缆盖': 'missing cable covers',
+    '松散电缆': 'loose cables',
+    '裸露线路': 'exposed wiring',
+    '裸露电缆': 'exposed cables',
+    '悬挂电缆': 'dangling cables',
+    '电气危险': 'electrical hazard',
+    '火灾隐患': 'fire hazard',
+    '紧急出口被堵': 'blocked emergency exit',
+    '设备未固定': 'unsecured equipment',
+    '不安全装置': 'unsafe installation',
+    '未佩戴安全帽': 'no hard hat',
+    '未佩戴安全眼镜': 'no safety glasses',
+    '未穿反光背心': 'no reflective vest',
+    '缺少安全帽': 'missing hard hat',
+    '缺少安全眼镜': 'missing safety glasses',
+    '缺少反光背心': 'missing reflective vest',
+    '电缆走线': 'cable routing',
+    '保护套': 'protective covers',
+    '绊倒危险': 'trip hazard',
+    '物理危险': 'physical hazard',
+    '多重危险': 'multiple hazards',
+    '墙面开口内可见裸露电线': 'exposed wires visible in wall opening',
+    '电气线路无适当保护': 'electrical wiring without proper protection',
+    '已佩戴': 'present',
+    '未佩戴': 'absent',
+    '不确定': 'uncertain',
+    '不适用': 'n/a',
+    'active_fire': 'active fire',
+    'burning_material': 'burning material',
+  };
+  let result = text;
+  const keys = Object.keys(dict).sort((a,b) => b.length - a.length);
+  for (const key of keys) {
+    result = result.split(key).join(dict[key]);
+  }
+  return result;
+}
+
 function getAlertRecipients(){
   // Load from localStorage - returns array of {email, active}
   try{ return JSON.parse(localStorage.getItem('safecheck_alert_recipients')||'[]'); }catch(e){ return []; }
@@ -1791,12 +1843,12 @@ function renderCriticalEvents(){
       +(i.epi_check&&i.epi_check.length>0&&i.epi_check[0].site_hazards&&i.epi_check[0].site_hazards.length>0
         ?'<div style="background:#FFF8E7;border:1px solid #F39C12;border-radius:8px;padding:8px 12px;margin-bottom:10px;font-size:12px;color:#7D5A00;">'
          +'<span style="font-weight:700;">⚡ PPE Vision detected:</span> '
-         +(Array.isArray(i.epi_check[0].site_hazards)?i.epi_check[0].site_hazards:[String(i.epi_check[0].site_hazards||'')]).join(' · ')
+         +(Array.isArray(i.epi_check[0].site_hazards)?i.epi_check[0].site_hazards:[String(i.epi_check[0].site_hazards||'')]).map(translateToEN).join(' · ')
          +'</div>'
         :(i.epi_check&&i.epi_check.length>0&&i.epi_check[0].missing&&i.epi_check[0].missing.length>0
           ?'<div style="background:#FFF8E7;border:1px solid #F39C12;border-radius:8px;padding:8px 12px;margin-bottom:10px;font-size:12px;color:#7D5A00;">'
            +'<span style="font-weight:700;">⚡ PPE Vision detected:</span> '
-           +(Array.isArray(i.epi_check[0].missing)?i.epi_check[0].missing:[String(i.epi_check[0].missing||'')]).join(' · ')
+           +(Array.isArray(i.epi_check[0].missing)?i.epi_check[0].missing:[String(i.epi_check[0].missing||'')]).map(translateToEN).join(' · ')
            +'</div>'
           :''))
       +location
