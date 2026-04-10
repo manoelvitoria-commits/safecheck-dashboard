@@ -1276,7 +1276,7 @@ function updateEPIStats(){
         <div class="epi-photo-info">
           <div style="font-size:11px;color:var(--muted);margin-bottom:4px;">${i.area||'—'} · ${i.date||'—'}</div>
           <div>${badges}</div>
-          ${(epi.site_hazards&&epi.site_hazards.length>0)?`<div style="font-size:10px;color:#E67E22;margin-top:3px;">⚡ ${epi.site_hazards.slice(0,2).join(' · ')}</div>`:''}
+          ${(epi.site_hazards&&epi.site_hazards.length>0)?`<div style="font-size:10px;color:#E67E22;margin-top:3px;">⚡ ${epi.site_hazards.slice(0,2).map(translateToZH).join(' · ')}</div>`:''}
           <div style="font-size:11px;margin-top:4px;font-weight:700;color:${isCompliant?'var(--green)':'var(--red)'};">${isCompliant?'✅ 合规':'⚠️ 不合规'}</div>
         </div>
       </div>`;
@@ -1598,6 +1598,56 @@ function createUser(){
   updateAlertRecipients();
 }
 
+
+function translateToZH(text) {
+  if (!text) return text;
+  const dict = {
+    'exposed loose cables on ceiling': '天花板上裸露的松散电缆',
+    'exposed loose cables': '裸露的松散电缆',
+    'unprotected electrical connections': '无保护的电气连接',
+    'unprotected electrical outlets': '无保护的电气插座',
+    'unprotected electrical panel': '无保护的电气面板',
+    'potential trip hazard from dangling cables': '悬挂电缆造成绊倒危险',
+    'improper cable routing without protective covers': '电缆走线不当，缺少保护套',
+    'missing cable covers': '缺少电缆盖',
+    'loose cables': '松散电缆',
+    'exposed wiring': '裸露线路',
+    'exposed cables': '裸露电缆',
+    'dangling cables': '悬挂电缆',
+    'electrical hazard': '电气危险',
+    'fire hazard': '火灾隐患',
+    'blocked emergency exit': '紧急出口被堵',
+    'unsecured equipment': '设备未固定',
+    'unsafe installation': '不安全装置',
+    'no hard hat': '未佩戴安全帽',
+    'no safety glasses': '未佩戴安全眼镜',
+    'no reflective vest': '未穿反光背心',
+    'no helmet': '未佩戴安全帽',
+    'no vest': '未穿背心',
+    'no glasses': '未佩戴眼镜',
+    'missing hard hat': '缺少安全帽',
+    'missing safety glasses': '缺少安全眼镜',
+    'missing reflective vest': '缺少反光背心',
+    'missing helmet': '缺少安全帽',
+    'missing vest': '缺少背心',
+    'cable routing': '电缆走线',
+    'protective covers': '保护套',
+    'trip hazard': '绊倒危险',
+    'physical hazard': '物理危险',
+    'multiple hazards': '多重危险',
+    'electrical': '电气',
+    'present': '已佩戴',
+    'absent': '未佩戴',
+    'uncertain': '不确定',
+  };
+  let result = text.toLowerCase();
+  const keys = Object.keys(dict).sort((a,b) => b.length - a.length);
+  for (const key of keys) {
+    result = result.split(key).join(dict[key]);
+  }
+  return result;
+}
+
 function getAlertRecipients(){
   // Load from localStorage - returns array of {email, active}
   try{ return JSON.parse(localStorage.getItem('safecheck_alert_recipients')||'[]'); }catch(e){ return []; }
@@ -1778,12 +1828,12 @@ function renderCriticalEvents(){
       +(i.epi_check&&i.epi_check.length>0&&i.epi_check[0].site_hazards&&i.epi_check[0].site_hazards.length>0
         ?'<div style="background:#FFF8E7;border:1px solid #F39C12;border-radius:8px;padding:8px 12px;margin-bottom:10px;font-size:12px;color:#7D5A00;">'
          +'<span style="font-weight:700;">⚡ PPE Vision 检测到:</span> '
-         +i.epi_check[0].site_hazards.join(' · ')
+         +i.epi_check[0].site_hazards.map(translateToZH).join(' · ')
          +'</div>'
         :(i.epi_check&&i.epi_check.length>0&&i.epi_check[0].missing&&i.epi_check[0].missing.length>0
           ?'<div style="background:#FFF8E7;border:1px solid #FFF8E7;border-radius:8px;padding:8px 12px;margin-bottom:10px;font-size:12px;color:#7D5A00;">'
            +'<span style="font-weight:700;">⚡ PPE Vision 检测到:</span> '
-           +i.epi_check[0].missing.join(' · ')
+           +i.epi_check[0].missing.map(translateToZH).join(' · ')
            +'</div>'
           :''))
       +location
