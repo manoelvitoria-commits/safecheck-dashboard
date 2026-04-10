@@ -250,6 +250,14 @@ tr:hover td{background:var(--bg);}
 
     <div class="nav-label" style="margin-top:16px;">Team</div>
     <a class="nav-item" id="navInspectors" onclick="return checkInspectorAccess(event,'inspectors',this)"><span class="icon">👷</span>Inspectors <span id="inspectorLock" style="font-size:11px;opacity:0.5;">🔒</span></a>
+    <div id="adminNavItem" style="display:none;">
+      <div class="nav-label" style="margin-top:16px;">Admin</div>
+      <a class="nav-item" id="navAdmin" href="#" onclick="showSection('admin',this);return false;"><span class="icon">⚙️</span>User Management</a>
+    </div>
+    <div id="criticalNavItem" style="display:none;">
+      <div class="nav-label" style="margin-top:16px;">Critical</div>
+      <a class="nav-item" id="navCritical" href="#" onclick="showSection('critical',this);return false;" style="color:#E74C3C;"><span class="icon">🚨</span>Critical Events</a>
+    </div>
   </nav>
   <div class="sidebar-footer">
     <div class="sync-status">
@@ -509,6 +517,50 @@ tr:hover td{background:var(--bg);}
       </div>
     </div>
 
+    <!-- ══ CRITICAL EVENTS ══ -->
+    <div id="sec-critical" class="section-page">
+      <div style="max-width:900px;margin:0 auto;padding:16px;">
+        <div style="background:#FEF0F0;border:2px solid #E74C3C;border-radius:16px;padding:20px;margin-bottom:20px;">
+          <div style="font-size:13px;font-weight:700;color:#E74C3C;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">🚨 Critical Safety Events</div>
+          <div style="font-size:12px;color:#5D7A8A;">Electrical Hazard · Fire Hazard · Work at Height without Protection</div>
+        </div>
+        <div id="criticalList"><div style="text-align:center;padding:40px;color:#5D7A8A;">Loading...</div></div>
+      </div>
+    </div>
+
+    <!-- ══ ADMIN — USER MANAGEMENT ══ -->
+    <div id="sec-admin" class="section-page">
+      <div style="max-width:680px;margin:0 auto;padding:16px;">
+        <div style="background:var(--bg2,#1e2d45);border:1px solid var(--border,rgba(255,255,255,0.1));border-radius:16px;padding:24px;margin-bottom:20px;">
+          <div style="font-size:13px;font-weight:700;color:var(--accent,#2E86C1);text-transform:uppercase;letter-spacing:1px;margin-bottom:16px;">⚙️ User Management</div>
+          <div style="background:var(--bg,#0D1F35);border:1px solid var(--border,rgba(255,255,255,0.1));border-radius:12px;padding:16px;margin-bottom:20px;">
+            <div style="font-size:12px;font-weight:700;color:var(--muted,#5D7A8A);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;">➕ Create New User</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:10px;align-items:end;">
+              <div>
+                <label style="font-size:11px;color:var(--muted,#5D7A8A);display:block;margin-bottom:4px;">Username</label>
+                <input id="newUsername" type="text" placeholder="username" style="width:100%;padding:8px 12px;border-radius:8px;border:1.5px solid var(--border,rgba(255,255,255,0.1));background:var(--bg2,#1e2d45);color:var(--text,white);font-size:13px;box-sizing:border-box;" />
+              </div>
+              <div>
+                <label style="font-size:11px;color:var(--muted,#5D7A8A);display:block;margin-bottom:4px;">Password</label>
+                <input id="newPassword" type="password" placeholder="password" style="width:100%;padding:8px 12px;border-radius:8px;border:1.5px solid var(--border,rgba(255,255,255,0.1));background:var(--bg2,#1e2d45);color:var(--text,white);font-size:13px;box-sizing:border-box;" />
+              </div>
+              <div>
+                <label style="font-size:11px;color:var(--muted,#5D7A8A);display:block;margin-bottom:4px;">Role</label>
+                <select id="newRole" style="width:100%;padding:8px 12px;border-radius:8px;border:1.5px solid var(--border,rgba(255,255,255,0.1));background:var(--bg2,#1e2d45);color:var(--text,white);font-size:13px;box-sizing:border-box;">
+                  <option value="inspector">Inspector</option>
+                  <option value="admin">Admin</option>
+                </select>
+              </div>
+              <button onclick="createUser()" style="padding:8px 18px;border-radius:8px;background:var(--accent,#2E86C1);color:white;border:none;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;">Create</button>
+            </div>
+            <div id="userMsg" style="margin-top:10px;font-size:13px;display:none;"></div>
+          </div>
+          <div style="font-size:12px;font-weight:700;color:var(--muted,#5D7A8A);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;">👥 Current Users</div>
+          <div id="usersList"></div>
+        </div>
+      </div>
+    </div>
+
   </div><!-- /content -->
 </div><!-- /main -->
 
@@ -535,13 +587,18 @@ function promptClaudeKey() {
 }
 const CLAUDE_API_KEY = null; // never hardcoded — use getClaudeKey()
 
-const USERS = [
-  { username: 'manoel',  password: 'nemm2026' },
-  { username: 'amilcar', password: 'palacio' },
-  { username: 'manager', password: 'nemm@site' },
-  { username: 'pierre',  password: 'france2026' },
-  { username: 'adriana', password: 'projetos' },
+const DEFAULT_USERS = [
+  { username: 'manoel',  password: 'nemm2026',  role: 'admin' },
+  { username: 'guan',    password: 'guan2026',   role: 'admin' },
+  { username: 'amilcar', password: 'palacio',    role: 'inspector' },
+  { username: 'manager', password: 'nemm@site',  role: 'inspector' },
+  { username: 'pierre',  password: 'france2026', role: 'inspector' },
+  { username: 'adriana', password: 'projetos',   role: 'inspector' },
 ];
+function getUsers(){try{const s=localStorage.getItem('safecheck_users');return s?JSON.parse(s):DEFAULT_USERS;}catch(e){return DEFAULT_USERS;}}
+function saveUsers(u){localStorage.setItem('safecheck_users',JSON.stringify(u));}
+if(!localStorage.getItem('safecheck_users'))saveUsers(DEFAULT_USERS);
+const USERS=getUsers();
 
 const OCCURRENCES=[
   {id:'no_helmet',label:'No Hard Hat',icon:'⛑️'},
@@ -720,12 +777,12 @@ function checkAuth(){
   if(saved){
     try{
       const{username,password}=JSON.parse(saved);
-      const match=USERS.find(u=>u.username===username&&u.password===password);
+      const match=getUsers().find(u=>u.username===username&&u.password===password);
       if(match){
         sessionStorage.setItem('safecheck_auth','true');
         sessionStorage.setItem('safecheck_user',match.username);
         document.getElementById('loginScreen').classList.add('hidden');
-        loadData();return;
+        loadData(); showAdminNav(); return;
       }
     }catch(e){localStorage.removeItem('safecheck_saved');}
   }
@@ -735,7 +792,7 @@ function doLogin(){
   const user=document.getElementById('loginUser').value.trim().toLowerCase();
   const pass=document.getElementById('loginPass').value;
   const error=document.getElementById('loginError');
-  const match=USERS.find(u=>u.username===user&&u.password===pass);
+  const match=getUsers().find(u=>u.username===user&&u.password===pass);
   if(match){
     localStorage.setItem('safecheck_saved',JSON.stringify({username:match.username,password:match.password}));
     localStorage.setItem('safecheck_auth','true');
@@ -746,6 +803,7 @@ function doLogin(){
     error.classList.remove('show');
     loadData();
     updateAIKeyStatus();
+    showAdminNav();
   }else{
     error.classList.add('show');
     document.getElementById('loginPass').value='';
@@ -774,16 +832,20 @@ function showSection(id, el){
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
   document.getElementById('sec-'+id).classList.add('active');
   if(el) el.classList.add('active');
-  const titles={overview:'📊 Dashboard Overview',records:'📋 Inspection Records',areas:'📍 Area Risk Assessment',ai:'🤖 AI Safety Analyst',epi:'📸 PPE Vision Analysis',inspectors:'👷 Inspector Activity'};
+  const titles={overview:'📊 Dashboard Overview',records:'📋 Inspection Records',areas:'📍 Area Risk Assessment',ai:'🤖 AI Safety Analyst',epi:'📸 PPE Vision Analysis',inspectors:'👷 Inspector Activity',critical:'🚨 Critical Events',admin:'⚙️ User Management'};
   document.getElementById('pageTitle').textContent=titles[id]||'SafeCheck';
   if(id==='inspectors') renderInspectors();
   if(id==='epi') updateEPIStats();
   if(id==='records') renderTable();
   if(id==='areas') renderAreaGrid();
+  if(id==='critical') renderCriticalEvents();
+  if(id==='admin') renderUsersList();
 }
 
 function isManoel(){return sessionStorage.getItem('safecheck_user')==='manoel';}
-function isPrivileged(){const u=sessionStorage.getItem('safecheck_user');return u==='manoel'||u==='pierre';}
+function getCurrentUser(){return sessionStorage.getItem('safecheck_user')||'';}
+function isAdmin(){const u=getCurrentUser();const found=getUsers().find(x=>x.username===u);return found&&found.role==='admin';}
+function isPrivileged(){return isAdmin();}
 
 function checkInspectorAccess(e,id,el){
   if(!isPrivileged()){e.preventDefault();alert('🔒 Access restricted. This section is available to authorised users only.');return false;}
@@ -1472,8 +1534,83 @@ function exportCSV(){
   const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8;'}));a.download=`SafeCheck_v2_${new Date().toISOString().split('T')[0]}.csv`;a.click();
 }
 
+// ── USER MANAGEMENT ──────────────────────────────────────────────────────────
+function createUser(){
+  const username=document.getElementById('newUsername').value.trim().toLowerCase();
+  const password=document.getElementById('newPassword').value.trim();
+  const role=document.getElementById('newRole').value;
+  const msg=document.getElementById('userMsg');
+  msg.style.display='block';
+  if(!username||!password){msg.style.color='#E74C3C';msg.textContent='❌ Username and password required.';return;}
+  const users=getUsers();
+  if(users.find(u=>u.username===username)){msg.style.color='#E74C3C';msg.textContent='❌ Username already exists.';return;}
+  users.push({username,password,role});
+  saveUsers(users);
+  msg.style.color='#27AE60';
+  msg.textContent='✅ User "'+username+'" created as '+role+'.';
+  document.getElementById('newUsername').value='';
+  document.getElementById('newPassword').value='';
+  renderUsersList();
+}
+function deleteUser(username){
+  if(username==='manoel'){alert('❌ Cannot delete the main admin.');return;}
+  if(!confirm('Delete user "'+username+'"?'))return;
+  saveUsers(getUsers().filter(u=>u.username!==username));
+  renderUsersList();
+}
+function renderUsersList(){
+  const users=getUsers();
+  const el=document.getElementById('usersList');
+  if(!el)return;
+  el.innerHTML=users.map(u=>'<div style="display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:10px;background:var(--bg,#0D1F35);border:1px solid var(--border,rgba(255,255,255,0.1));margin-bottom:8px;">'
+    +'<span style="font-size:18px;">'+(u.role==='admin'?'🔑':'👷')+'</span>'
+    +'<div style="flex:1;"><div style="font-weight:700;font-size:14px;color:var(--text,white);">'+u.username+'</div>'
+    +'<div style="font-size:11px;color:var(--muted,#5D7A8A);text-transform:uppercase;letter-spacing:1px;">'+u.role+'</div></div>'
+    +(u.username!=='manoel'?'<button onclick="deleteUser(\''+u.username+'\')" style="padding:5px 12px;border-radius:6px;background:#E74C3C;color:white;border:none;font-size:12px;font-weight:700;cursor:pointer;">Delete</button>':'<span style="font-size:11px;color:var(--muted,#5D7A8A);">Protected</span>')
+    +'</div>').join('');
+}
+function showAdminNav(){
+  const el=document.getElementById('adminNavItem');
+  if(el)el.style.display=isAdmin()?'block':'none';
+  const cel=document.getElementById('criticalNavItem');
+  if(cel)cel.style.display='block';
+}
+
+// ── CRITICAL EVENTS ───────────────────────────────────────────────────────────
+const CRITICAL_IDS=['electric','fire','height'];
+const CRITICAL_LABELS={'electric':'⚡ Electrical Hazard','fire':'🔥 Fire Hazard','height':'🏔️ Work at Height'};
+
+function renderCriticalEvents(){
+  const el=document.getElementById('criticalList');
+  if(!el)return;
+  const criticals=allData.filter(i=>{
+    if(!i.occurrences)return false;
+    return CRITICAL_IDS.some(id=>i.occurrences[id]);
+  }).sort((a,b)=>new Date(b.created_at||b.date)-new Date(a.created_at||a.date));
+  if(criticals.length===0){
+    el.innerHTML='<div style="text-align:center;padding:40px;color:#5D7A8A;"><div style="font-size:48px;margin-bottom:12px;">✅</div><div style="font-size:16px;">No critical events recorded</div></div>';
+    return;
+  }
+  el.innerHTML=criticals.map(i=>{
+    const triggered=CRITICAL_IDS.filter(id=>i.occurrences&&i.occurrences[id]);
+    const photo=i.photos&&i.photos[0]?'<img src="'+i.photos[0]+'" style="width:100%;max-height:200px;object-fit:cover;border-radius:10px;margin-bottom:12px;" crossorigin="anonymous"/>':'';
+    const hazards=triggered.map(id=>'<span style="background:#E74C3C;color:white;padding:3px 10px;border-radius:12px;font-size:12px;font-weight:700;margin-right:6px;">'+CRITICAL_LABELS[id]+'</span>').join('');
+    const location=i.critical_location?'<div style="margin-top:10px;padding:10px;background:#FEF0F0;border-radius:8px;border-left:3px solid #E74C3C;"><div style="font-size:11px;font-weight:700;color:#E74C3C;margin-bottom:4px;">📍 EXACT LOCATION</div><div style="font-size:13px;color:#1A2E3E;">'+i.critical_location+'</div></div>':'';
+    return '<div style="background:white;border:2px solid #E74C3C;border-radius:14px;padding:16px;margin-bottom:16px;box-shadow:0 2px 12px rgba(231,76,60,0.1);">'
+      +photo
+      +'<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;">'
+      +'<div><div style="font-size:15px;font-weight:700;color:#1A2E3E;">'+( i.area||'—')+'</div>'
+      +'<div style="font-size:12px;color:#5D7A8A;margin-top:2px;">'+( i.date||'—')+' · '+(i.time_start||'—')+' · 👷 '+(i.inspector||'—')+'</div></div>'
+      +'<span style="background:#FEF0F0;color:#E74C3C;padding:4px 10px;border-radius:10px;font-size:11px;font-weight:700;">🚨 CRITICAL</span></div>'
+      +'<div style="margin-bottom:10px;">'+hazards+'</div>'
+      +location
+      +(i.notes?'<div style="margin-top:10px;font-size:13px;color:#5D7A8A;font-style:italic;">'+i.notes+'</div>':'')
+      +'</div>';
+  }).join('');
+}
+
 setInterval(()=>{if(sessionStorage.getItem('safecheck_auth')==='true')loadData();},60000);
-if(sessionStorage.getItem('safecheck_auth')==='true') { loadData(); updateAIKeyStatus(); setTimeout(initLang, 100); }
+if(sessionStorage.getItem('safecheck_auth')==='true') { loadData(); updateAIKeyStatus(); setTimeout(initLang, 100); showAdminNav(); }
 window.addEventListener('DOMContentLoaded', ()=>{ if(sessionStorage.getItem('safecheck_auth')==='true'){ setTimeout(()=>{ renderRanking(); renderTable(); }, 500); } });
 
 // ── SOP COUNTDOWN ─────────────────────────────────────────────────────────────
