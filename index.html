@@ -805,7 +805,7 @@ async function loadData(){
     checkAndSendHazardAlerts(allData);
     render();
     document.getElementById('syncStatus').textContent=`${allData.length} records · Live`;
-    document.getElementById('sopInspTotal').textContent=allData.length;
+    const sopEl=document.getElementById('sopInspTotal');if(sopEl)sopEl.textContent=allData.length;
   }catch(e){
     document.getElementById('syncStatus').textContent='Connection error';
     showEmpty();
