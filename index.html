@@ -563,6 +563,10 @@ tr:hover td{background:var(--bg);}
                 <input id="newPassword" type="password" placeholder="password" style="width:100%;padding:8px 12px;border-radius:8px;border:1.5px solid var(--border,rgba(255,255,255,0.1));background:var(--bg2,#1e2d45);color:var(--text,white);font-size:13px;box-sizing:border-box;" />
               </div>
               <div>
+                <label style="font-size:11px;color:var(--muted,#5D7A8A);display:block;margin-bottom:4px;">Alert Email</label>
+                <input id="newEmail" type="email" placeholder="user@email.com" style="width:100%;padding:8px 12px;border-radius:8px;border:1.5px solid var(--border,rgba(255,255,255,0.1));background:var(--bg2,#1e2d45);color:var(--text,white);font-size:13px;box-sizing:border-box;" />
+              </div>
+              <div>
                 <label style="font-size:11px;color:var(--muted,#5D7A8A);display:block;margin-bottom:4px;">Role</label>
                 <select id="newRole" style="width:100%;padding:8px 12px;border-radius:8px;border:1.5px solid var(--border,rgba(255,255,255,0.1));background:var(--bg2,#1e2d45);color:var(--text,white);font-size:13px;box-sizing:border-box;">
                   <option value="inspector">Inspector</option>
@@ -575,6 +579,15 @@ tr:hover td{background:var(--bg);}
           </div>
           <div style="font-size:12px;font-weight:700;color:var(--muted,#5D7A8A);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;">👥 Current Users</div>
           <div id="usersList"></div>
+
+          <div style="margin-top:24px;">
+            <div style="font-size:12px;font-weight:700;color:var(--muted,#5D7A8A);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;">🔔 Alert Recipients</div>
+            <div style="display:flex;gap:8px;margin-bottom:12px;">
+              <input id="newRecipientEmail" type="email" placeholder="add email for alerts..." style="flex:1;padding:8px 12px;border-radius:8px;border:1.5px solid var(--border,rgba(255,255,255,0.1));background:var(--bg2,#1e2d45);color:var(--text,white);font-size:13px;" />
+              <button onclick="addAlertRecipient()" style="padding:8px 16px;border-radius:8px;background:var(--accent,#2E86C1);color:white;border:none;font-size:13px;font-weight:700;cursor:pointer;">+ Add</button>
+            </div>
+            <div id="alertRecipientsList"></div>
+          </div>
         </div>
       </div>
     </div>
@@ -858,6 +871,8 @@ function showSection(id, el){
   if(id==='areas') renderAreaGrid();
   if(id==='critical') renderCriticalEvents();
   if(id==='admin') renderUsersList();
+  initAlertRecipients();
+  renderAlertRecipients();
 }
 
 function isManoel(){return sessionStorage.getItem('safecheck_user')==='manoel';}
@@ -920,12 +935,16 @@ function checkAndSendHazardAlerts(data){
       saveAlertedId(alertKey);
       const hazardLabel=hazardId==='electric'?'⚡ Electrical Hazard':'🔥 Fire Hazard';
       const areaName=AREA_NAMES[insp.area]||insp.area||'—';
+      getActiveRecipientEmails().forEach(recipientEmail=>{
       fetch('https://api.emailjs.com/api/v1.0/email/send',{
         method:'POST',headers:{'Content-Type':'application/json'},
         body:JSON.stringify({service_id:'service_73qkk3h',template_id:'template_zxdj37d',user_id:'2lHLpzIdZXh9Sguuk',
-          template_params:{hazard_type:hazardLabel,inspector:insp.inspector||'—',area:`${insp.area||'—'} — ${areaName}`,datetime:`${insp.date||'—'} ${insp.time_start||''}`.trim()}})
-      }).then(r=>{
-        if(r.ok){
+          template_params:{hazard_type:hazardLabel,inspector:insp.inspector||'—',area:`${insp.area||'—'} — ${areaName}`,datetime:`${insp.date||'—'} ${insp.time_start||''}`.trim(),to_email:recipientEmail}})
+      })
+      .catch(()=>{});
+    });
+    // Show toast notification
+    {
           const t=document.createElement('div');
           t.style.cssText='position:fixed;top:20px;right:20px;z-index:99999;background:#E74C3C;color:white;padding:14px 20px;border-radius:12px;font-weight:700;font-size:14px;box-shadow:0 4px 20px rgba(0,0,0,0.3);';
           t.innerHTML=`🚨 Alert sent: ${hazardLabel}<br><span style="font-weight:400;font-size:12px;">Inspector: ${insp.inspector} · ${insp.area}</span>`;
@@ -1556,18 +1575,96 @@ function createUser(){
   const username=document.getElementById('newUsername').value.trim().toLowerCase();
   const password=document.getElementById('newPassword').value.trim();
   const role=document.getElementById('newRole').value;
+  const email=document.getElementById('newEmail').value.trim();
   const msg=document.getElementById('userMsg');
   msg.style.display='block';
   if(!username||!password){msg.style.color='#E74C3C';msg.textContent='❌ Username and password required.';return;}
   const users=getUsers();
   if(users.find(u=>u.username===username)){msg.style.color='#E74C3C';msg.textContent='❌ Username already exists.';return;}
-  users.push({username,password,role});
+  users.push({username,password,role,email:email||''});
   saveUsers(users);
   msg.style.color='#27AE60';
-  msg.textContent='✅ User "'+username+'" created as '+role+'.';
+  msg.textContent='✅ User "'+username+'" created as '+role+(email?' · alerts → '+email:'')+'.';
   document.getElementById('newUsername').value='';
   document.getElementById('newPassword').value='';
+  document.getElementById('newEmail').value='';
   renderUsersList();
+  updateAlertRecipients();
+}
+
+function getAlertRecipients(){
+  // Load from localStorage - returns array of {email, active}
+  try{ return JSON.parse(localStorage.getItem('safecheck_alert_recipients')||'[]'); }catch(e){ return []; }
+}
+function saveAlertRecipients(list){
+  localStorage.setItem('safecheck_alert_recipients', JSON.stringify(list));
+}
+function initAlertRecipients(){
+  // Seed defaults on first run
+  const existing = getAlertRecipients();
+  if(existing.length === 0){
+    const defaults = [
+      {email:'manoel.vitoria@gmail.com', active:true},
+      {email:'manoel.rodrigues@arcelormittal.com', active:true}
+    ];
+    saveAlertRecipients(defaults);
+  }
+}
+function getActiveRecipientEmails(){
+  return getAlertRecipients().filter(r=>r.active).map(r=>r.email);
+}
+function updateAlertRecipients(){
+  // Sync user emails from user list into recipients
+  const users = getUsers().filter(u=>u.email);
+  const existing = getAlertRecipients();
+  const existingEmails = existing.map(r=>r.email);
+  users.forEach(u=>{
+    if(!existingEmails.includes(u.email)){
+      existing.push({email:u.email, active:true});
+    }
+  });
+  saveAlertRecipients(existing);
+  renderAlertRecipients();
+}
+function addAlertRecipient(){
+  const input = document.getElementById('newRecipientEmail');
+  if(!input) return;
+  const email = input.value.trim();
+  if(!email || !email.includes('@')){ alert('❌ Invalid email'); return; }
+  const list = getAlertRecipients();
+  if(list.find(r=>r.email===email)){ alert('⚠️ Email already in list'); return; }
+  list.push({email, active:true});
+  saveAlertRecipients(list);
+  input.value='';
+  renderAlertRecipients();
+}
+function toggleRecipient(email){
+  const list = getAlertRecipients();
+  const r = list.find(r=>r.email===email);
+  if(r) r.active = !r.active;
+  saveAlertRecipients(list);
+  renderAlertRecipients();
+}
+function removeRecipient(email){
+  if(!confirm('Remove '+email+' from alert list?')) return;
+  saveAlertRecipients(getAlertRecipients().filter(r=>r.email!==email));
+  renderAlertRecipients();
+}
+function renderAlertRecipients(){
+  const el = document.getElementById('alertRecipientsList');
+  if(!el) return;
+  const list = getAlertRecipients();
+  if(list.length===0){
+    el.innerHTML='<div style="font-size:13px;color:var(--muted,#5D7A8A);padding:10px 0;">No recipients configured.</div>';
+    return;
+  }
+  el.innerHTML = list.map(r=>`
+    <div style="display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:8px;background:var(--bg,#0D1F35);border:1px solid ${r.active?'var(--green,#27AE60)':'var(--border,rgba(255,255,255,0.1))'};margin-bottom:6px;opacity:${r.active?1:0.5};">
+      <span style="font-size:18px;">${r.active?'🔔':'🔕'}</span>
+      <div style="flex:1;font-size:13px;color:var(--text,white);">${r.email}</div>
+      <button onclick="toggleRecipient('${r.email}')" style="padding:4px 10px;border-radius:6px;border:none;cursor:pointer;font-size:11px;font-weight:700;background:${r.active?'#E74C3C':'#27AE60'};color:white;">${r.active?'Disable':'Enable'}</button>
+      <button onclick="removeRecipient('${r.email}')" style="padding:4px 10px;border-radius:6px;border:none;cursor:pointer;font-size:11px;font-weight:700;background:var(--muted,#5D7A8A);color:white;">✕</button>
+    </div>`).join('');
 }
 function deleteUser(username){
   if(username==='manoel'){alert('❌ Cannot delete the main admin.');return;}
@@ -1582,7 +1679,7 @@ function renderUsersList(){
   el.innerHTML=users.map(u=>'<div style="display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:10px;background:var(--bg,#0D1F35);border:1px solid var(--border,rgba(255,255,255,0.1));margin-bottom:8px;">'
     +'<span style="font-size:18px;">'+(u.role==='admin'?'🔑':'👷')+'</span>'
     +'<div style="flex:1;"><div style="font-weight:700;font-size:14px;color:var(--text,white);">'+u.username+'</div>'
-    +'<div style="font-size:11px;color:var(--muted,#5D7A8A);text-transform:uppercase;letter-spacing:1px;">'+u.role+'</div></div>'
+    +'<div style="font-size:11px;color:var(--muted,#5D7A8A);text-transform:uppercase;letter-spacing:1px;">'+u.role+'</div>'+(u.email?'<div style="font-size:11px;color:var(--accent,#2E86C1);">📧 '+u.email+'</div>':'')+' </div>'
     +(u.username!=='manoel'?'<button onclick="deleteUser(\''+u.username+'\')" style="padding:5px 12px;border-radius:6px;background:#E74C3C;color:white;border:none;font-size:12px;font-weight:700;cursor:pointer;">Delete</button>':'<span style="font-size:11px;color:var(--muted,#5D7A8A);">Protected</span>')
     +'</div>').join('');
 }
