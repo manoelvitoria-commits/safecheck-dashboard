@@ -1276,7 +1276,7 @@ function updateEPIStats(){
         <div class="epi-photo-info">
           <div style="font-size:11px;color:var(--muted);margin-bottom:4px;">${i.area||'—'} · ${i.date||'—'}</div>
           <div>${badges}</div>
-          ${(epi.site_hazards&&epi.site_hazards.length>0)?`<div style="font-size:10px;color:#E67E22;margin-top:3px;">⚡ ${epi.site_hazards.slice(0,2).map(translateToZH).join(' · ')}</div>`:''}
+          ${(epi.site_hazards&&epi.site_hazards.length>0)?`<div style="font-size:10px;color:#E67E22;margin-top:3px;">⚡ ${(Array.isArray(epi.site_hazards)?epi.site_hazards:typeof epi.site_hazards==='string'?[epi.site_hazards]:[]).slice(0,2).map(s=>typeof translateToZH==='function'?translateToZH(s):s).join(' · ')}</div>`:''}
           <div style="font-size:11px;margin-top:4px;font-weight:700;color:${isCompliant?'var(--green)':'var(--red)'};">${isCompliant?'✅ 合规':'⚠️ 不合规'}</div>
         </div>
       </div>`;
@@ -1828,12 +1828,12 @@ function renderCriticalEvents(){
       +(i.epi_check&&i.epi_check.length>0&&i.epi_check[0].site_hazards&&i.epi_check[0].site_hazards.length>0
         ?'<div style="background:#FFF8E7;border:1px solid #F39C12;border-radius:8px;padding:8px 12px;margin-bottom:10px;font-size:12px;color:#7D5A00;">'
          +'<span style="font-weight:700;">⚡ PPE Vision 检测到:</span> '
-         +i.epi_check[0].site_hazards.map(translateToZH).join(' · ')
+         +(Array.isArray(i.epi_check[0].site_hazards)?i.epi_check[0].site_hazards:[String(i.epi_check[0].site_hazards||'')]).map(translateToZH).join(' · ')
          +'</div>'
         :(i.epi_check&&i.epi_check.length>0&&i.epi_check[0].missing&&i.epi_check[0].missing.length>0
           ?'<div style="background:#FFF8E7;border:1px solid #FFF8E7;border-radius:8px;padding:8px 12px;margin-bottom:10px;font-size:12px;color:#7D5A00;">'
            +'<span style="font-weight:700;">⚡ PPE Vision 检测到:</span> '
-           +i.epi_check[0].missing.map(translateToZH).join(' · ')
+           +(Array.isArray(i.epi_check[0].missing)?i.epi_check[0].missing:[String(i.epi_check[0].missing||'')]).map(translateToZH).join(' · ')
            +'</div>'
           :''))
       +location
