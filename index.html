@@ -556,19 +556,19 @@ tr:hover td{background:var(--bg);}
             <div style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:10px;align-items:end;">
               <div>
                 <label style="font-size:11px;color:var(--muted,#5D7A8A);display:block;margin-bottom:4px;">Username</label>
-                <input id="newUsername" type="text" placeholder="username" style="width:100%;padding:8px 12px;border-radius:8px;border:1.5px solid var(--border,rgba(255,255,255,0.1));background:var(--bg2,#1e2d45);color:var(--text,white);font-size:13px;box-sizing:border-box;" />
+                <input id="newUsername" style="width:100%;padding:8px 12px;border-radius:8px;border:1.5px solid var(--border,rgba(255,255,255,0.1));background:#1e2d45;color:#ffffff;font-size:13px;box-sizing:border-box;" />
               </div>
               <div>
                 <label style="font-size:11px;color:var(--muted,#5D7A8A);display:block;margin-bottom:4px;">Password</label>
-                <input id="newPassword" type="password" placeholder="password" style="width:100%;padding:8px 12px;border-radius:8px;border:1.5px solid var(--border,rgba(255,255,255,0.1));background:var(--bg2,#1e2d45);color:var(--text,white);font-size:13px;box-sizing:border-box;" />
+                <input id="newPassword" type="password" style="width:100%;padding:8px 12px;border-radius:8px;border:1.5px solid var(--border,rgba(255,255,255,0.1));background:#1e2d45;color:#ffffff;font-size:13px;box-sizing:border-box;" />
               </div>
               <div>
                 <label style="font-size:11px;color:var(--muted,#5D7A8A);display:block;margin-bottom:4px;">Alert Email</label>
-                <input id="newEmail" type="email" placeholder="user@email.com" style="width:100%;padding:8px 12px;border-radius:8px;border:1.5px solid var(--border,rgba(255,255,255,0.1));background:var(--bg2,#1e2d45);color:var(--text,white);font-size:13px;box-sizing:border-box;" />
+                <input id="newEmail" type="email" style="width:100%;padding:8px 12px;border-radius:8px;border:1.5px solid var(--border,rgba(255,255,255,0.1));background:#1e2d45;color:#ffffff;font-size:13px;box-sizing:border-box;" />
               </div>
               <div>
                 <label style="font-size:11px;color:var(--muted,#5D7A8A);display:block;margin-bottom:4px;">Role</label>
-                <select id="newRole" style="width:100%;padding:8px 12px;border-radius:8px;border:1.5px solid var(--border,rgba(255,255,255,0.1));background:var(--bg2,#1e2d45);color:var(--text,white);font-size:13px;box-sizing:border-box;">
+                <select id="newRole" style="width:100%;padding:8px 12px;border-radius:8px;border:1.5px solid var(--border,rgba(255,255,255,0.1));background:#1e2d45;color:#ffffff;font-size:13px;box-sizing:border-box;">
                   <option value="inspector">Inspector</option>
                   <option value="admin">Admin</option>
                 </select>
@@ -583,7 +583,7 @@ tr:hover td{background:var(--bg);}
           <div style="margin-top:24px;">
             <div style="font-size:12px;font-weight:700;color:var(--muted,#5D7A8A);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;">🔔 Alert Recipients</div>
             <div style="display:flex;gap:8px;margin-bottom:12px;">
-              <input id="newRecipientEmail" type="email" placeholder="add email for alerts..." style="flex:1;padding:8px 12px;border-radius:8px;border:1.5px solid var(--border,rgba(255,255,255,0.1));background:var(--bg2,#1e2d45);color:var(--text,white);font-size:13px;" />
+              <input id="newRecipientEmail" type="email" style="flex:1;padding:8px 12px;border-radius:8px;border:1.5px solid var(--border,rgba(255,255,255,0.1));background:#1e2d45;color:#ffffff;font-size:13px;" />
               <button onclick="addAlertRecipient()" style="padding:8px 16px;border-radius:8px;background:var(--accent,#2E86C1);color:white;border:none;font-size:13px;font-weight:700;cursor:pointer;">+ Add</button>
             </div>
             <div id="alertRecipientsList"></div>
@@ -1260,7 +1260,7 @@ function updateEPIStats(){
       // Support both old format (single) and new format (workers array)
       const epiData = epi.workers && epi.workers.length > 0 ? epi.workers[0] : epi;
       const isCompliant = epi.overall_compliant !== undefined ? epi.overall_compliant : epi.compliant;
-      function badgeIcon(val){ return val==='present'?'✓':val==='absent'?'✗':'?'; }
+      function badgeIcon(val){ return val==='present'?'✓':val==='absent'?'✗':val==='na'?'—':'?'; }
       function badgeClass(val){ return val==='present'?'epi-ok':val==='absent'?'epi-miss':'epi-unk'; }
       const badges=[
         `<span class="epi-badge ${badgeClass(epiData.helmet)}">⛑ ${badgeIcon(epiData.helmet)}</span>`,
@@ -1272,6 +1272,7 @@ function updateEPIStats(){
         <div class="epi-photo-info">
           <div style="font-size:11px;color:var(--muted);margin-bottom:4px;">${i.area||'—'} · ${i.date||'—'}</div>
           <div>${badges}</div>
+          ${(epi.site_hazards&&epi.site_hazards.length>0)?`<div style="font-size:10px;color:#E67E22;margin-top:3px;">⚡ ${epi.site_hazards.slice(0,2).join(' · ')}</div>`:''}
           <div style="font-size:11px;margin-top:4px;font-weight:700;color:${isCompliant?'var(--green)':'var(--red)'};">${isCompliant?'✅ Compliant':'⚠️ Non-compliant'}</div>
         </div>
       </div>`;
@@ -1308,7 +1309,17 @@ async function analyzeAllPhotos(){
           max_tokens:300,
           messages:[{role:'user',content:[
             {type:'image',source:{type:'base64',media_type:'image/jpeg',data:b64}},
-            {type:'text',text:'Analyze this construction site image for PPE compliance. Return ONLY JSON with these keys: workers_detected(number), helmet(present/absent/uncertain), glasses(present/absent/uncertain), vest(present/absent/uncertain), missing(array), compliant(boolean)'}
+            {type:'text',text:'You are a construction site safety inspector AI. Analyze this image for TWO things:
+
+1. PPE COMPLIANCE (if workers are visible): Check for hard hat, safety glasses, reflective vest.
+2. SITE SAFETY HAZARDS (always): Look for dangerous conditions regardless of whether workers are present — exposed/loose cables, unprotected electrical outlets or panels, missing cable covers, fire hazards, blocked emergency exits, unsecured equipment, or any unsafe installation.
+
+Rules:
+- If workers are present: compliant=true only if ALL visible workers wear ALL required PPE (helmet+glasses+vest) AND no site hazards detected.
+- If NO workers visible but site hazards detected (e.g. loose cables, exposed wiring, unprotected outlets): compliant=false, list hazards in missing[].
+- If NO workers and NO hazards: compliant=true, workers_detected=0.
+
+Return ONLY valid JSON with these keys: workers_detected(number), helmet(present/absent/uncertain/na), glasses(present/absent/uncertain/na), vest(present/absent/uncertain/na), missing(array of strings describing what is missing or unsafe), compliant(boolean), hazard_type(string: none/electrical/fire/physical/multiple), site_hazards(array of strings describing unsafe conditions found)'}
           ]}]
         })
       });
@@ -1358,7 +1369,17 @@ async function analyzeOnePhoto(id){
         model:'claude-sonnet-4-20250514',max_tokens:300,
         messages:[{role:'user',content:[
           {type:'image',source:{type:'base64',media_type:'image/jpeg',data:b64}},
-          {type:'text',text:'Analyze this construction site image for PPE compliance. Return ONLY JSON with these keys: workers_detected(number), helmet(present/absent/uncertain), glasses(present/absent/uncertain), vest(present/absent/uncertain), missing(array), compliant(boolean)'}
+          {type:'text',text:'You are a construction site safety inspector AI. Analyze this image for TWO things:
+
+1. PPE COMPLIANCE (if workers are visible): Check for hard hat, safety glasses, reflective vest.
+2. SITE SAFETY HAZARDS (always): Look for dangerous conditions regardless of whether workers are present — exposed/loose cables, unprotected electrical outlets or panels, missing cable covers, fire hazards, blocked emergency exits, unsecured equipment, or any unsafe installation.
+
+Rules:
+- If workers are present: compliant=true only if ALL visible workers wear ALL required PPE (helmet+glasses+vest) AND no site hazards detected.
+- If NO workers visible but site hazards detected (e.g. loose cables, exposed wiring, unprotected outlets): compliant=false, list hazards in missing[].
+- If NO workers and NO hazards: compliant=true, workers_detected=0.
+
+Return ONLY valid JSON with these keys: workers_detected(number), helmet(present/absent/uncertain/na), glasses(present/absent/uncertain/na), vest(present/absent/uncertain/na), missing(array of strings describing what is missing or unsafe), compliant(boolean), hazard_type(string: none/electrical/fire/physical/multiple), site_hazards(array of strings describing unsafe conditions found)'}
         ]}]
       })
     });
