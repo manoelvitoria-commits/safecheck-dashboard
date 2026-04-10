@@ -1310,17 +1310,7 @@ async function analyzeAllPhotos(){
           max_tokens:300,
           messages:[{role:'user',content:[
             {type:'image',source:{type:'base64',media_type:'image/jpeg',data:b64}},
-            {type:'text',text:'You are a construction site safety inspector AI. Analyze this image for TWO things:
-
-1. PPE COMPLIANCE (if workers are visible): Check for hard hat, safety glasses, reflective vest.
-2. SITE SAFETY HAZARDS (always): Look for dangerous conditions regardless of whether workers are present — exposed/loose cables, unprotected electrical outlets or panels, missing cable covers, fire hazards, blocked emergency exits, unsecured equipment, or any unsafe installation.
-
-Rules:
-- If workers are present: compliant=true only if ALL visible workers wear ALL required PPE (helmet+glasses+vest) AND no site hazards detected.
-- If NO workers visible but site hazards detected (e.g. loose cables, exposed wiring, unprotected outlets): compliant=false, list hazards in missing[].
-- If NO workers and NO hazards: compliant=true, workers_detected=0.
-
-Return ONLY valid JSON with these keys: workers_detected(number), helmet(present/absent/uncertain/na), glasses(present/absent/uncertain/na), vest(present/absent/uncertain/na), missing(array of strings describing what is missing or unsafe), compliant(boolean), hazard_type(string: none/electrical/fire/physical/multiple), site_hazards(array of strings describing unsafe conditions found)'}
+            {type:'text',text:'You are a construction site safety inspector AI. Analyze this image for TWO things: 1) PPE COMPLIANCE (if workers visible): check hard hat, safety glasses, reflective vest. 2) SITE SAFETY HAZARDS (always): look for dangerous conditions regardless of workers — exposed/loose cables, unprotected electrical outlets or panels, missing cable covers, fire hazards, blocked exits, unsecured equipment, unsafe installations. RULES: If workers present: compliant=true only if ALL workers wear ALL PPE AND no site hazards. If NO workers but site hazards detected: compliant=false, list hazards in missing[]. If NO workers and NO hazards: compliant=true, workers_detected=0. Return ONLY valid JSON: {"workers_detected":0,"helmet":"na","glasses":"na","vest":"na","missing":[],"compliant":true,"hazard_type":"none","site_hazards":[]}'}
           ]}]
         })
       });
@@ -1370,17 +1360,7 @@ async function analyzeOnePhoto(id){
         model:'claude-sonnet-4-20250514',max_tokens:300,
         messages:[{role:'user',content:[
           {type:'image',source:{type:'base64',media_type:'image/jpeg',data:b64}},
-          {type:'text',text:'You are a construction site safety inspector AI. Analyze this image for TWO things:
-
-1. PPE COMPLIANCE (if workers are visible): Check for hard hat, safety glasses, reflective vest.
-2. SITE SAFETY HAZARDS (always): Look for dangerous conditions regardless of whether workers are present — exposed/loose cables, unprotected electrical outlets or panels, missing cable covers, fire hazards, blocked emergency exits, unsecured equipment, or any unsafe installation.
-
-Rules:
-- If workers are present: compliant=true only if ALL visible workers wear ALL required PPE (helmet+glasses+vest) AND no site hazards detected.
-- If NO workers visible but site hazards detected (e.g. loose cables, exposed wiring, unprotected outlets): compliant=false, list hazards in missing[].
-- If NO workers and NO hazards: compliant=true, workers_detected=0.
-
-Return ONLY valid JSON with these keys: workers_detected(number), helmet(present/absent/uncertain/na), glasses(present/absent/uncertain/na), vest(present/absent/uncertain/na), missing(array of strings describing what is missing or unsafe), compliant(boolean), hazard_type(string: none/electrical/fire/physical/multiple), site_hazards(array of strings describing unsafe conditions found)'}
+          {type:'text',text:'You are a construction site safety inspector AI. Analyze this image for TWO things: 1) PPE COMPLIANCE (if workers visible): check hard hat, safety glasses, reflective vest. 2) SITE SAFETY HAZARDS (always): look for dangerous conditions regardless of workers — exposed/loose cables, unprotected electrical outlets or panels, missing cable covers, fire hazards, blocked exits, unsecured equipment, unsafe installations. RULES: If workers present: compliant=true only if ALL workers wear ALL PPE AND no site hazards. If NO workers but site hazards detected: compliant=false, list hazards in missing[]. If NO workers and NO hazards: compliant=true, workers_detected=0. Return ONLY valid JSON: {"workers_detected":0,"helmet":"na","glasses":"na","vest":"na","missing":[],"compliant":true,"hazard_type":"none","site_hazards":[]}'}
         ]}]
       })
     });
