@@ -836,6 +836,7 @@ function doLogin(){
     loadData();
     updateAIKeyStatus();
     showAdminNav();
+    initAlertRecipients();
   }else{
     error.classList.add('show');
     document.getElementById('loginPass').value='';
@@ -871,9 +872,11 @@ function showSection(id, el){
   if(id==='records') renderTable();
   if(id==='areas') renderAreaGrid();
   if(id==='critical') renderCriticalEvents();
-  if(id==='admin') renderUsersList();
-  initAlertRecipients();
-  renderAlertRecipients();
+  if(id==='admin'){
+    renderUsersList();
+    initAlertRecipients();
+    renderAlertRecipients();
+  }
 }
 
 function isManoel(){return sessionStorage.getItem('safecheck_user')==='manoel';}
@@ -936,22 +939,20 @@ function checkAndSendHazardAlerts(data){
       saveAlertedId(alertKey);
       const hazardLabel=hazardId==='electric'?'⚡ Electrical Hazard':'🔥 Fire Hazard';
       const areaName=AREA_NAMES[insp.area]||insp.area||'—';
-      getActiveRecipientEmails().forEach(recipientEmail=>{
-      fetch('https://api.emailjs.com/api/v1.0/email/send',{
-        method:'POST',headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({service_id:'service_73qkk3h',template_id:'template_zxdj37d',user_id:'2lHLpzIdZXh9Sguuk',
-          template_params:{hazard_type:hazardLabel,inspector:insp.inspector||'—',area:`${insp.area||'—'} — ${areaName}`,datetime:`${insp.date||'—'} ${insp.time_start||''}`.trim(),to_email:recipientEmail}})
-      })
-      .catch(()=>{});
-    });
-    // Show toast notification
-    {
-          const t=document.createElement('div');
-          t.style.cssText='position:fixed;top:20px;right:20px;z-index:99999;background:#E74C3C;color:white;padding:14px 20px;border-radius:12px;font-weight:700;font-size:14px;box-shadow:0 4px 20px rgba(0,0,0,0.3);';
-          t.innerHTML=`🚨 Alert sent: ${hazardLabel}<br><span style="font-weight:400;font-size:12px;">Inspector: ${insp.inspector} · ${insp.area}</span>`;
-          document.body.appendChild(t);setTimeout(()=>t.remove(),6000);
-        }
-      }).catch(()=>{});
+      const activeEmails = getActiveRecipientEmails();
+      activeEmails.forEach(recipientEmail=>{
+        fetch('https://api.emailjs.com/api/v1.0/email/send',{
+          method:'POST',headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({service_id:'service_73qkk3h',template_id:'template_zxdj37d',user_id:'2lHLpzIdZXh9Sguuk',
+            template_params:{hazard_type:hazardLabel,inspector:insp.inspector||'—',area:`${insp.area||'—'} — ${areaName}`,datetime:`${insp.date||'—'} ${insp.time_start||''}`.trim(),to_email:recipientEmail}})
+        }).catch(()=>{});
+      });
+      if(activeEmails.length>0){
+        const t=document.createElement('div');
+        t.style.cssText='position:fixed;top:20px;right:20px;z-index:99999;background:#E74C3C;color:white;padding:14px 20px;border-radius:12px;font-weight:700;font-size:14px;box-shadow:0 4px 20px rgba(0,0,0,0.3);';
+        t.innerHTML=`🚨 Alert sent: ${hazardLabel}<br><span style="font-weight:400;font-size:12px;">Inspector: ${insp.inspector} · ${insp.area}</span>`;
+        document.body.appendChild(t);setTimeout(()=>t.remove(),6000);
+      }
     });
   });
 }
