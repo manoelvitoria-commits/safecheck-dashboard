@@ -70,6 +70,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 
 /* ── SECTIONS ── */
 .section-page{display:none;}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1);}50%{opacity:0.8;transform:scale(1.05);}}
 .section-page.active{display:block;}
 
 /* ── KPI CARDS ── */
@@ -520,9 +521,26 @@ tr:hover td{background:var(--bg);}
     <!-- ══ CRITICAL EVENTS ══ -->
     <div id="sec-critical" class="section-page">
       <div style="max-width:900px;margin:0 auto;padding:16px;">
-        <div style="background:#FEF0F0;border:2px solid #E74C3C;border-radius:16px;padding:20px;margin-bottom:20px;">
-          <div style="font-size:13px;font-weight:700;color:#E74C3C;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">🚨 Critical Safety Events</div>
-          <div style="font-size:12px;color:#5D7A8A;">Electrical Hazard · Fire Hazard · Work at Height without Protection</div>
+        <div style="background:#FEF0F0;border:2px solid #E74C3C;border-radius:16px;padding:20px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
+          <div>
+            <div style="font-size:13px;font-weight:700;color:#E74C3C;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">🚨 Critical Safety Events</div>
+            <div style="font-size:12px;color:#5D7A8A;">Electrical Hazard · Fire Hazard · Work at Height without Protection</div>
+          </div>
+          <div id="criticalBadge" style="display:none;background:#E74C3C;color:white;border-radius:20px;padding:6px 16px;font-size:13px;font-weight:700;animation:pulse 1.5s infinite;">🔔 New event!</div>
+        </div>
+        <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;align-items:center;">
+          <select id="criticalFilterPeriod" onchange="renderCriticalEvents()" style="padding:7px 12px;border-radius:8px;border:1.5px solid #E8EEF4;background:white;color:#1A2E3E;font-size:13px;font-weight:600;cursor:pointer;">
+            <option value="">All Time</option>
+            <option value="7">Last 7 days</option>
+            <option value="30">Last 30 days</option>
+            <option value="90">Last 90 days</option>
+          </select>
+          <select id="criticalFilterStatus" onchange="renderCriticalEvents()" style="padding:7px 12px;border-radius:8px;border:1.5px solid #E8EEF4;background:white;color:#1A2E3E;font-size:13px;font-weight:600;cursor:pointer;">
+            <option value="">All Status</option>
+            <option value="pending">🔴 Pending</option>
+            <option value="resolved">✅ Resolved</option>
+          </select>
+          <div id="criticalCount" style="font-size:12px;color:#5D7A8A;margin-left:auto;"></div>
         </div>
         <div id="criticalList"><div style="text-align:center;padding:40px;color:#5D7A8A;">Loading...</div></div>
       </div>
@@ -866,6 +884,7 @@ async function loadData(){
     allData=await r.json();
     checkAndSendHazardAlerts(allData);
     render();
+    checkCriticalNotification();
     document.getElementById('syncStatus').textContent=`${allData.length} records · Live`;
     const sopEl=document.getElementById('sopInspTotal');if(sopEl)sopEl.textContent=allData.length;
   }catch(e){
@@ -1233,7 +1252,7 @@ function updateEPIStats(){
         <div class="epi-photo-info">
           <div style="font-size:11px;color:var(--muted);margin-bottom:4px;">${i.area||'—'} · ${i.date||'—'}</div>
           <div>${badges}</div>
-          <div style="font-size:11px;margin-top:4px;font-weight:700;color:${epi.compliant?'var(--green)':'var(--red)'};">${epi.compliant?'✅ Compliant':'⚠️ Non-compliant'}</div>
+          <div style="font-size:11px;margin-top:4px;font-weight:700;color:${isCompliant?'var(--green)':'var(--red)'};">${isCompliant?'✅ Compliant':'⚠️ Non-compliant'}</div>
         </div>
       </div>`;
     }).join('');
@@ -1269,7 +1288,7 @@ async function analyzeAllPhotos(){
           max_tokens:300,
           messages:[{role:'user',content:[
             {type:'image',source:{type:'base64',media_type:'image/jpeg',data:b64}},
-            {type:'text',text:'Analyze this construction site image for PPE compliance. Return ONLY JSON: {"workers_detected":<n>,"helmet":"present|absent|uncertain","glasses":"present|absent|uncertain","vest":"present|absent|uncertain","missing":[],"compliant":true|false}'}
+            {type:'text',text:'Analyze this construction site image for PPE compliance. Return ONLY JSON with these keys: workers_detected(number), helmet(present/absent/uncertain), glasses(present/absent/uncertain), vest(present/absent/uncertain), missing(array), compliant(boolean)'}
           ]}]
         })
       });
@@ -1319,7 +1338,7 @@ async function analyzeOnePhoto(id){
         model:'claude-sonnet-4-20250514',max_tokens:300,
         messages:[{role:'user',content:[
           {type:'image',source:{type:'base64',media_type:'image/jpeg',data:b64}},
-          {type:'text',text:'Analyze this construction site image for PPE compliance. Return ONLY JSON: {"workers_detected":<n>,"helmet":"present|absent|uncertain","glasses":"present|absent|uncertain","vest":"present|absent|uncertain","missing":[],"compliant":true|false}'}
+          {type:'text',text:'Analyze this construction site image for PPE compliance. Return ONLY JSON with these keys: workers_detected(number), helmet(present/absent/uncertain), glasses(present/absent/uncertain), vest(present/absent/uncertain), missing(array), compliant(boolean)'}
         ]}]
       })
     });
@@ -1364,7 +1383,7 @@ function generatePDF(id){
           <div><div style="font-size:11px;color:#7D6608;">Safety Glasses</div><div style="font-size:16px;font-weight:700;color:${i.epi_check[0].glasses==='present'?'#1A6B3A':'#C0392B'}">${i.epi_check[0].glasses==='present'?'✅ Present':'❌ Absent'}</div></div>
           <div><div style="font-size:11px;color:#7D6608;">Reflective Vest</div><div style="font-size:16px;font-weight:700;color:${i.epi_check[0].vest==='present'?'#1A6B3A':'#C0392B'}">${i.epi_check[0].vest==='present'?'✅ Present':'❌ Absent'}</div></div>
         </div>
-        <div style="text-align:center;margin-top:10px;font-weight:700;color:${i.epi_check[0].compliant?'#1A6B3A':'#C0392B'};">${i.epi_check[0].compliant?'✅ COMPLIANT':'⚠️ NON-COMPLIANT'}</div>
+        <div style="text-align:center;margin-top:10px;font-weight:700;color:${(i.epi_check[0].overall_compliant!==undefined?i.epi_check[0].overall_compliant:(i.epi_check[0].workers&&i.epi_check[0].workers.length>0?i.epi_check[0].workers.every(w=>w.compliant):i.epi_check[0].compliant))?'#1A6B3A':'#C0392B'};">${(i.epi_check[0].overall_compliant!==undefined?i.epi_check[0].overall_compliant:(i.epi_check[0].workers&&i.epi_check[0].workers.length>0?i.epi_check[0].workers.every(w=>w.compliant):i.epi_check[0].compliant))?'✅ COMPLIANT':'⚠️ NON-COMPLIANT'}</div>
       </div>
     </div>`:'';
   const html=`<!DOCTYPE html><html><head><meta charset="utf-8"/>
@@ -1527,7 +1546,7 @@ function exportPDFReport(){
 function exportCSV(){
   if(!allData.length){alert('No data to export yet.');return;}
   const rows=[['ID','Date','Time Start','Time End','Duration','Area','Inspector','Language','Total Occurrences','PPE Compliant',...OCCURRENCES.map(o=>o.label)]];
-  allData.forEach(i=>{const oc=OCCURRENCES.map(o=>i.occurrences&&i.occurrences[o.id]?1:0);const epi=i.epi_check&&i.epi_check.length>0?i.epi_check[0].compliant?'Yes':'No':'—';rows.push([i.id,i.date,i.time_start,i.time_end,i.duration,i.area,i.inspector,i.language,oc.reduce((a,b)=>a+b,0),epi,...oc]);});
+  allData.forEach(i=>{const oc=OCCURRENCES.map(o=>i.occurrences&&i.occurrences[o.id]?1:0);const epi=i.epi_check&&i.epi_check.length>0?(i.epi_check[0].overall_compliant!==undefined?i.epi_check[0].overall_compliant:(i.epi_check[0].workers&&i.epi_check[0].workers.length>0?i.epi_check[0].workers.every(w=>w.compliant):i.epi_check[0].compliant))?'Yes':'No':'—';rows.push([i.id,i.date,i.time_start,i.time_end,i.duration,i.area,i.inspector,i.language,oc.reduce((a,b)=>a+b,0),epi,...oc]);});
   const csv=rows.map(r=>r.map(v=>`"${String(v||'').replace(/"/g,'""')}"`).join(',')).join('\n');
   const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8;'}));a.download=`SafeCheck_v2_${new Date().toISOString().split('T')[0]}.csv`;a.click();
 }
@@ -1588,31 +1607,88 @@ function showAdminNav(){
 const CRITICAL_IDS=['electric','fire','height'];
 const CRITICAL_LABELS={'electric':'⚡ Electrical Hazard','fire':'🔥 Fire Hazard','height':'🏔️ Work at Height'};
 
+// ── CRITICAL EVENTS STATUS (localStorage) ─────────────────────────────────────
+function getCriticalStatus(id){return localStorage.getItem('critical_status_'+id)||'pending';}
+function setCriticalStatus(id,status){localStorage.setItem('critical_status_'+id,status);renderCriticalEvents();}
+
+// ── CRITICAL EVENTS NOTIFICATION ──────────────────────────────────────────────
+let _lastCriticalCount = 0;
+function checkCriticalNotification(){
+  const criticals=allData.filter(i=>i.occurrences&&CRITICAL_IDS.some(id=>i.occurrences[id]));
+  const pending=criticals.filter(i=>getCriticalStatus(i.id)==='pending');
+  const badge=document.getElementById('criticalBadge');
+  const navCritical=document.getElementById('navCritical');
+  if(pending.length>0){
+    if(badge)badge.style.display='block';
+    if(badge)badge.textContent='🔔 '+pending.length+' pending';
+    if(navCritical)navCritical.style.color='#E74C3C';
+    // Show toast if new events arrived
+    if(pending.length>_lastCriticalCount&&_lastCriticalCount>0){
+      showCriticalToast(pending.length);
+    }
+  } else {
+    if(badge)badge.style.display='none';
+    if(navCritical)navCritical.style.color='';
+  }
+  _lastCriticalCount=pending.length;
+}
+function showCriticalToast(count){
+  const t=document.createElement('div');
+  t.style.cssText='position:fixed;top:20px;right:20px;z-index:99999;background:#E74C3C;color:white;padding:14px 20px;border-radius:12px;font-weight:700;font-size:14px;box-shadow:0 4px 20px rgba(0,0,0,0.3);cursor:pointer;';
+  t.innerHTML='🚨 '+count+' critical event'+(count>1?'s':'')+' pending!<br><span style=\'font-weight:400;font-size:12px;\'>Click to view Critical Events</span>';
+  t.onclick=()=>{showSection('critical',document.getElementById('navCritical'));t.remove();};
+  document.body.appendChild(t);
+  setTimeout(()=>t.remove(),8000);
+}
+
 function renderCriticalEvents(){
   const el=document.getElementById('criticalList');
   if(!el)return;
-  const criticals=allData.filter(i=>{
+  const periodVal=document.getElementById('criticalFilterPeriod')?.value||'';
+  const statusVal=document.getElementById('criticalFilterStatus')?.value||'';
+  let criticals=allData.filter(i=>{
     if(!i.occurrences)return false;
     return CRITICAL_IDS.some(id=>i.occurrences[id]);
-  }).sort((a,b)=>new Date(b.created_at||b.date)-new Date(a.created_at||a.date));
+  });
+  // Period filter
+  if(periodVal){
+    const cutoff=new Date();cutoff.setDate(cutoff.getDate()-parseInt(periodVal));
+    criticals=criticals.filter(i=>new Date(i.created_at||i.date)>=cutoff);
+  }
+  // Status filter
+  if(statusVal){
+    criticals=criticals.filter(i=>getCriticalStatus(i.id)===statusVal);
+  }
+  criticals=criticals.sort((a,b)=>new Date(b.created_at||b.date)-new Date(a.created_at||a.date));
+  const countEl=document.getElementById('criticalCount');
+  if(countEl)countEl.textContent=criticals.length+' event'+(criticals.length!==1?'s':'')+' shown';
   if(criticals.length===0){
-    el.innerHTML='<div style="text-align:center;padding:40px;color:#5D7A8A;"><div style="font-size:48px;margin-bottom:12px;">✅</div><div style="font-size:16px;">No critical events recorded</div></div>';
+    el.innerHTML='<div style="text-align:center;padding:40px;color:#5D7A8A;"><div style="font-size:48px;margin-bottom:12px;">✅</div><div style="font-size:16px;">No critical events found</div></div>';
     return;
   }
   el.innerHTML=criticals.map(i=>{
     const triggered=CRITICAL_IDS.filter(id=>i.occurrences&&i.occurrences[id]);
-    const photo=i.photos&&i.photos[0]?'<img src="'+i.photos[0]+'" style="width:100%;max-height:200px;object-fit:cover;border-radius:10px;margin-bottom:12px;" crossorigin="anonymous"/>':'';
+    const photo=i.photos&&i.photos[0]?'<img src="'+i.photos[0]+'" style="width:100%;max-height:220px;object-fit:cover;border-radius:10px;margin-bottom:12px;" crossorigin="anonymous"/>':'';
     const hazards=triggered.map(id=>'<span style="background:#E74C3C;color:white;padding:3px 10px;border-radius:12px;font-size:12px;font-weight:700;margin-right:6px;">'+CRITICAL_LABELS[id]+'</span>').join('');
     const location=i.critical_location?'<div style="margin-top:10px;padding:10px;background:#FEF0F0;border-radius:8px;border-left:3px solid #E74C3C;"><div style="font-size:11px;font-weight:700;color:#E74C3C;margin-bottom:4px;">📍 EXACT LOCATION</div><div style="font-size:13px;color:#1A2E3E;">'+i.critical_location+'</div></div>':'';
-    return '<div style="background:white;border:2px solid #E74C3C;border-radius:14px;padding:16px;margin-bottom:16px;box-shadow:0 2px 12px rgba(231,76,60,0.1);">'
+    const status=getCriticalStatus(i.id);
+    const statusBadge=status==='resolved'
+      ?'<span style="background:#E8F8EF;color:#27AE60;padding:4px 12px;border-radius:10px;font-size:11px;font-weight:700;">✅ Resolved</span>'
+      :'<span style="background:#FEF0F0;color:#E74C3C;padding:4px 12px;border-radius:10px;font-size:11px;font-weight:700;">🔴 Pending</span>';
+    const statusBtn=status==='resolved'
+      ?'<button data-id="'+i.id+'" data-s="pending" onclick="setCriticalStatus(this.dataset.id,this.dataset.s)" style="padding:6px 14px;border-radius:8px;background:#F5F8FB;color:#5D7A8A;border:1px solid #E8EEF4;font-size:12px;font-weight:600;cursor:pointer;">↩ Mark Pending</button>'
+      :'<button data-id="'+i.id+'" data-s="resolved" onclick="setCriticalStatus(this.dataset.id,this.dataset.s)" style="padding:6px 14px;border-radius:8px;background:#27AE60;color:white;border:none;font-size:12px;font-weight:700;cursor:pointer;">✅ Mark Resolved</button>';
+    const borderColor=status==='resolved'?'#27AE60':'#E74C3C';
+    return '<div style="background:white;border:2px solid '+borderColor+';border-radius:14px;padding:16px;margin-bottom:16px;box-shadow:0 2px 12px rgba(0,0,0,0.06);">'
       +photo
-      +'<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;">'
-      +'<div><div style="font-size:15px;font-weight:700;color:#1A2E3E;">'+( i.area||'—')+'</div>'
-      +'<div style="font-size:12px;color:#5D7A8A;margin-top:2px;">'+( i.date||'—')+' · '+(i.time_start||'—')+' · 👷 '+(i.inspector||'—')+'</div></div>'
-      +'<span style="background:#FEF0F0;color:#E74C3C;padding:4px 10px;border-radius:10px;font-size:11px;font-weight:700;">🚨 CRITICAL</span></div>'
+      +'<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;gap:8px;flex-wrap:wrap;">'
+      +'<div><div style="font-size:15px;font-weight:700;color:#1A2E3E;">'+(i.area||'—')+'</div>'
+      +'<div style="font-size:12px;color:#5D7A8A;margin-top:2px;">'+(i.date||'—')+' · '+(i.time_start||'—')+' · 👷 '+(i.inspector||'—')+'</div></div>'
+      +statusBadge+'</div>'
       +'<div style="margin-bottom:10px;">'+hazards+'</div>'
       +location
       +(i.notes?'<div style="margin-top:10px;font-size:13px;color:#5D7A8A;font-style:italic;">'+i.notes+'</div>':'')
+      +'<div style="margin-top:12px;display:flex;justify-content:flex-end;">'+statusBtn+'</div>'
       +'</div>';
   }).join('');
 }
