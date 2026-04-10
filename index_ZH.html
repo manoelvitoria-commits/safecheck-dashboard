@@ -852,7 +852,7 @@ function isAdmin(){const u=getCurrentUser();const found=getUsers().find(x=>x.use
 function isPrivileged(){return isAdmin();}
 
 function checkInspectorAccess(e,id,el){
-  if(!isPrivileged()){e.preventDefault();alert('🔒 访问受限。此功能仅限授权用户使用。');return false;}
+  if(!isPrivileged()){e.preventDefault();return false;}
   showSection(id,el);return false;
 }
 
@@ -932,9 +932,7 @@ function render(){
   document.getElementById('kpiEPI').textContent=epiAnalyzed;
   document.getElementById('kpiEPISub').textContent=`${epiAnalyzed} / ${allData.length} 次检查`;
   renderRanking(); renderAreaChart(); renderTrend(); renderAreaGrid(); renderTable(); updateEPIStats();
-  if(isPrivileged()){
-    document.getElementById('inspectorLock').style.display='none';
-  }
+  showAdminNav();
 }
 
 function renderRanking(){
@@ -1578,6 +1576,14 @@ function showAdminNav(){
   if(el)el.style.display=isAdmin()?'block':'none';
   const cel=document.getElementById('criticalNavItem');
   if(cel)cel.style.display='block';
+  const inspNav=document.getElementById('navInspectors');
+  if(inspNav)inspNav.style.display=isAdmin()?'flex':'none';
+  const inspLock=document.getElementById('inspectorLock');
+  if(inspLock)inspLock.style.display='none';
+  const inspSec=document.getElementById('sec-inspectors');
+  if(inspSec&&inspSec.classList.contains('active')&&!isAdmin()){
+    showSection('overview',document.getElementById('navOverview'));
+  }
 }
 
 // ── CRITICAL EVENTS ───────────────────────────────────────────────────────────
