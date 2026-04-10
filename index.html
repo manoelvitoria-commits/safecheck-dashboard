@@ -848,7 +848,7 @@ function isAdmin(){const u=getCurrentUser();const found=getUsers().find(x=>x.use
 function isPrivileged(){return isAdmin();}
 
 function checkInspectorAccess(e,id,el){
-  if(!isPrivileged()){e.preventDefault();alert('🔒 Access restricted. This section is available to authorised users only.');return false;}
+  if(!isPrivileged()){e.preventDefault();return false;}
   showSection(id,el);return false;
 }
 
@@ -928,9 +928,7 @@ function render(){
   document.getElementById('kpiEPI').textContent=epiAnalyzed;
   document.getElementById('kpiEPISub').textContent=`${epiAnalyzed} of ${allData.length} inspections`;
   renderRanking(); renderAreaChart(); renderTrend(); renderAreaGrid(); renderTable(); updateEPIStats();
-  if(isPrivileged()){
-    document.getElementById('inspectorLock').style.display='none';
-  }
+  showAdminNav();
 }
 
 function renderRanking(){
@@ -1574,6 +1572,16 @@ function showAdminNav(){
   if(el)el.style.display=isAdmin()?'block':'none';
   const cel=document.getElementById('criticalNavItem');
   if(cel)cel.style.display='block';
+  // Hide inspector nav item completely for non-admin users
+  const inspNav=document.getElementById('navInspectors');
+  if(inspNav)inspNav.style.display=isAdmin()?'flex':'none';
+  const inspLock=document.getElementById('inspectorLock');
+  if(inspLock)inspLock.style.display='none';
+  // If current section is inspectors and user is not admin, redirect to overview
+  const inspSec=document.getElementById('sec-inspectors');
+  if(inspSec&&inspSec.classList.contains('active')&&!isAdmin()){
+    showSection('overview',document.getElementById('navOverview'));
+  }
 }
 
 // ── CRITICAL EVENTS ───────────────────────────────────────────────────────────
