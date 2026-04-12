@@ -1313,7 +1313,7 @@ async function analyzeAllPhotos(){
           max_tokens:300,
           messages:[{role:'user',content:[
             {type:'image',source:{type:'base64',media_type:'image/jpeg',data:b64}},
-            {type:'text',text:'你是建筑工地安全检查AI。检查图像：1)工人PPE安全帽眼镜背心。2)现场危险：明火最高优先级烟雾裸露电缆无保护插座出口被堵设备未固定。发现明火则compliant为false hazard_type为fire site_hazards写发现明火。工人全穿PPE无危险则compliant为true。无工人有危险则compliant为false。无工人无危险则compliant为true。仅返回JSON：workers_detected helmet glasses vest missing compliant hazard_type site_hazards中文描述'}
+            {type:'text',text:'你是建筑工地安全检查AI。按优先级检查图像：1)工人PPE安全帽眼镜背心。2)现场危险按优先级：明火或火焰最高优先级、烟雾或空气中烟霭需区分粉尘和水蒸气、积水或水坑尤其靠近电气设备或造成滑倒危险、裸露电缆无保护电气插座出口被堵设备未固定。规则：发现明火=compliant为false hazard_type为fire site_hazards写发现明火。发现烟雾=compliant为false hazard_type为fire site_hazards写发现烟雾。靠近电气设备的积水=compliant为false hazard_type为electrical。水坑或积水=compliant为false hazard_type为physical。工人缺少PPE=compliant为false。无工人无危险=compliant为true。仅返回JSON中文描述：workers_detected helmet glasses vest missing compliant hazard_type site_hazards'}
           ]}]
         })
       });
@@ -1363,7 +1363,7 @@ async function analyzeOnePhoto(id){
         model:'claude-sonnet-4-20250514',max_tokens:300,
         messages:[{role:'user',content:[
           {type:'image',source:{type:'base64',media_type:'image/jpeg',data:b64}},
-          {type:'text',text:'你是建筑工地安全检查AI。检查图像：1)工人PPE安全帽眼镜背心。2)现场危险：明火最高优先级烟雾裸露电缆无保护插座出口被堵设备未固定。发现明火则compliant为false hazard_type为fire site_hazards写发现明火。工人全穿PPE无危险则compliant为true。无工人有危险则compliant为false。无工人无危险则compliant为true。仅返回JSON：workers_detected helmet glasses vest missing compliant hazard_type site_hazards中文描述'}
+          {type:'text',text:'你是建筑工地安全检查AI。按优先级检查图像：1)工人PPE安全帽眼镜背心。2)现场危险按优先级：明火或火焰最高优先级、烟雾或空气中烟霭需区分粉尘和水蒸气、积水或水坑尤其靠近电气设备或造成滑倒危险、裸露电缆无保护电气插座出口被堵设备未固定。规则：发现明火=compliant为false hazard_type为fire site_hazards写发现明火。发现烟雾=compliant为false hazard_type为fire site_hazards写发现烟雾。靠近电气设备的积水=compliant为false hazard_type为electrical。水坑或积水=compliant为false hazard_type为physical。工人缺少PPE=compliant为false。无工人无危险=compliant为true。仅返回JSON中文描述：workers_detected helmet glasses vest missing compliant hazard_type site_hazards'}
         ]}]
       })
     });
@@ -1639,6 +1639,20 @@ function translateToZH(text) {
     'present': '已佩戴',
     'absent': '未佩戴',
     'uncertain': '不确定',
+    'smoke detected': '发现烟雾',
+    'smoke': '烟雾',
+    'haze in the air': '空气中烟霭',
+    'water accumulation near electrical equipment': '靠近电气设备的积水',
+    'water accumulation': '积水',
+    'puddle or water accumulation': '水坑或积水',
+    'puddle': '水坑',
+    'flooding': '积水/洪水',
+    'slip hazard': '滑倒危险',
+    'wet floor': '地面湿滑',
+    'water near electrical': '水靠近电气设备',
+    'active fire': '发现明火',
+    'active_fire': '发现明火',
+    'burning material': '燃烧物',
   };
   let result = text.toLowerCase();
   const keys = Object.keys(dict).sort((a,b) => b.length - a.length);
