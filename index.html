@@ -1312,7 +1312,7 @@ async function analyzeAllPhotos(){
           max_tokens:300,
           messages:[{role:'user',content:[
             {type:'image',source:{type:'base64',media_type:'image/jpeg',data:b64}},
-            {type:'text',text:'You are a construction site safety inspector AI. Analyze this image for safety issues. Check for: 1) PPE on workers - hard hat, safety glasses, reflective vest. 2) Site hazards: ACTIVE FIRE or flames (top priority!), smoke, exposed cables, unprotected outlets, blocked exits, unsecured equipment. If fire visible: compliant=false, hazard_type=fire. Workers missing PPE: compliant=false. No workers, no hazards: compliant=true. Return ONLY JSON: workers_detected, helmet, glasses, vest, missing, compliant, hazard_type, site_hazards'}
+            {type:'text',text:'You are a construction site safety inspector AI. Analyze this image for safety issues. Check for: 1) PPE on workers - hard hat, safety glasses, reflective vest. 2) Site hazards with priority order: ACTIVE FIRE or flames (critical!), SMOKE or haze in the air - distinguish from dust or steam (critical!), WATER ACCUMULATION - puddles, flooding, water near electrical equipment, wet floors posing slip hazard (high priority), exposed/loose cables, unprotected electrical outlets or panels, blocked emergency exits, unsecured equipment, unsafe installations. Rules: Fire or flames visible = compliant false, hazard_type fire. Smoke detected = compliant false, hazard_type fire, note if it could be dust or steam. Water accumulation near electrical = compliant false, hazard_type electrical. Water puddle or flooding = compliant false, hazard_type physical. Workers missing PPE = compliant false. No workers and no hazards = compliant true. Return ONLY valid JSON with keys: workers_detected, helmet, glasses, vest, missing, compliant, hazard_type, site_hazards'}
           ]}]
         })
       });
@@ -1362,7 +1362,7 @@ async function analyzeOnePhoto(id){
         model:'claude-sonnet-4-20250514',max_tokens:300,
         messages:[{role:'user',content:[
           {type:'image',source:{type:'base64',media_type:'image/jpeg',data:b64}},
-          {type:'text',text:'You are a construction site safety inspector AI. Analyze this image for safety issues. Check for: 1) PPE on workers - hard hat, safety glasses, reflective vest. 2) Site hazards: ACTIVE FIRE or flames (top priority!), smoke, exposed cables, unprotected outlets, blocked exits, unsecured equipment. If fire visible: compliant=false, hazard_type=fire. Workers missing PPE: compliant=false. No workers, no hazards: compliant=true. Return ONLY JSON: workers_detected, helmet, glasses, vest, missing, compliant, hazard_type, site_hazards'}
+          {type:'text',text:'You are a construction site safety inspector AI. Analyze this image for safety issues. Check for: 1) PPE on workers - hard hat, safety glasses, reflective vest. 2) Site hazards with priority order: ACTIVE FIRE or flames (critical!), SMOKE or haze in the air - distinguish from dust or steam (critical!), WATER ACCUMULATION - puddles, flooding, water near electrical equipment, wet floors posing slip hazard (high priority), exposed/loose cables, unprotected electrical outlets or panels, blocked emergency exits, unsecured equipment, unsafe installations. Rules: Fire or flames visible = compliant false, hazard_type fire. Smoke detected = compliant false, hazard_type fire, note if it could be dust or steam. Water accumulation near electrical = compliant false, hazard_type electrical. Water puddle or flooding = compliant false, hazard_type physical. Workers missing PPE = compliant false. No workers and no hazards = compliant true. Return ONLY valid JSON with keys: workers_detected, helmet, glasses, vest, missing, compliant, hazard_type, site_hazards'}
         ]}]
       })
     });
@@ -1639,6 +1639,18 @@ function translateToEN(text) {
     '不确定': 'uncertain',
     '不适用': 'n/a',
     'active_fire': 'active fire',
+    '发现烟雾': 'smoke detected',
+    '空气中烟霭': 'haze in the air',
+    '烟雾': 'smoke',
+    '积水': 'water accumulation',
+    '水坑': 'puddle / flooding',
+    '靠近电气设备的积水': 'water accumulation near electrical equipment',
+    '滑倒危险': 'slip hazard',
+    '水坑或积水': 'puddle or water accumulation',
+    'smoke detected': 'smoke detected',
+    'water accumulation': 'water accumulation',
+    'puddle': 'puddle',
+    'slip hazard': 'slip hazard',
     'burning_material': 'burning material',
   };
   let result = text;
