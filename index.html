@@ -1239,32 +1239,27 @@ function updateEPIStats(){
   document.getElementById('epiProgressBar').style.background=compliance>=80?'var(--green)':compliance>=50?'var(--orange)':'var(--red)';
 
   // Show ALL photos with inspection data
-  // Expand: one card per PHOTO (not per inspection)
-  const allPhotoCards = allData.flatMap(i=>{
-    if(!i.photos||i.photos.length===0) return [];
-    return i.photos.map((photo,photoIdx)=>({insp:i, photo, photoIdx}));
-  });
-  const withPhotos = allPhotoCards;
+  const withPhotos = allData.filter(i=>i.photos&&i.photos.length>0);
   if(withPhotos.length>0){
-    document.getElementById('epiPhotoGrid').innerHTML=withPhotos.slice(0,48).map(({insp:i, photo, photoIdx})=>{
+    document.getElementById('epiPhotoGrid').innerHTML=withPhotos.slice(0,24).map(i=>{
       const hasEPI = i.epi_check&&i.epi_check.length>0;
       if(!hasEPI){
         // Not yet analyzed — show photo with Analyze button
-        // photo already set from flatMap
+        const photo=i.photos[0];
         return `<div class="epi-photo-card" style="border:2px solid var(--border);">
           ${photo?`<img src="${photo}" onerror="this.style.display='none'" style="width:100%;height:130px;object-fit:cover;"/>`:'<div style="height:130px;background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:32px;">📷</div>'}
           <div class="epi-photo-info">
             <div style="font-size:11px;color:var(--muted);margin-bottom:6px;">${i.area||'—'} · ${i.date||'—'}</div>
-            <button id="btn-${i.id}-${photoIdx}" onclick="analyzeOnePhoto(${i.id})" style="width:100%;background:var(--ai);color:white;border:none;border-radius:8px;padding:6px;font-size:12px;font-weight:600;cursor:pointer;">🤖 Analyze PPE</button>
-            <div class="epi-progress-bar-wrap" id="prog-${i.id}-${photoIdx}">
-              <div class="epi-progress-bar-anim" id="prog-bar-${i.id}-${photoIdx}" style="width:100%;"></div>
+            <button id="btn-${i.id}" onclick="analyzeOnePhoto(${i.id})" style="width:100%;background:var(--ai);color:white;border:none;border-radius:8px;padding:6px;font-size:12px;font-weight:600;cursor:pointer;">🤖 Analyze PPE</button>
+            <div class="epi-progress-bar-wrap" id="prog-${i.id}">
+              <div class="epi-progress-bar-anim" id="prog-bar-${i.id}" style="width:100%;"></div>
             </div>
-            <div class="epi-analyze-status" id="status-${i.id}-${photoIdx}"></div>
+            <div class="epi-analyze-status" id="status-${i.id}"></div>
           </div>
         </div>`;
       }
       const epi=i.epi_check[0];
-      // photo already set from flatMap (per-photo iteration)
+      const photo=i.photos&&i.photos[0];
       // Support both old format (single) and new format (workers array)
       const epiData = epi.workers && epi.workers.length > 0 ? epi.workers[0] : epi;
       const isCompliant = epi.overall_compliant !== undefined ? epi.overall_compliant : epi.compliant;
@@ -1317,7 +1312,7 @@ async function analyzeAllPhotos(){
           max_tokens:300,
           messages:[{role:'user',content:[
             {type:'image',source:{type:'base64',media_type:'image/jpeg',data:b64}},
-            {type:'text',text:'You are a construction site safety inspector AI. Analyze this image for safety issues. Check for: 1) PPE on workers - hard hat, safety glasses, reflective vest. 2) Site hazards with priority order: ACTIVE FIRE or flames (critical!), SMOKE or haze in the air - distinguish from dust or steam (critical!), WATER ACCUMULATION - puddles, flooding, water near electrical equipment, wet floors posing slip hazard (high priority), exposed/loose cables, unprotected electrical outlets or panels, blocked emergency exits, unsecured equipment, unsafe installations. Rules: Fire or flames visible = compliant false, hazard_type fire. Smoke detected = compliant false, hazard_type fire, note if it could be dust or steam. Water accumulation near electrical = compliant false, hazard_type electrical. Water puddle or flooding = compliant false, hazard_type physical. Workers missing PPE = compliant false. No workers and no hazards = compliant true. Return ONLY valid JSON with keys: workers_detected, helmet, glasses, vest, missing, compliant, hazard_type, site_hazards'}
+            {type:'text',text:'You are a construction site safety inspector AI. Analyze this image strictly in the context of a CONSTRUCTION SITE. 1) PPE COMPLIANCE (if workers visible): check hard hat, safety glasses, reflective vest. 2) SITE HAZARDS — only flag genuine construction site dangers, NOT normal office/household items: ACTIVE FIRE or flames (critical!), SMOKE clearly visible in air — NOT dust, NOT steam (critical!), WATER ACCUMULATION — large puddles or flooding on construction floors near electrical panels or heavy equipment (high priority) — NOT normal bottles or cups of water, EXPOSED WIRING — bare copper wires, cables with damaged insulation on construction sites — NOT normal power adapters, phone chargers, or laptop cables on desks, Unprotected high-voltage electrical panels open on site — NOT normal wall outlets or power strips, Blocked emergency exits, unsecured heavy equipment or scaffolding. IMPORTANT: A power adapter, phone charger, laptop cable, water bottle, keyboard, or any normal office/household item is NOT a hazard. If the image shows an office, meeting room, bedroom, kitchen, or any non-construction area with only normal items = compliant true, workers_detected 0, site_hazards empty. Workers missing PPE = compliant false. No workers and no genuine construction hazards = compliant true. Return ONLY valid JSON: workers_detected, helmet, glasses, vest, missing, compliant, hazard_type, site_hazards'}
           ]}]
         })
       });
@@ -1349,9 +1344,9 @@ async function analyzeOnePhoto(id){
   const insp=allData.find(i=>i.id===id);
   if(!insp||!insp.photos||!insp.photos[0])return;
   // Show progress bar
-  const btn=document.getElementById('btn-'+id);
-  const prog=document.getElementById('prog-'+id);
-  const status=document.getElementById('status-'+id);
+  const btn=document.getElementById('btn-'+id+'-0');
+  const prog=document.getElementById('prog-'+id+'-0');
+  const status=document.getElementById('status-'+id+'-0');
   if(btn){btn.disabled=true;btn.textContent='Analyzing...';}
   if(prog){prog.classList.add('active');}
   if(status){status.textContent='Fetching photo...';}
@@ -1367,7 +1362,7 @@ async function analyzeOnePhoto(id){
         model:'claude-sonnet-4-20250514',max_tokens:300,
         messages:[{role:'user',content:[
           {type:'image',source:{type:'base64',media_type:'image/jpeg',data:b64}},
-          {type:'text',text:'You are a construction site safety inspector AI. Analyze this image for safety issues. Check for: 1) PPE on workers - hard hat, safety glasses, reflective vest. 2) Site hazards with priority order: ACTIVE FIRE or flames (critical!), SMOKE or haze in the air - distinguish from dust or steam (critical!), WATER ACCUMULATION - puddles, flooding, water near electrical equipment, wet floors posing slip hazard (high priority), exposed/loose cables, unprotected electrical outlets or panels, blocked emergency exits, unsecured equipment, unsafe installations. Rules: Fire or flames visible = compliant false, hazard_type fire. Smoke detected = compliant false, hazard_type fire, note if it could be dust or steam. Water accumulation near electrical = compliant false, hazard_type electrical. Water puddle or flooding = compliant false, hazard_type physical. Workers missing PPE = compliant false. No workers and no hazards = compliant true. Return ONLY valid JSON with keys: workers_detected, helmet, glasses, vest, missing, compliant, hazard_type, site_hazards'}
+          {type:'text',text:'You are a construction site safety inspector AI. Analyze this image strictly in the context of a CONSTRUCTION SITE. 1) PPE COMPLIANCE (if workers visible): check hard hat, safety glasses, reflective vest. 2) SITE HAZARDS — only flag genuine construction site dangers, NOT normal office/household items: ACTIVE FIRE or flames (critical!), SMOKE clearly visible in air — NOT dust, NOT steam (critical!), WATER ACCUMULATION — large puddles or flooding on construction floors near electrical panels or heavy equipment (high priority) — NOT normal bottles or cups of water, EXPOSED WIRING — bare copper wires, cables with damaged insulation on construction sites — NOT normal power adapters, phone chargers, or laptop cables on desks, Unprotected high-voltage electrical panels open on site — NOT normal wall outlets or power strips, Blocked emergency exits, unsecured heavy equipment or scaffolding. IMPORTANT: A power adapter, phone charger, laptop cable, water bottle, keyboard, or any normal office/household item is NOT a hazard. If the image shows an office, meeting room, bedroom, kitchen, or any non-construction area with only normal items = compliant true, workers_detected 0, site_hazards empty. Workers missing PPE = compliant false. No workers and no genuine construction hazards = compliant true. Return ONLY valid JSON: workers_detected, helmet, glasses, vest, missing, compliant, hazard_type, site_hazards'}
         ]}]
       })
     });
