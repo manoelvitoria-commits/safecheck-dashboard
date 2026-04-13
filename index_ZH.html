@@ -1264,6 +1264,9 @@ function updateEPIStats(){
       // Support both old format (single) and new format (workers array)
       const epiData = epi.workers && epi.workers.length > 0 ? epi.workers[0] : epi;
       const isCompliant = epi.overall_compliant !== undefined ? epi.overall_compliant : epi.compliant;
+      const _noW = !epi.workers_detected || Number(epi.workers_detected) === 0;
+      const _noH = (!epi.site_hazards||epi.site_hazards.length===0)&&(!epi.missing||epi.missing.length===0);
+      const isNeutral = _noW && _noH && isCompliant;
       function badgeIcon(val){ return val==='present'?'✓':val==='absent'?'✗':val==='na'?'—':'?'; }
       function badgeClass(val){ return val==='present'?'epi-ok':val==='absent'?'epi-miss':'epi-unk'; }
       const badges=[
@@ -1271,13 +1274,13 @@ function updateEPIStats(){
         `<span class="epi-badge ${badgeClass(epiData.glasses)}">🥽 ${badgeIcon(epiData.glasses)}</span>`,
         `<span class="epi-badge ${badgeClass(epiData.vest)}">🦺 ${badgeIcon(epiData.vest)}</span>`,
       ].join('');
-      return `<div class="epi-photo-card" style="border:2px solid ${isCompliant?'var(--green)':'var(--red)'};">
+      return `<div class="epi-photo-card" style="border:2px solid ${isNeutral?'#ccc':isCompliant?'var(--green)':'var(--red)'};">
         ${photo?`<img src="${photo}" onerror="this.style.display='none'"/>`:'<div style="height:130px;background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:32px;">📷</div>'}
         <div class="epi-photo-info">
           <div style="font-size:11px;color:var(--muted);margin-bottom:4px;">${i.area||'—'} · ${i.date||'—'}</div>
           <div>${badges}</div>
           ${(epi.site_hazards&&epi.site_hazards.length>0)?`<div style="font-size:10px;color:#E67E22;margin-top:3px;">⚡ ${(Array.isArray(epi.site_hazards)?epi.site_hazards:typeof epi.site_hazards==='string'?[epi.site_hazards]:[]).slice(0,2).map(s=>typeof translateToZH==='function'?translateToZH(s):s).join(' · ')}</div>`:''}
-          <div style="font-size:11px;margin-top:4px;font-weight:700;color:${isCompliant?'var(--green)':'var(--red)'};">${isCompliant?'✅ 合规':'⚠️ 不合规'}</div>
+          <div style="font-size:11px;margin-top:4px;font-weight:700;color:${isNeutral?'#999':isCompliant?'var(--green)':'var(--red)'};">${isNeutral?'⬜ 不适用':isCompliant?'✅ 合规':'⚠️ 不合规'}</div>
         </div>
       </div>`;
     }).join('');
@@ -1313,7 +1316,7 @@ async function analyzeAllPhotos(){
           max_tokens:300,
           messages:[{role:'user',content:[
             {type:'image',source:{type:'base64',media_type:'image/jpeg',data:b64}},
-            {type:'text',text:'你是建筑工地安全检查AI。按优先级检查图像：1)工人PPE安全帽眼镜背心。2)现场危险按优先级：明火或火焰最高优先级、烟雾或空气中烟霭需区分粉尘和水蒸气、积水或水坑尤其靠近电气设备或造成滑倒危险、裸露电缆无保护电气插座出口被堵设备未固定。规则：发现明火=compliant为false hazard_type为fire site_hazards写发现明火。发现烟雾=compliant为false hazard_type为fire site_hazards写发现烟雾。靠近电气设备的积水=compliant为false hazard_type为electrical。水坑或积水=compliant为false hazard_type为physical。工人缺少PPE=compliant为false。无工人无危险=compliant为true。仅返回JSON中文描述：workers_detected helmet glasses vest missing compliant hazard_type site_hazards'}
+            {type:'text',text:'你是建筑工地安全检查AI。按优先级检查：1)工人PPE安全帽眼镜背心。2)现场危险：明火火焰最高优先级、烟雾空气烟霭需区分粉尘水蒸气、积水水坑尤其靠近电气设备或滑倒危险、裸露电缆无保护插座出口被堵设备未固定。发现明火=compliant为false hazard_type为fire。发现烟雾=compliant为false hazard_type为fire。靠近电气积水=compliant为false hazard_type为electrical。水坑积水=compliant为false hazard_type为physical。工人缺PPE=compliant为false。无工人无危险=compliant为true。仅返回JSON中文：workers_detected helmet glasses vest missing compliant hazard_type site_hazards'}
           ]}]
         })
       });
@@ -1363,7 +1366,7 @@ async function analyzeOnePhoto(id){
         model:'claude-sonnet-4-20250514',max_tokens:300,
         messages:[{role:'user',content:[
           {type:'image',source:{type:'base64',media_type:'image/jpeg',data:b64}},
-          {type:'text',text:'你是建筑工地安全检查AI。按优先级检查图像：1)工人PPE安全帽眼镜背心。2)现场危险按优先级：明火或火焰最高优先级、烟雾或空气中烟霭需区分粉尘和水蒸气、积水或水坑尤其靠近电气设备或造成滑倒危险、裸露电缆无保护电气插座出口被堵设备未固定。规则：发现明火=compliant为false hazard_type为fire site_hazards写发现明火。发现烟雾=compliant为false hazard_type为fire site_hazards写发现烟雾。靠近电气设备的积水=compliant为false hazard_type为electrical。水坑或积水=compliant为false hazard_type为physical。工人缺少PPE=compliant为false。无工人无危险=compliant为true。仅返回JSON中文描述：workers_detected helmet glasses vest missing compliant hazard_type site_hazards'}
+          {type:'text',text:'你是建筑工地安全检查AI。按优先级检查：1)工人PPE安全帽眼镜背心。2)现场危险：明火火焰最高优先级、烟雾空气烟霭需区分粉尘水蒸气、积水水坑尤其靠近电气设备或滑倒危险、裸露电缆无保护插座出口被堵设备未固定。发现明火=compliant为false hazard_type为fire。发现烟雾=compliant为false hazard_type为fire。靠近电气积水=compliant为false hazard_type为electrical。水坑积水=compliant为false hazard_type为physical。工人缺PPE=compliant为false。无工人无危险=compliant为true。仅返回JSON中文：workers_detected helmet glasses vest missing compliant hazard_type site_hazards'}
         ]}]
       })
     });
@@ -1379,7 +1382,7 @@ async function analyzeOnePhoto(id){
       });
       insp.epi_check=[result];
       if(prog){prog.classList.remove('active');}
-      if(status){status.textContent=result.overall_compliant||result.compliant?'✅ 合规':'⚠️ 不合规';}
+      if(status){const _rn=(!result.workers_detected||Number(result.workers_detected)===0)&&(!result.site_hazards||!result.site_hazards.length)&&(!result.missing||!result.missing.length)&&(result.overall_compliant||result.compliant); status.textContent=_rn?'⬜ 不适用':(result.overall_compliant||result.compliant)?'✅ 合规':'⚠️ 不合规';}
       if(btn){btn.style.display='none';}
       renderTable();
       updateEPIStats();
