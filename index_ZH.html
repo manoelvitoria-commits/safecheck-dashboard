@@ -1269,9 +1269,6 @@ function updateEPIStats(){
       // Support both old format (single) and new format (workers array)
       const epiData = epi.workers && epi.workers.length > 0 ? epi.workers[0] : epi;
       const isCompliant = epi.overall_compliant !== undefined ? epi.overall_compliant : epi.compliant;
-      const _noW = !epi.workers_detected || Number(epi.workers_detected) === 0;
-      const _noH = (!epi.site_hazards||epi.site_hazards.length===0)&&(!epi.missing||epi.missing.length===0);
-      const isNeutral = _noW && _noH && isCompliant;
       function badgeIcon(val){ return val==='present'?'✓':val==='absent'?'✗':val==='na'?'—':'?'; }
       function badgeClass(val){ return val==='present'?'epi-ok':val==='absent'?'epi-miss':'epi-unk'; }
       const badges=[
@@ -1279,13 +1276,13 @@ function updateEPIStats(){
         `<span class="epi-badge ${badgeClass(epiData.glasses)}">🥽 ${badgeIcon(epiData.glasses)}</span>`,
         `<span class="epi-badge ${badgeClass(epiData.vest)}">🦺 ${badgeIcon(epiData.vest)}</span>`,
       ].join('');
-      return `<div class="epi-photo-card" style="border:2px solid ${isNeutral?'#ccc':isCompliant?'var(--green)':'var(--red)'};">
+      return `<div class="epi-photo-card" style="border:2px solid ${isCompliant?'var(--green)':'var(--red)'};">
         ${photo?`<img src="${photo}" onerror="this.style.display='none'"/>`:'<div style="height:130px;background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:32px;">📷</div>'}
         <div class="epi-photo-info">
           <div style="font-size:11px;color:var(--muted);margin-bottom:4px;">${i.area||'—'} · ${i.date||'—'}</div>
           <div>${badges}</div>
           ${(epi.site_hazards&&epi.site_hazards.length>0)?`<div style="font-size:10px;color:#E67E22;margin-top:3px;">⚡ ${(Array.isArray(epi.site_hazards)?epi.site_hazards:typeof epi.site_hazards==='string'?[epi.site_hazards]:[]).slice(0,2).map(s=>typeof translateToZH==='function'?translateToZH(s):s).join(' · ')}</div>`:''}
-          <div style="font-size:11px;margin-top:4px;font-weight:700;color:${isNeutral?'#999':isCompliant?'var(--green)':'var(--red)'};">${isNeutral?'⬜ 不适用':isCompliant?'✅ 合规':'⚠️ 不合规'}</div>
+          <div style="font-size:11px;margin-top:4px;font-weight:700;color:${isCompliant?'var(--green)':'var(--red)'};">${isCompliant?'✅ 合规':'⚠️ 不合规'}</div>
         </div>
       </div>`;
     }).join('');
@@ -1321,7 +1318,7 @@ async function analyzeAllPhotos(){
           max_tokens:300,
           messages:[{role:'user',content:[
             {type:'image',source:{type:'base64',media_type:'image/jpeg',data:b64}},
-            {type:'text',text:'你是建筑工地安全检查AI。按优先级检查：1)工人PPE安全帽眼镜背心。2)现场危险：明火火焰最高优先级、烟雾空气烟霭需区分粉尘水蒸气、积水水坑尤其靠近电气设备或滑倒危险、裸露电缆无保护插座出口被堵设备未固定。发现明火=compliant为false hazard_type为fire。发现烟雾=compliant为false hazard_type为fire。靠近电气积水=compliant为false hazard_type为electrical。水坑积水=compliant为false hazard_type为physical。工人缺PPE=compliant为false。无工人无危险=compliant为true。仅返回JSON中文：workers_detected helmet glasses vest missing compliant hazard_type site_hazards'}
+            {type:'text',text:'你是建筑工地安全检查AI。严格在建筑工地场景下分析图像。1)工人PPE：安全帽、安全眼镜、反光背心。2)现场危险——只标记真正的建筑工地危险，不要标记正常的办公室或家用物品：明火或火焰（最高优先级）、空气中明显可见的烟雾——不是粉尘或水蒸气（最高优先级）、大面积积水或洪水——在靠近电气面板或重型设备的建筑地面上——不是正常的水杯或水瓶、裸露线路——建筑工地上绝缘层破损的裸铜线——不是正常的电源适配器、手机充电线或桌上的笔记本电脑线、开放的高压电气面板——不是普通墙壁插座或排插、堵塞的紧急出口、不固定的重型设备或脚手架。重要提示：电源适配器、手机充电器、笔记本电脑线、水瓶、键盘或任何正常的办公室/家用物品不是危险。如果图像显示办公室、会议室、卧室、厨房或任何只有普通物品的非建筑区域=compliant为true workers_detected为0 site_hazards为空。工人缺少PPE=compliant为false。无工人且无真正建筑危险=compliant为true。仅返回JSON中文描述：workers_detected helmet glasses vest missing compliant hazard_type site_hazards'}
           ]}]
         })
       });
@@ -1353,9 +1350,9 @@ async function analyzeOnePhoto(id){
   const insp=allData.find(i=>i.id===id);
   if(!insp||!insp.photos||!insp.photos[0])return;
   // Show progress bar
-  const btn=document.getElementById('btn-'+id);
-  const prog=document.getElementById('prog-'+id);
-  const status=document.getElementById('status-'+id);
+  const btn=document.getElementById('btn-'+id+'-0');
+  const prog=document.getElementById('prog-'+id+'-0');
+  const status=document.getElementById('status-'+id+'-0');
   if(btn){btn.disabled=true;btn.textContent='分析中...';}
   if(prog){prog.classList.add('active');}
   if(status){status.textContent='获取照片中...';}
@@ -1371,7 +1368,7 @@ async function analyzeOnePhoto(id){
         model:'claude-sonnet-4-20250514',max_tokens:300,
         messages:[{role:'user',content:[
           {type:'image',source:{type:'base64',media_type:'image/jpeg',data:b64}},
-          {type:'text',text:'你是建筑工地安全检查AI。按优先级检查：1)工人PPE安全帽眼镜背心。2)现场危险：明火火焰最高优先级、烟雾空气烟霭需区分粉尘水蒸气、积水水坑尤其靠近电气设备或滑倒危险、裸露电缆无保护插座出口被堵设备未固定。发现明火=compliant为false hazard_type为fire。发现烟雾=compliant为false hazard_type为fire。靠近电气积水=compliant为false hazard_type为electrical。水坑积水=compliant为false hazard_type为physical。工人缺PPE=compliant为false。无工人无危险=compliant为true。仅返回JSON中文：workers_detected helmet glasses vest missing compliant hazard_type site_hazards'}
+          {type:'text',text:'你是建筑工地安全检查AI。严格在建筑工地场景下分析图像。1)工人PPE：安全帽、安全眼镜、反光背心。2)现场危险——只标记真正的建筑工地危险，不要标记正常的办公室或家用物品：明火或火焰（最高优先级）、空气中明显可见的烟雾——不是粉尘或水蒸气（最高优先级）、大面积积水或洪水——在靠近电气面板或重型设备的建筑地面上——不是正常的水杯或水瓶、裸露线路——建筑工地上绝缘层破损的裸铜线——不是正常的电源适配器、手机充电线或桌上的笔记本电脑线、开放的高压电气面板——不是普通墙壁插座或排插、堵塞的紧急出口、不固定的重型设备或脚手架。重要提示：电源适配器、手机充电器、笔记本电脑线、水瓶、键盘或任何正常的办公室/家用物品不是危险。如果图像显示办公室、会议室、卧室、厨房或任何只有普通物品的非建筑区域=compliant为true workers_detected为0 site_hazards为空。工人缺少PPE=compliant为false。无工人且无真正建筑危险=compliant为true。仅返回JSON中文描述：workers_detected helmet glasses vest missing compliant hazard_type site_hazards'}
         ]}]
       })
     });
@@ -1387,7 +1384,7 @@ async function analyzeOnePhoto(id){
       });
       insp.epi_check=[result];
       if(prog){prog.classList.remove('active');}
-      if(status){const _rn=(!result.workers_detected||Number(result.workers_detected)===0)&&(!result.site_hazards||!result.site_hazards.length)&&(!result.missing||!result.missing.length)&&(result.overall_compliant||result.compliant); status.textContent=_rn?'⬜ 不适用':(result.overall_compliant||result.compliant)?'✅ 合规':'⚠️ 不合规';}
+      if(status){status.textContent=result.overall_compliant||result.compliant?'✅ 合规':'⚠️ 不合规';}
       if(btn){btn.style.display='none';}
       renderTable();
       updateEPIStats();
