@@ -1239,33 +1239,35 @@ function updateEPIStats(){
   document.getElementById('epiProgressBar').style.background=compliance>=80?'var(--green)':compliance>=50?'var(--orange)':'var(--red)';
 
   // Show ALL photos with inspection data
-  const withPhotos = allData.filter(i=>i.photos&&i.photos.length>0);
+  // Expand: one card per PHOTO (not per inspection)
+  const allPhotoCards = allData.flatMap(i=>{
+    if(!i.photos||i.photos.length===0) return [];
+    return i.photos.map((photo,photoIdx)=>({insp:i, photo, photoIdx}));
+  });
+  const withPhotos = allPhotoCards;
   if(withPhotos.length>0){
-    document.getElementById('epiPhotoGrid').innerHTML=withPhotos.slice(0,24).map(i=>{
+    document.getElementById('epiPhotoGrid').innerHTML=withPhotos.slice(0,48).map(({insp:i, photo, photoIdx})=>{
       const hasEPI = i.epi_check&&i.epi_check.length>0;
       if(!hasEPI){
         // Not yet analyzed — show photo with Analyze button
-        const photo=i.photos[0];
+        // photo already set from flatMap
         return `<div class="epi-photo-card" style="border:2px solid var(--border);">
           ${photo?`<img src="${photo}" onerror="this.style.display='none'" style="width:100%;height:130px;object-fit:cover;"/>`:'<div style="height:130px;background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:32px;">📷</div>'}
           <div class="epi-photo-info">
             <div style="font-size:11px;color:var(--muted);margin-bottom:6px;">${i.area||'—'} · ${i.date||'—'}</div>
-            <button id="btn-${i.id}" onclick="analyzeOnePhoto(${i.id})" style="width:100%;background:var(--ai);color:white;border:none;border-radius:8px;padding:6px;font-size:12px;font-weight:600;cursor:pointer;">🤖 Analyze PPE</button>
-            <div class="epi-progress-bar-wrap" id="prog-${i.id}">
-              <div class="epi-progress-bar-anim" id="prog-bar-${i.id}" style="width:100%;"></div>
+            <button id="btn-${i.id}-${photoIdx}" onclick="analyzeOnePhoto(${i.id})" style="width:100%;background:var(--ai);color:white;border:none;border-radius:8px;padding:6px;font-size:12px;font-weight:600;cursor:pointer;">🤖 Analyze PPE</button>
+            <div class="epi-progress-bar-wrap" id="prog-${i.id}-${photoIdx}">
+              <div class="epi-progress-bar-anim" id="prog-bar-${i.id}-${photoIdx}" style="width:100%;"></div>
             </div>
-            <div class="epi-analyze-status" id="status-${i.id}"></div>
+            <div class="epi-analyze-status" id="status-${i.id}-${photoIdx}"></div>
           </div>
         </div>`;
       }
       const epi=i.epi_check[0];
-      const photo=i.photos&&i.photos[0];
+      // photo already set from flatMap (per-photo iteration)
       // Support both old format (single) and new format (workers array)
       const epiData = epi.workers && epi.workers.length > 0 ? epi.workers[0] : epi;
       const isCompliant = epi.overall_compliant !== undefined ? epi.overall_compliant : epi.compliant;
-      const _noW = !epi.workers_detected || Number(epi.workers_detected) === 0;
-      const _noH = (!epi.site_hazards||epi.site_hazards.length===0)&&(!epi.missing||epi.missing.length===0);
-      const isNeutral = _noW && _noH && isCompliant;
       function badgeIcon(val){ return val==='present'?'✓':val==='absent'?'✗':val==='na'?'—':'?'; }
       function badgeClass(val){ return val==='present'?'epi-ok':val==='absent'?'epi-miss':'epi-unk'; }
       const badges=[
@@ -1273,13 +1275,13 @@ function updateEPIStats(){
         `<span class="epi-badge ${badgeClass(epiData.glasses)}">🥽 ${badgeIcon(epiData.glasses)}</span>`,
         `<span class="epi-badge ${badgeClass(epiData.vest)}">🦺 ${badgeIcon(epiData.vest)}</span>`,
       ].join('');
-      return `<div class="epi-photo-card" style="border:2px solid ${isNeutral?'#ccc':isCompliant?'var(--green)':'var(--red)'};">
+      return `<div class="epi-photo-card" style="border:2px solid ${isCompliant?'var(--green)':'var(--red)'};">
         ${photo?`<img src="${photo}" onerror="this.style.display='none'"/>`:'<div style="height:130px;background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:32px;">📷</div>'}
         <div class="epi-photo-info">
           <div style="font-size:11px;color:var(--muted);margin-bottom:4px;">${i.area||'—'} · ${i.date||'—'}</div>
           <div>${badges}</div>
           ${(epi.site_hazards&&epi.site_hazards.length>0)?`<div style="font-size:10px;color:#E67E22;margin-top:3px;">⚡ ${(Array.isArray(epi.site_hazards)?epi.site_hazards:typeof epi.site_hazards==='string'?[epi.site_hazards]:[]).slice(0,2).map(translateToEN).join(' · ')}</div>`:''}
-          <div style="font-size:11px;margin-top:4px;font-weight:700;color:${isNeutral?'#999':isCompliant?'var(--green)':'var(--red)'};">${isNeutral?'⬜ N/A':isCompliant?'✅ Compliant':'⚠️ Non-compliant'}</div>
+          <div style="font-size:11px;margin-top:4px;font-weight:700;color:${isCompliant?'var(--green)':'var(--red)'};">${isCompliant?'✅ Compliant':'⚠️ Non-compliant'}</div>
         </div>
       </div>`;
     }).join('');
@@ -1315,7 +1317,7 @@ async function analyzeAllPhotos(){
           max_tokens:300,
           messages:[{role:'user',content:[
             {type:'image',source:{type:'base64',media_type:'image/jpeg',data:b64}},
-            {type:'text',text:'You are a construction site safety inspector AI. Analyze this image for safety issues. Check for: 1) PPE on workers - hard hat, safety glasses, reflective vest. 2) Site hazards in priority order: ACTIVE FIRE or flames (critical!), SMOKE or haze - distinguish from dust or steam (critical!), WATER ACCUMULATION - puddles flooding water near electrical wet floors slip hazard (high priority), exposed cables, unprotected outlets, blocked exits, unsecured equipment. Fire or flames = compliant false hazard_type fire. Smoke = compliant false hazard_type fire. Water near electrical = compliant false hazard_type electrical. Puddle or flooding = compliant false hazard_type physical. Workers missing PPE = compliant false. No workers and no hazards = compliant true. Return ONLY valid JSON: workers_detected helmet glasses vest missing compliant hazard_type site_hazards'}
+            {type:'text',text:'You are a construction site safety inspector AI. Analyze this image for safety issues. Check for: 1) PPE on workers - hard hat, safety glasses, reflective vest. 2) Site hazards with priority order: ACTIVE FIRE or flames (critical!), SMOKE or haze in the air - distinguish from dust or steam (critical!), WATER ACCUMULATION - puddles, flooding, water near electrical equipment, wet floors posing slip hazard (high priority), exposed/loose cables, unprotected electrical outlets or panels, blocked emergency exits, unsecured equipment, unsafe installations. Rules: Fire or flames visible = compliant false, hazard_type fire. Smoke detected = compliant false, hazard_type fire, note if it could be dust or steam. Water accumulation near electrical = compliant false, hazard_type electrical. Water puddle or flooding = compliant false, hazard_type physical. Workers missing PPE = compliant false. No workers and no hazards = compliant true. Return ONLY valid JSON with keys: workers_detected, helmet, glasses, vest, missing, compliant, hazard_type, site_hazards'}
           ]}]
         })
       });
@@ -1365,7 +1367,7 @@ async function analyzeOnePhoto(id){
         model:'claude-sonnet-4-20250514',max_tokens:300,
         messages:[{role:'user',content:[
           {type:'image',source:{type:'base64',media_type:'image/jpeg',data:b64}},
-          {type:'text',text:'You are a construction site safety inspector AI. Analyze this image for safety issues. Check for: 1) PPE on workers - hard hat, safety glasses, reflective vest. 2) Site hazards in priority order: ACTIVE FIRE or flames (critical!), SMOKE or haze - distinguish from dust or steam (critical!), WATER ACCUMULATION - puddles flooding water near electrical wet floors slip hazard (high priority), exposed cables, unprotected outlets, blocked exits, unsecured equipment. Fire or flames = compliant false hazard_type fire. Smoke = compliant false hazard_type fire. Water near electrical = compliant false hazard_type electrical. Puddle or flooding = compliant false hazard_type physical. Workers missing PPE = compliant false. No workers and no hazards = compliant true. Return ONLY valid JSON: workers_detected helmet glasses vest missing compliant hazard_type site_hazards'}
+          {type:'text',text:'You are a construction site safety inspector AI. Analyze this image for safety issues. Check for: 1) PPE on workers - hard hat, safety glasses, reflective vest. 2) Site hazards with priority order: ACTIVE FIRE or flames (critical!), SMOKE or haze in the air - distinguish from dust or steam (critical!), WATER ACCUMULATION - puddles, flooding, water near electrical equipment, wet floors posing slip hazard (high priority), exposed/loose cables, unprotected electrical outlets or panels, blocked emergency exits, unsecured equipment, unsafe installations. Rules: Fire or flames visible = compliant false, hazard_type fire. Smoke detected = compliant false, hazard_type fire, note if it could be dust or steam. Water accumulation near electrical = compliant false, hazard_type electrical. Water puddle or flooding = compliant false, hazard_type physical. Workers missing PPE = compliant false. No workers and no hazards = compliant true. Return ONLY valid JSON with keys: workers_detected, helmet, glasses, vest, missing, compliant, hazard_type, site_hazards'}
         ]}]
       })
     });
@@ -1381,7 +1383,7 @@ async function analyzeOnePhoto(id){
       });
       insp.epi_check=[result];
       if(prog){prog.classList.remove('active');}
-      if(status){const _rn=(!result.workers_detected||Number(result.workers_detected)===0)&&(!result.site_hazards||!result.site_hazards.length)&&(!result.missing||!result.missing.length)&&(result.overall_compliant||result.compliant); status.textContent=_rn?'⬜ N/A':(result.overall_compliant||result.compliant)?'✅ Compliant':'⚠️ Non-compliant';}
+      if(status){status.textContent=result.overall_compliant||result.compliant?'✅ Compliant':'⚠️ Non-compliant';}
       if(btn){btn.style.display='none';}
       renderTable();
       updateEPIStats();
