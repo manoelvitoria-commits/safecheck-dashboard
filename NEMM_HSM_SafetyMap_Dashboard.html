@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NEMM HSM Safety Map · SafeCheck Dashboard</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Calibri','Segoe UI',Arial,sans-serif;background:#F4F6FA;color:#1a1a1a;padding:24px;min-height:100vh;}
+.cn{font-family:'Microsoft YaHei','SimSun','PingFang SC','STSong',sans-serif;}
+
+.am-bar{height:5px;background:linear-gradient(90deg,#1F4E79 0%,#2E75B6 55%,#1A7A5E 100%);border-radius:4px;margin-bottom:20px;}
+
+.header{background:#1F4E79;border-radius:12px;padding:20px 24px;margin-bottom:16px;display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;}
+.hdr-title h1{color:#fff;font-size:18px;font-weight:700;margin-bottom:3px;}
+.hdr-title p{color:rgba(255,255,255,0.75);font-size:13px;margin-bottom:2px;}
+.hdr-title .cn-sub{color:rgba(255,255,255,0.6);font-size:12px;}
+.hdr-badge{background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.28);border-radius:8px;padding:10px 16px;text-align:center;min-width:120px;}
+.hdr-badge .lbl{display:block;font-size:10px;color:rgba(255,255,255,0.65);margin-bottom:1px;}
+.hdr-badge .val{display:block;font-size:14px;font-weight:700;color:#fff;}
+.hdr-badge .sep{margin:6px 0;border-top:1px solid rgba(255,255,255,0.2);}
+
+.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px;}
+.stat-card{background:#fff;border:1px solid #dde3ec;border-radius:10px;padding:14px;text-align:center;}
+.stat-val{font-size:22px;font-weight:700;color:#1F4E79;}
+.stat-en{font-size:11px;color:#888;margin-top:3px;}
+.stat-cn{font-size:10px;color:#aaa;margin-top:1px;}
+
+.legend{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px;}
+.legend-lbl{font-size:12px;color:#666;}
+.lpill{font-size:11px;font-weight:600;padding:4px 12px;border-radius:20px;border:1.5px solid;}
+
+.flow-bar{font-size:11px;color:#888;margin-bottom:12px;display:flex;align-items:center;gap:6px;}
+.flow-bar span.cta{color:#1F4E79;font-weight:600;}
+
+.zone-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin-bottom:14px;}
+@media(max-width:860px){.zone-grid{grid-template-columns:repeat(3,1fr);}}
+@media(max-width:560px){.zone-grid{grid-template-columns:repeat(2,1fr);}}
+
+.zcard{cursor:pointer;border-radius:8px;border:1.5px solid;padding:10px 6px 8px;transition:transform 0.15s,box-shadow 0.15s;text-align:center;user-select:none;}
+.zcard:hover{transform:translateY(-2px);box-shadow:0 4px 14px rgba(0,0,0,0.12);}
+.zcard.sel{outline:3px solid #1F4E79;outline-offset:2px;}
+.zn-en{font-size:11px;font-weight:700;line-height:1.3;margin-bottom:1px;}
+.zn-cn{font-size:9px;opacity:0.75;margin-bottom:5px;}
+.zpct{font-size:17px;font-weight:700;margin-bottom:5px;line-height:1;}
+.zbar-track{height:4px;border-radius:2px;background:rgba(0,0,0,0.1);overflow:hidden;margin-bottom:4px;}
+.zbar-fill{height:100%;border-radius:2px;}
+.zrisk{font-size:9px;font-weight:700;opacity:0.8;}
+
+.detail{background:#fff;border:1px solid #dde3ec;border-radius:12px;padding:20px 24px;margin-bottom:14px;}
+.d-header{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid #eee;}
+.d-zone-en{font-size:18px;font-weight:700;color:#1F4E79;margin-bottom:2px;}
+.d-zone-cn{font-size:13px;color:#666;}
+.risk-chip{font-size:11px;font-weight:700;padding:6px 14px;border-radius:20px;border:1.5px solid;text-align:center;white-space:nowrap;}
+.risk-chip .cn-chip{display:block;font-size:10px;opacity:0.85;margin-top:2px;}
+
+.sec-lbl{font-size:10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:#999;margin-bottom:7px;}
+.sec-lbl .cn{font-size:10px;letter-spacing:0;text-transform:none;font-weight:600;}
+
+.acc-box{border-radius:8px;padding:12px 14px;margin-bottom:16px;border-left:3px solid;}
+.acc-en{font-size:14px;line-height:1.55;color:#222;margin-bottom:7px;}
+.acc-cn{font-size:13px;line-height:1.65;color:#555;padding-top:7px;border-top:1px solid rgba(0,0,0,0.08);}
+
+.mlist{margin-bottom:14px;}
+.mitem{display:flex;gap:8px;align-items:flex-start;padding:5px 0;border-bottom:1px solid #f2f2f2;}
+.mitem:last-child{border-bottom:none;}
+.mdot{width:6px;height:6px;border-radius:50%;flex-shrink:0;margin-top:6px;}
+.m-en{font-size:13px;color:#333;line-height:1.4;}
+.m-cn{font-size:11px;color:#777;line-height:1.4;margin-top:2px;}
+
+.apps-row{display:flex;gap:6px;flex-wrap:wrap;}
+.app-badge{font-size:11px;font-weight:700;padding:4px 12px;border-radius:20px;background:#E6F1FB;color:#0C447C;border:1px solid #85B7EB;}
+.no-app{font-size:13px;color:#bbb;}
+
+.note-txt{font-size:11px;color:#aaa;margin-top:10px;line-height:1.6;font-style:italic;}
+
+.footer{font-size:11px;color:#aaa;line-height:1.7;border-top:1px solid #e5e9f0;padding-top:14px;margin-top:4px;}
+.footer strong{color:#888;}
+.footer .nemm{color:#1F4E79;font-weight:700;}
+</style>
+</head>
+<body>
+
+<div class="am-bar"></div>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="hdr-title">
+    <h1>HSM Safety Map · SafeCheck Dashboard</h1>
+    <p>Statistical accident distribution by mill area — world-class HSM benchmark</p>
+    <p class="cn cn-sub">按热轧机区域划分的事故统计分布 — 世界级热轧机参考数据</p>
+  </div>
+  <div class="hdr-badge">
+    <span class="lbl">Project · 项目</span>
+    <span class="val">NEMM HSM</span>
+    <div class="sep"></div>
+    <span class="lbl">SOP · 投产</span>
+    <span class="val">Oct 2026</span>
+  </div>
+</div>
+
+<!-- SUMMARY STATS -->
+<div class="stats-row">
+  <div class="stat-card">
+    <div class="stat-val">6</div>
+    <div class="stat-en">Risk areas mapped</div>
+    <div class="stat-cn cn">已识别风险区域</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-val">40–50%</div>
+    <div class="stat-en">Accidents in finishing mill</div>
+    <div class="stat-cn cn">事故集中于精轧机区域</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-val">0.15–0.30%</div>
+    <div class="stat-en">Target cobble rate (by tonnage)</div>
+    <div class="stat-cn cn">目标堆钢率（按吨位）</div>
+  </div>
+</div>
+
+<!-- LEGEND -->
+<div class="legend">
+  <span class="legend-lbl">Relative risk · 相对风险：</span>
+  <span class="lpill" style="background:#FCEBEB;color:#791F1F;border-color:#E24B4A;">● Critical · 严重</span>
+  <span class="lpill" style="background:#FAECE7;color:#712B13;border-color:#D85A30;">● High · 高</span>
+  <span class="lpill" style="background:#FAEEDA;color:#633806;border-color:#BA7517;">● Medium · 中</span>
+  <span class="lpill" style="background:#EAF3DE;color:#27500A;border-color:#639922;">● Lower · 较低</span>
+</div>
+
+<!-- FLOW INSTRUCTION -->
+<div class="flow-bar">
+  <span>Process flow · 工艺流程：</span>
+  <span>→</span>
+  <span class="cta">Click a zone to view details · 点击区域查看详情</span>
+</div>
+
+<!-- ZONE GRID -->
+<div class="zone-grid" id="zone-grid"></div>
+
+<!-- DETAIL PANEL -->
+<div class="detail" id="detail-panel">
+  <p style="color:#ccc;text-align:center;padding:20px 0;font-size:14px;">
+    Select a zone above · 请点击上方区域
+  </p>
+</div>
+
+<!-- FOOTER -->
+<div class="footer">
+  <strong>References · 参考资料：</strong> AIST Technical Papers &nbsp;·&nbsp; World Steel Association Safety Reports &nbsp;·&nbsp; ArcelorMittal HSM Operational Safety Reviews<br>
+  <span class="cn">⚠ All values are benchmark estimates — validation with Tubarão operational data pending (Gate 3) &nbsp;·&nbsp; 所有数值为基准估算，待图巴朗实际运营数据验证（门控3）</span><br>
+  <span class="nemm">NEMM · ArcelorMittal + China Oriental Joint Venture</span> &nbsp;·&nbsp; Tangshan, Hebei, China &nbsp;·&nbsp; SOP: October 2026
+</div>
+
+<script>
+const zones = [
+  {
+    id:'slab', nameEN:'Slab Yard', nameCN:'板坯库',
+    risk:'lower', riskEN:'Lower', riskCN:'较低',
+    bg:'#EAF3DE', border:'#639922', text:'#27500A', bar:'#639922',
+    pct:'8–12%', pctNum:10,
+    accEN:'Crushing injuries from slab movement and overhead crane operations. Material falls during lifting operations.',
+    accCN:'板坯移动及天车作业造成的挤压伤害。吊装作业中的物料坠落事故。',
+    measures:[
+      {en:'Mandatory exclusion zone during crane operations (DHHI contracted)',cn:'天车作业期间强制隔离区（DHHI已签约）'},
+      {en:'Visual and audible warning systems in restricted areas',cn:'限制区域声光报警系统'},
+      {en:'Real-time CCTV monitoring of all crane movements',cn:'所有天车运动实时闭路电视监控'}
+    ],
+    apps:['APP 08','APP 09','APP 10'], note:''
+  },
+  {
+    id:'furnace', nameEN:'Reheating Furnace', nameCN:'加热炉',
+    risk:'medium', riskEN:'Medium', riskCN:'中',
+    bg:'#FAEEDA', border:'#BA7517', text:'#633806', bar:'#EF9F27',
+    pct:'10–15%', pctNum:12,
+    accEN:'Burns from contact with slabs at 1,100–1,250°C. Risk of combustion gas leakage. Accidents with charging and discharging equipment (pushers / extractors).',
+    accCN:'接触1,100–1,250°C板坯造成的烧伤。燃气泄漏风险。推钢机和出钢机等装卸设备事故。',
+    measures:[
+      {en:'CERI Phoenix — EPC with integrated thermal monitoring (contracted)',cn:'CERI Phoenix — 含集成热监控EPC（已签约）'},
+      {en:'Mandatory Class-A thermal protection PPE for all personnel',cn:'所有人员强制配备A级热防护个人防护装备'},
+      {en:'Automatic safety interlocks on pushers and extractors',cn:'推钢机和出钢机自动安全联锁装置'}
+    ],
+    apps:[], note:''
+  },
+  {
+    id:'roughing', nameEN:'Roughing Mill', nameCN:'粗轧机',
+    risk:'medium-high', riskEN:'Medium-High', riskCN:'中高',
+    bg:'#FAECE7', border:'#D85A30', text:'#712B13', bar:'#D85A30',
+    pct:'15–20%', pctNum:17,
+    accEN:'High-energy cobbles with thick transfer bars (>30 mm). Large physical impact force. Entrapment between equipment during maintenance interventions.',
+    accCN:'厚中间坯（>30mm）高能量堆钢事故。巨大的物理冲击力。维修干预期间设备间的夹伤事故。',
+    measures:[
+      {en:'Certified physical anti-cobble barriers at all roughing stands',cn:'所有粗轧机架安装经认证的防堆钢物理屏障'},
+      {en:'Full exclusion zone during rolling cycle — no personnel access',cn:'轧制周期内全面隔离区——禁止人员进入'},
+      {en:'Emergency stop system per stand with lockout confirmation',cn:'每机架紧急停止系统，含上锁确认程序'}
+    ],
+    apps:['APP 03'], note:''
+  },
+  {
+    id:'finishing', nameEN:'Finishing Mill', nameCN:'精轧机 (F1–F7)',
+    risk:'critical', riskEN:'CRITICAL', riskCN:'严重',
+    bg:'#FCEBEB', border:'#E24B4A', text:'#791F1F', bar:'#E24B4A',
+    pct:'40–50%', pctNum:45,
+    accEN:'Cobbles at speeds exceeding 20 m/s with violent projection of material at ~1,000°C. Highest concentration of severe accidents in HSMs worldwide. Risk amplified by frequency of manual interventions (roll changes, guide adjustments) in confined spaces between stands.',
+    accCN:'堆钢时钢材以超过20m/s的速度高速飞出，温度约1,000°C。全球热轧机中重大事故最集中区域。机架间有限空间内人工干预频繁（换辊、导板调整），进一步加剧风险。',
+    measures:[
+      {en:'Automatic cobble detection via computer vision — APP 03 (CRITICAL priority)',cn:'计算机视觉自动堆钢检测——APP 03（关键优先级）'},
+      {en:'Automatic emergency stop per stand F1–F7 triggered by detection system',cn:'F1–F7每机架由检测系统触发自动紧急停止'},
+      {en:'Physical access lockout during rolling — no manual override permitted',cn:'轧制期间物理封闭访问联锁——不允许手动解除'},
+      {en:'Thermal cameras per stand for continuous strip and cobble monitoring',cn:'每机架热成像摄像头持续监控带钢和堆钢情况'}
+    ],
+    apps:['APP 03 — CRITICAL'], note:''
+  },
+  {
+    id:'rot', nameEN:'Run-Out Table', nameCN:'输出辊道',
+    risk:'high', riskEN:'High', riskCN:'高',
+    bg:'#FCEBEB', border:'#A32D2D', text:'#791F1F', bar:'#E24B4A',
+    pct:'20–25%*', pctNum:22,
+    accEN:'Loose strip (snaking) causing severe lacerations from high-speed plate edges. Burns from superheated steam. Interventions during cooling quality deviations.',
+    accCN:'散带（蛇形）导致高速钢板边缘造成严重割裂伤。过热蒸汽烫伤。冷却质量偏差处理期间的干预事故。',
+    measures:[
+      {en:'SimROT — dynamic cooling control system, AM R&D origin (APP 07A)',cn:'SimROT——动态冷却控制系统，源自AM研发（APP 07A）'},
+      {en:'Physical guardrails and lateral protection along full ROT length',cn:'沿辊道全长安装物理防护栏和侧面防护装置'},
+      {en:'Real-time strip position and tension sensors',cn:'实时带钢位置和张力传感器'}
+    ],
+    apps:['APP 07A (SimROT)'],
+    note:'* ROT and Coiler accidents are typically reported as a combined figure in HSM industry statistics.\n* 辊道与卷取区事故通常在行业统计中合并报告。'
+  },
+  {
+    id:'coiler', nameEN:'Coiler', nameCN:'卷取区',
+    risk:'high', riskEN:'High', riskCN:'高',
+    bg:'#FAECE7', border:'#993C1D', text:'#712B13', bar:'#D85A30',
+    pct:'(incl. ROT)', pctNum:0,
+    accEN:'Manual interventions during coiling failures. Coil drops (weight >20 t). Burns from strip contact during emergency decoiling.',
+    accCN:'卷取故障时的人工干预。钢卷坠落事故（重量>20吨）。紧急开卷时接触带钢造成的烫伤。',
+    measures:[
+      {en:'Access interlock during active coiling cycle — mandatory',cn:'卷取周期内访问联锁——强制执行'},
+      {en:'CCTV monitoring of coiling process and coil transfer operations',cn:'卷取过程和钢卷输送闭路电视监控'},
+      {en:'Rigorous lockout/tagout procedure for all maintenance interventions',cn:'所有维修干预严格执行上锁/挂牌程序'},
+      {en:'Automated coil handling to minimize human exposure',cn:'自动化钢卷处理，最大程度减少人员暴露'}
+    ],
+    apps:['APP 08'], note:''
+  }
+];
+
+function renderZones(){
+  const grid=document.getElementById('zone-grid');
+  zones.forEach(z=>{
+    const c=document.createElement('div');
+    c.className='zcard'; c.id='zc-'+z.id;
+    c.style.cssText=`background:${z.bg};border-color:${z.border};color:${z.text}`;
+    c.innerHTML=`
+      <div class="zn-en" style="color:${z.text}">${z.nameEN}</div>
+      <div class="zn-cn cn" style="color:${z.text}">${z.nameCN}</div>
+      <div class="zpct" style="color:${z.text}">${z.pct}</div>
+      <div class="zbar-track"><div class="zbar-fill" style="background:${z.bar};width:${z.pctNum}%"></div></div>
+      <div class="zrisk cn" style="color:${z.text}">${z.riskEN} · ${z.riskCN}</div>`;
+    c.addEventListener('click',()=>selectZone(z.id));
+    grid.appendChild(c);
+  });
+}
+
+function selectZone(id){
+  document.querySelectorAll('.zcard').forEach(c=>c.classList.remove('sel'));
+  const sel=document.getElementById('zc-'+id);
+  if(sel) sel.classList.add('sel');
+  const z=zones.find(z=>z.id===id);
+  const panel=document.getElementById('detail-panel');
+
+  const apps=z.apps.length
+    ? z.apps.map(a=>`<span class="app-badge">${a}</span>`).join('')
+    : `<span class="no-app">No AI/CV application mapped · 暂无AI/CV应用映射</span>`;
+
+  const measures=z.measures.map(m=>`
+    <div class="mitem">
+      <div class="mdot" style="background:${z.border}"></div>
+      <div>
+        <div class="m-en">${m.en}</div>
+        <div class="m-cn cn">${m.cn}</div>
+      </div>
+    </div>`).join('');
+
+  const note=z.note
+    ? `<p class="note-txt cn">${z.note.replace(/\n/g,'<br>')}</p>`
+    : '';
+
+  panel.innerHTML=`
+    <div class="d-header">
+      <div>
+        <div class="d-zone-en">${z.nameEN}</div>
+        <div class="d-zone-cn cn">${z.nameCN}</div>
+      </div>
+      <div class="risk-chip" style="background:${z.bg};color:${z.text};border-color:${z.border}">
+        Risk: ${z.riskEN} &nbsp;·&nbsp; ${z.pct} of accidents
+        <span class="cn-chip cn">风险：${z.riskCN} · 占事故总量 ${z.pct}</span>
+      </div>
+    </div>
+    <div class="sec-lbl">Dominant accident type <span class="cn">· 主要事故类型</span></div>
+    <div class="acc-box" style="background:${z.bg};border-color:${z.border}">
+      <div class="acc-en">${z.accEN}</div>
+      <div class="acc-cn cn">${z.accCN}</div>
+    </div>
+    <div class="sec-lbl">Protection measures — NEMM HSM <span class="cn">· 防护措施 — NEMM HSM</span></div>
+    <div class="mlist">${measures}</div>
+    <div class="sec-lbl">Relevant AI/CV applications (NEMM) <span class="cn">· 相关AI/CV应用 (NEMM)</span></div>
+    <div class="apps-row">${apps}</div>
+    ${note}`;
+}
+
+renderZones();
+selectZone('finishing');
+</script>
+</body>
+</html>
