@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="theme-color" content="#0A1628"/>
+<title>SafeCheck · iOS Inspector</title>
+<style>
+:root{
+  --navy:#0D1F35;--dark:#0A1628;--accent:#2E86C1;--teal:#17A589;
+  --bg:#F0F4F8;--white:#FFFFFF;--text:#1A2E3E;--muted:#5D7A8A;
+  --border:#C5D8EA;--red:#E74C3C;--orange:#E67E22;--green:#27AE60;
+  --ai:#6C3483;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;background:var(--bg);font-family:-apple-system,'DM Sans',sans-serif;color:var(--text);}
+
+/* ── SCREENS ── */
+.screen{display:none;min-height:100vh;flex-direction:column;}
+.screen.active{display:flex;}
+
+/* ── LOGIN SCREEN ── */
+#loginScreen{background:linear-gradient(160deg,#0A1628 0%,#1A3C5E 60%,#0D1F35 100%);align-items:center;justify-content:center;padding:24px;}
+.login-card{background:white;border-radius:24px;padding:36px 28px;width:100%;max-width:380px;box-shadow:0 32px 80px rgba(0,0,0,0.4);animation:fadeUp 0.4s ease;}
+.login-logo{text-align:center;margin-bottom:28px;}
+.login-logo-mark{width:56px;height:56px;background:var(--navy);border-radius:16px;display:flex;align-items:center;justify-content:center;margin:0 auto 12px;font-size:26px;}
+.login-logo-name{font-size:22px;font-weight:800;color:var(--navy);letter-spacing:-0.5px;}
+.login-logo-sub{font-size:11px;color:var(--muted);margin-top:3px;letter-spacing:1px;text-transform:uppercase;}
+.login-field{margin-bottom:16px;}
+.login-field label{display:block;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;}
+.login-field input{width:100%;padding:14px 16px;border:2px solid var(--border);border-radius:14px;font-size:16px;color:var(--text);outline:none;transition:border-color 0.2s;background:var(--bg);}
+.login-field input:focus{border-color:var(--accent);background:white;}
+.login-btn{width:100%;padding:16px;background:var(--navy);color:white;border:none;border-radius:14px;font-size:16px;font-weight:700;cursor:pointer;transition:all 0.2s;margin-top:8px;letter-spacing:0.3px;}
+.login-btn:active{transform:scale(0.98);background:var(--accent);}
+.login-error{background:rgba(231,76,60,0.1);border:1px solid rgba(231,76,60,0.3);color:var(--red);border-radius:10px;padding:10px 14px;font-size:13px;font-weight:600;margin-top:12px;text-align:center;display:none;}
+.login-error.show{display:block;}
+.lang-toggle-login{display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:20px;}
+.lang-pill{padding:5px 14px;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;border:1.5px solid var(--border);color:var(--muted);background:white;transition:all 0.2s;}
+.lang-pill.active{background:var(--navy);color:white;border-color:var(--navy);}
+
+/* ── MAIN APP ── */
+#appScreen{background:var(--bg);}
+.app-header{background:var(--navy);padding:52px 20px 16px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;}
+.app-header-left{display:flex;align-items:center;gap:10px;}
+.app-logo-sm{font-size:13px;font-weight:800;color:white;letter-spacing:0.5px;}
+.app-subtitle{font-size:10px;color:rgba(255,255,255,0.5);margin-top:1px;}
+.header-actions{display:flex;align-items:center;gap:10px;}
+.lang-btn{background:rgba(255,255,255,0.12);color:white;border:none;border-radius:8px;padding:5px 10px;font-size:11px;font-weight:700;cursor:pointer;}
+.logout-btn{background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.6);border:none;border-radius:8px;padding:5px 10px;font-size:11px;cursor:pointer;}
+
+.app-body{padding:16px;flex:1;padding-bottom:40px;}
+
+/* ── SECTION CARD ── */
+.section-card{background:white;border-radius:18px;padding:18px;margin-bottom:14px;border:1px solid var(--border);box-shadow:0 2px 8px rgba(26,60,94,0.06);}
+.section-title{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;display:flex;align-items:center;gap:6px;}
+
+/* ── USER INFO BAR ── */
+.user-bar{background:linear-gradient(135deg,var(--navy),#1A3C5E);border-radius:14px;padding:14px 16px;margin-bottom:14px;display:flex;align-items:center;gap:12px;}
+.user-avatar{width:38px;height:38px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:800;color:white;flex-shrink:0;}
+.user-name{font-size:15px;font-weight:700;color:white;}
+.user-role{font-size:11px;color:rgba(255,255,255,0.55);margin-top:1px;}
+.solo-warning{background:rgba(243,156,18,0.15);border:1px solid rgba(243,156,18,0.4);border-radius:10px;padding:9px 12px;margin-bottom:14px;display:flex;align-items:center;gap:8px;font-size:12px;color:#7D5000;font-weight:600;}
+
+/* ── AREA GRID ── */
+.area-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;}
+.area-btn{padding:18px 10px;border-radius:14px;border:2px solid var(--border);background:white;text-align:center;cursor:pointer;transition:all 0.2s;-webkit-tap-highlight-color:transparent;}
+.area-btn:active{transform:scale(0.96);}
+.area-btn.selected{background:var(--navy);border-color:var(--navy);color:white;}
+.area-btn.selected .area-code{color:white;}
+.area-btn.selected .area-name{color:rgba(255,255,255,0.7);}
+.area-code{font-size:20px;font-weight:800;color:var(--navy);font-family:-apple-system,sans-serif;}
+.area-name{font-size:10px;color:var(--muted);margin-top:3px;line-height:1.3;}
+
+/* ── CRITICAL TOGGLES ── */
+.critical-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+.crit-btn{padding:14px 8px;border-radius:14px;border:2px solid var(--border);background:white;text-align:center;cursor:pointer;transition:all 0.2s;}
+.crit-btn:active{transform:scale(0.95);}
+.crit-btn.active{border-color:var(--red);background:#FEF0F0;}
+.crit-btn .crit-icon{font-size:22px;display:block;margin-bottom:4px;}
+.crit-btn .crit-label{font-size:10px;color:var(--muted);font-weight:600;line-height:1.3;}
+.crit-btn.active .crit-label{color:var(--red);}
+
+/* ── PHOTO UPLOAD ── */
+.photo-upload-area{border:2px dashed var(--border);border-radius:14px;padding:24px 16px;text-align:center;cursor:pointer;transition:all 0.2s;background:var(--bg);position:relative;}
+.photo-upload-area:active{border-color:var(--accent);background:rgba(46,134,193,0.05);}
+.photo-upload-icon{font-size:36px;margin-bottom:8px;}
+.photo-upload-text{font-size:14px;font-weight:600;color:var(--accent);}
+.photo-upload-sub{font-size:11px;color:var(--muted);margin-top:4px;}
+#photoInput{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
+.photo-previews{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px;}
+.photo-thumb{position:relative;border-radius:10px;overflow:hidden;aspect-ratio:1;}
+.photo-thumb img{width:100%;height:100%;object-fit:cover;}
+.photo-thumb-remove{position:absolute;top:4px;right:4px;width:20px;height:20px;background:rgba(0,0,0,0.6);border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;font-size:12px;cursor:pointer;border:none;}
+.photo-count-badge{background:var(--accent);color:white;border-radius:10px;padding:3px 10px;font-size:11px;font-weight:700;margin-top:8px;display:inline-block;}
+
+/* ── NOTES FIELD ── */
+.notes-input{width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:12px;font-size:15px;color:var(--text);outline:none;resize:none;font-family:-apple-system,sans-serif;background:var(--bg);min-height:80px;transition:border-color 0.2s;}
+.notes-input:focus{border-color:var(--accent);background:white;}
+
+/* ── SUBMIT BUTTON ── */
+.submit-btn{width:100%;padding:18px;background:var(--green);color:white;border:none;border-radius:16px;font-size:17px;font-weight:700;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;justify-content:center;gap:10px;letter-spacing:0.3px;}
+.submit-btn:active{transform:scale(0.98);opacity:0.9;}
+.submit-btn:disabled{background:var(--muted);cursor:not-allowed;transform:none;}
+.submit-btn.loading{background:var(--accent);}
+
+/* ── SUCCESS SCREEN ── */
+#successScreen{background:linear-gradient(160deg,#0A1628 0%,#1A6B3A 100%);align-items:center;justify-content:center;padding:32px;}
+.success-card{background:white;border-radius:24px;padding:36px 28px;width:100%;max-width:380px;text-align:center;animation:fadeUp 0.4s ease;}
+.success-icon{font-size:56px;margin-bottom:16px;}
+.success-title{font-size:22px;font-weight:800;color:var(--navy);margin-bottom:8px;}
+.success-sub{font-size:14px;color:var(--muted);line-height:1.6;margin-bottom:24px;}
+.success-detail{background:var(--bg);border-radius:12px;padding:14px;margin-bottom:20px;text-align:left;}
+.success-detail-row{display:flex;justify-content:space-between;font-size:13px;padding:4px 0;border-bottom:1px solid var(--border);}
+.success-detail-row:last-child{border-bottom:none;}
+.success-detail-row span:first-child{color:var(--muted);}
+.success-detail-row span:last-child{font-weight:700;color:var(--text);}
+.new-insp-btn{width:100%;padding:16px;background:var(--navy);color:white;border:none;border-radius:14px;font-size:16px;font-weight:700;cursor:pointer;transition:all 0.2s;}
+.new-insp-btn:active{transform:scale(0.98);background:var(--accent);}
+
+/* ── SPINNER ── */
+.spinner{width:20px;height:20px;border:3px solid rgba(255,255,255,0.3);border-top-color:white;border-radius:50%;animation:spin 0.7s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}
+
+/* ── MISC ── */
+.field-label{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;}
+.required-dot{color:var(--red);margin-left:2px;}
+.validation-msg{font-size:12px;color:var(--red);font-weight:600;margin-top:6px;display:none;}
+.validation-msg.show{display:block;}
+.divider{height:1px;background:var(--border);margin:4px 0 16px;}
+</style>
+</head>
+<body>
+
+<!-- ══ LOGIN SCREEN ══ -->
+<div class="screen active" id="loginScreen">
+  <div class="login-card">
+    <div class="lang-toggle-login">
+      <div class="lang-pill active" id="loginLangEN" onclick="setLang('en')">EN</div>
+      <div class="lang-pill" id="loginLangZH" onclick="setLang('zh')">中文</div>
+    </div>
+    <div class="login-logo">
+      <div class="login-logo-mark">🛡️</div>
+      <div class="login-logo-name">SafeCheck</div>
+      <div class="login-logo-sub" id="loginSubtitle">iOS Inspector · HSM Project</div>
+    </div>
+    <div class="login-field">
+      <label id="labelUser">Username</label>
+      <input type="text" id="loginUser" autocomplete="username" autocapitalize="none" onkeydown="if(event.key==='Enter')doLogin()"/>
+    </div>
+    <div class="login-field">
+      <label id="labelPass">Password</label>
+      <input type="password" id="loginPass" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()"/>
+    </div>
+    <button class="login-btn" id="loginBtn" onclick="doLogin()">🔐 Sign In</button>
+    <div class="login-error" id="loginError">❌ Invalid username or password.</div>
+  </div>
+</div>
+
+<!-- ══ APP SCREEN ══ -->
+<div class="screen" id="appScreen">
+  <div class="app-header">
+    <div class="app-header-left">
+      <div>
+        <div class="app-logo-sm">SafeCheck iOS</div>
+        <div class="app-subtitle" id="appSubtitle">HSM · NEMM Up</div>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button class="lang-btn" onclick="toggleLang()" id="langToggleBtn">中文</button>
+      <button class="logout-btn" onclick="doLogout()" id="logoutBtn">⏏</button>
+    </div>
+  </div>
+
+  <div class="app-body">
+
+    <!-- User info -->
+    <div class="user-bar">
+      <div class="user-avatar" id="userAvatar">M</div>
+      <div>
+        <div class="user-name" id="userName">Inspector</div>
+        <div class="user-role" id="userRole">Inspector · SafeCheck iOS</div>
+      </div>
+    </div>
+
+    <!-- Solo warning -->
+    <div class="solo-warning" id="soloWarning">
+      ⚠️ <span id="soloWarningText">Solo inspection — paired inspection is recommended per safety policy.</span>
+    </div>
+
+    <!-- AREA SELECTION -->
+    <div class="section-card">
+      <div class="section-title">📍 <span id="labelArea">Inspection Area</span><span class="required-dot">*</span></div>
+      <div class="area-grid" id="areaGrid"></div>
+      <div class="validation-msg" id="areaError">Please select an area.</div>
+    </div>
+
+    <!-- CRITICAL EVENTS -->
+    <div class="section-card">
+      <div class="section-title">🚨 <span id="labelCritical">Critical Events Detected</span></div>
+      <div class="critical-grid">
+        <div class="crit-btn" id="crit-electric" onclick="toggleCritical('electric')">
+          <span class="crit-icon">⚡</span>
+          <span class="crit-label" id="critLabelElectric">Electrical Hazard</span>
+        </div>
+        <div class="crit-btn" id="crit-fire" onclick="toggleCritical('fire')">
+          <span class="crit-icon">🔥</span>
+          <span class="crit-label" id="critLabelFire">Fire Hazard</span>
+        </div>
+        <div class="crit-btn" id="crit-height" onclick="toggleCritical('height')">
+          <span class="crit-icon">🏔️</span>
+          <span class="crit-label" id="critLabelHeight">Work at Height</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- PHOTOS -->
+    <div class="section-card">
+      <div class="section-title">📸 <span id="labelPhotos">Photos</span><span class="required-dot">*</span></div>
+      <div class="photo-upload-area" id="uploadArea">
+        <input type="file" id="photoInput" accept="image/*" multiple capture="environment" onchange="handlePhotos(event)"/>
+        <div class="photo-upload-icon">📷</div>
+        <div class="photo-upload-text" id="uploadBtnText">Take Photo / Choose from Library</div>
+        <div class="photo-upload-sub" id="uploadBtnSub">Tap to open camera or gallery · Max 5 photos</div>
+      </div>
+      <div class="photo-previews" id="photoPreviews"></div>
+      <div class="validation-msg" id="photoError">Please add at least one photo.</div>
+    </div>
+
+    <!-- NOTES -->
+    <div class="section-card">
+      <div class="section-title">📝 <span id="labelNotes">Notes (optional)</span></div>
+      <textarea class="notes-input" id="notesInput" rows="3" id="notesInput"></textarea>
+    </div>
+
+    <!-- SUBMIT -->
+    <button class="submit-btn" id="submitBtn" onclick="submitInspection()">
+      <span id="submitBtnText">📤 Submit Inspection</span>
+    </button>
+
+  </div>
+</div>
+
+<!-- ══ SUCCESS SCREEN ══ -->
+<div class="screen" id="successScreen">
+  <div class="success-card">
+    <div class="success-icon">✅</div>
+    <div class="success-title" id="successTitle">Inspection Submitted!</div>
+    <div class="success-sub" id="successSub">Your inspection has been saved. PPE Vision analysis will be performed on the dashboard.</div>
+    <div class="success-detail" id="successDetail"></div>
+    <button class="new-insp-btn" id="newInspBtn" onclick="resetForm()">＋ New Inspection</button>
+  </div>
+</div>
+
+<script>
+'use strict';
+
+// ── CONFIG ────────────────────────────────────────────────────────────────────
+const SUPABASE_URL = 'https://ocqfsccrvpdnjjlofkvk.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9jcWZzY2NydnBkbmpqbG9ma3ZrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ1OTMwMTksImV4cCI6MjA5MDE2OTAxOX0.Uq0bMvtwmWm8lpIXAtUaPND7zDwW6QUKvOwbDhuKECI';
+const STORAGE_BUCKET = 'inspection-photos';
+
+const AREAS = [
+  { code:'SY',  nameEN:'Slab Yard',           nameZH:'板坯库' },
+  { code:'RHF', nameEN:'Reheating Furnace',    nameZH:'加热炉' },
+  { code:'MRL', nameEN:'Main Rolling Area',    nameZH:'主轧区' },
+  { code:'DC',  nameEN:'Down Coiler',          nameZH:'卷取区' },
+  { code:'WTA', nameEN:'Water Treatment Area', nameZH:'水处理区' },
+  { code:'CY',  nameEN:'Coil Yard',            nameZH:'钢卷库' },
+];
+
+const DEFAULT_USERS = [
+  { username:'manoel',  password:'nemm2026',   role:'admin',     team:'admin',    name:'Manoel Rodrigues' },
+  { username:'pierre',  password:'france2026', role:'admin',     team:'admin',    name:'Pierre Vienot' },
+  { username:'shi',     password:'shi2026',    role:'admin',     team:'admin',    name:'Shi' },
+  { username:'guan',    password:'guan2026',   role:'manager',   team:'security', name:'Guan' },
+  { username:'liu',     password:'liu2026',    role:'manager',   team:'it',       name:'Liu' },
+  { username:'amilcar', password:'palacio',    role:'inspector', team:'security', name:'Amilcar' },
+  { username:'adriana', password:'projetos',   role:'inspector', team:'it',       name:'Adriana' },
+  { username:'manager', password:'nemm@site',  role:'inspector', team:'admin',    name:'Manager' },
+];
+
+// ── STATE ─────────────────────────────────────────────────────────────────────
+let currentLang = localStorage.getItem('sc_ios_lang') || 'en';
+let currentUser = null;
+let selectedArea = null;
+let criticalEvents = { electric: false, fire: false, height: false };
+let photoFiles = [];
+let photoDataURLs = [];
+
+// ── LANG ──────────────────────────────────────────────────────────────────────
+const T = {
+  en: {
+    loginSubtitle: 'iOS Inspector · HSM Project',
+    labelUser: 'Username', labelPass: 'Password',
+    loginBtn: '🔐 Sign In', loginError: '❌ Invalid username or password.',
+    appSubtitle: 'HSM · NEMM Up',
+    logoutBtn: '⏏',
+    langToggle: '中文',
+    labelArea: 'Inspection Area',
+    labelCritical: 'Critical Events Detected',
+    critElectric: 'Electrical\nHazard', critFire: 'Fire\nHazard', critHeight: 'Work at\nHeight',
+    labelPhotos: 'Photos',
+    uploadBtnText: 'Take Photo / Choose from Library',
+    uploadBtnSub: 'Tap to open camera or gallery · Max 5 photos',
+    labelNotes: 'Notes (optional)',
+    submitBtn: '📤 Submit Inspection',
+    submitting: 'Submitting...',
+    soloWarning: 'Solo inspection — paired inspection is recommended per safety policy.',
+    areaError: 'Please select an area.',
+    photoError: 'Please add at least one photo.',
+    successTitle: '✅ Submitted!',
+    successSub: 'Inspection saved. PPE Vision analysis will be performed on the dashboard.',
+    newInspBtn: '＋ New Inspection',
+    area: 'Area', inspector: 'Inspector', photos: 'Photos', critical: 'Critical',
+    none: 'None', yes: 'Yes',
+  },
+  zh: {
+    loginSubtitle: 'iOS检查员 · HSM项目',
+    labelUser: '用户名', labelPass: '密码',
+    loginBtn: '🔐 登录', loginError: '❌ 用户名或密码错误。',
+    appSubtitle: 'HSM · NEMM Up',
+    logoutBtn: '⏏',
+    langToggle: 'EN',
+    labelArea: '检查区域',
+    labelCritical: '发现的关键事件',
+    critElectric: '电气\n危险', critFire: '火灾\n危险', critHeight: '高处\n作业',
+    labelPhotos: '照片',
+    uploadBtnText: '拍照 / 从相册选择',
+    uploadBtnSub: '点击打开相机或相册 · 最多5张',
+    labelNotes: '备注（可选）',
+    submitBtn: '📤 提交检查',
+    submitting: '提交中...',
+    soloWarning: '单人检查 — 根据安全规定，建议双人共同巡检。',
+    areaError: '请选择检查区域。',
+    photoError: '请至少添加一张照片。',
+    successTitle: '✅ 已提交！',
+    successSub: '检查记录已保存。PPE Vision分析将在仪表板上执行。',
+    newInspBtn: '＋ 新建检查',
+    area: '区域', inspector: '检查员', photos: '照片', critical: '关键事件',
+    none: '无', yes: '是',
+  }
+};
+
+function t(key){ return (T[currentLang] || T.en)[key] || key; }
+
+function setLang(lang){
+  currentLang = lang;
+  localStorage.setItem('sc_ios_lang', lang);
+  applyLang();
+}
+function toggleLang(){ setLang(currentLang === 'en' ? 'zh' : 'en'); }
+
+function applyLang(){
+  const isZH = currentLang === 'zh';
+  // Login
+  document.getElementById('loginLangEN').classList.toggle('active', !isZH);
+  document.getElementById('loginLangZH').classList.toggle('active', isZH);
+  document.getElementById('loginSubtitle').textContent = t('loginSubtitle');
+  document.getElementById('labelUser').textContent = t('labelUser');
+  document.getElementById('labelPass').textContent = t('labelPass');
+  document.getElementById('loginBtn').textContent = t('loginBtn');
+  document.getElementById('loginError').textContent = t('loginError');
+  // App
+  document.getElementById('appSubtitle').textContent = t('appSubtitle');
+  document.getElementById('langToggleBtn').textContent = t('langToggle');
+  document.getElementById('logoutBtn').textContent = t('logoutBtn');
+  document.getElementById('labelArea').textContent = t('labelArea');
+  document.getElementById('labelCritical').textContent = t('labelCritical');
+  document.getElementById('critLabelElectric').textContent = t('critElectric');
+  document.getElementById('critLabelFire').textContent = t('critFire');
+  document.getElementById('critLabelHeight').textContent = t('critHeight');
+  document.getElementById('labelPhotos').textContent = t('labelPhotos');
+  document.getElementById('uploadBtnText').textContent = t('uploadBtnText');
+  document.getElementById('uploadBtnSub').textContent = t('uploadBtnSub');
+  document.getElementById('labelNotes').textContent = t('labelNotes');
+  document.getElementById('submitBtnText').textContent = t('submitBtn');
+  document.getElementById('soloWarningText').textContent = t('soloWarning');
+  document.getElementById('areaError').textContent = t('areaError');
+  document.getElementById('photoError').textContent = t('photoError');
+  document.getElementById('newInspBtn').textContent = t('newInspBtn');
+  document.getElementById('successTitle').textContent = t('successTitle');
+  document.getElementById('successSub').textContent = t('successSub');
+  // Rebuild area grid with correct language
+  buildAreaGrid();
+}
+
+// ── AUTH ──────────────────────────────────────────────────────────────────────
+function getUsers(){
+  try{ const s=localStorage.getItem('safecheck_users'); return s?JSON.parse(s):DEFAULT_USERS; }
+  catch(e){ return DEFAULT_USERS; }
+}
+
+function doLogin(){
+  const username = (document.getElementById('loginUser').value||'').trim().toLowerCase();
+  const password = (document.getElementById('loginPass').value||'').trim();
+  const errEl = document.getElementById('loginError');
+  errEl.classList.remove('show');
+  if(!username||!password){ errEl.classList.add('show'); return; }
+
+  // Try Supabase first, fall back to local
+  loginWithSupabase(username, password).then(function(user){
+    if(user){ startSession(user); return; }
+    const local = getUsers().find(function(u){ return u.username===username && u.password===password; });
+    if(local){ startSession(local); }
+    else { errEl.classList.add('show'); }
+  }).catch(function(){
+    const local = getUsers().find(function(u){ return u.username===username && u.password===password; });
+    if(local){ startSession(local); }
+    else { errEl.classList.add('show'); }
+  });
+}
+
+async function loginWithSupabase(username, password){
+  try{
+    const res = await fetch(SUPABASE_URL+'/rest/v1/safecheck_users?username=eq.'+encodeURIComponent(username)+'&password=eq.'+encodeURIComponent(password)+'&select=*&limit=1',{
+      headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY}
+    });
+    if(!res.ok) return null;
+    const data = await res.json();
+    return data&&data.length>0 ? data[0] : null;
+  }catch(e){ return null; }
+}
+
+function startSession(user){
+  currentUser = user;
+  sessionStorage.setItem('sc_ios_auth','true');
+  sessionStorage.setItem('sc_ios_user', JSON.stringify(user));
+  // Update UI
+  document.getElementById('userAvatar').textContent = (user.name||user.username).charAt(0).toUpperCase();
+  document.getElementById('userName').textContent = user.name||user.username;
+  document.getElementById('userRole').textContent = (user.role||'Inspector')+' · SafeCheck iOS';
+  showScreen('appScreen');
+}
+
+function doLogout(){
+  currentUser = null;
+  sessionStorage.removeItem('sc_ios_auth');
+  sessionStorage.removeItem('sc_ios_user');
+  resetForm(true);
+  showScreen('loginScreen');
+}
+
+// ── SCREENS ───────────────────────────────────────────────────────────────────
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(function(s){ s.classList.remove('active'); });
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
+}
+
+// ── AREA GRID ─────────────────────────────────────────────────────────────────
+function buildAreaGrid(){
+  const grid = document.getElementById('areaGrid');
+  if(!grid) return;
+  grid.innerHTML = AREAS.map(function(a){
+    const isSelected = selectedArea === a.code;
+    return '<div class="area-btn'+(isSelected?' selected':'')+'" onclick="selectArea(\''+a.code+'\')">'+
+      '<div class="area-code">'+a.code+'</div>'+
+      '<div class="area-name">'+(currentLang==='zh'?a.nameZH:a.nameEN)+'</div>'+
+    '</div>';
+  }).join('');
+}
+
+function selectArea(code){
+  selectedArea = code;
+  document.getElementById('areaError').classList.remove('show');
+  buildAreaGrid();
+}
+
+// ── CRITICAL EVENTS ───────────────────────────────────────────────────────────
+function toggleCritical(type){
+  criticalEvents[type] = !criticalEvents[type];
+  document.getElementById('crit-'+type).classList.toggle('active', criticalEvents[type]);
+}
+
+// ── PHOTOS ────────────────────────────────────────────────────────────────────
+function handlePhotos(event){
+  const files = Array.from(event.target.files);
+  const remaining = 5 - photoFiles.length;
+  const toAdd = files.slice(0, remaining);
+  toAdd.forEach(function(file){
+    const reader = new FileReader();
+    reader.onload = function(e){
+      photoFiles.push(file);
+      photoDataURLs.push(e.target.result);
+      renderPhotoPreviews();
+    };
+    reader.readAsDataURL(file);
+  });
+  // Reset input so same file can be selected again
+  event.target.value = '';
+}
+
+function renderPhotoPreviews(){
+  const container = document.getElementById('photoPreviews');
+  const uploadArea = document.getElementById('uploadArea');
+  document.getElementById('photoError').classList.remove('show');
+  container.innerHTML = photoDataURLs.map(function(url, idx){
+    return '<div class="photo-thumb">'+
+      '<img src="'+url+'" alt="photo '+idx+'"/>'+
+      '<button class="photo-thumb-remove" onclick="removePhoto('+idx+')">✕</button>'+
+    '</div>';
+  }).join('');
+  // Hide upload area if 5 photos reached
+  uploadArea.style.display = photoFiles.length >= 5 ? 'none' : 'block';
+  // Show count badge
+  if(photoFiles.length > 0){
+    const existing = container.querySelector('.photo-count-badge');
+    if(!existing){
+      const badge = document.createElement('div');
+      badge.className = 'photo-count-badge';
+      badge.id = 'photoCountBadge';
+      container.parentNode.insertBefore(badge, container.nextSibling);
+    }
+    const b = document.getElementById('photoCountBadge');
+    if(b) b.textContent = '📷 '+photoFiles.length+'/5 '+(currentLang==='zh'?'张照片':'photos');
+  }
+}
+
+function removePhoto(idx){
+  photoFiles.splice(idx,1);
+  photoDataURLs.splice(idx,1);
+  document.getElementById('uploadArea').style.display = 'block';
+  renderPhotoPreviews();
+}
+
+// ── SUBMIT ────────────────────────────────────────────────────────────────────
+async function submitInspection(){
+  // Validate
+  let valid = true;
+  if(!selectedArea){
+    document.getElementById('areaError').classList.add('show');
+    document.getElementById('areaGrid').scrollIntoView({behavior:'smooth',block:'center'});
+    valid = false;
+  }
+  if(!photoFiles.length){
+    document.getElementById('photoError').classList.add('show');
+    if(valid) document.getElementById('uploadArea').scrollIntoView({behavior:'smooth',block:'center'});
+    valid = false;
+  }
+  if(!valid) return;
+
+  const btn = document.getElementById('submitBtn');
+  const btnText = document.getElementById('submitBtnText');
+  btn.disabled = true;
+  btn.classList.add('loading');
+  btnText.innerHTML = '<div class="spinner"></div> '+(currentLang==='zh'?'提交中...':'Submitting...');
+
+  try{
+    // 1. Upload photos to Supabase Storage
+    const photoUrls = [];
+    for(let i=0; i<photoFiles.length; i++){
+      const file = photoFiles[i];
+      const ext = file.name.split('.').pop()||'jpg';
+      const timestamp = Date.now();
+      const path = 'ios/'+timestamp+'_'+i+'.'+ext;
+      btnText.innerHTML = '<div class="spinner"></div> '+(currentLang==='zh'?'上传照片 '+(i+1)+'/'+photoFiles.length:'Uploading photo '+(i+1)+'/'+photoFiles.length+'...');
+      const uploadRes = await fetch(SUPABASE_URL+'/storage/v1/object/'+STORAGE_BUCKET+'/'+path,{
+        method:'POST',
+        headers:{
+          'apikey': SUPABASE_KEY,
+          'Authorization': 'Bearer '+SUPABASE_KEY,
+          'Content-Type': file.type||'image/jpeg',
+          'x-upsert': 'true'
+        },
+        body: file
+      });
+      if(uploadRes.ok){
+        const publicUrl = SUPABASE_URL+'/storage/v1/object/public/'+STORAGE_BUCKET+'/'+path;
+        photoUrls.push(publicUrl);
+      } else {
+        // Fallback: try base64 data URL if storage fails
+        photoUrls.push(photoDataURLs[i]);
+      }
+    }
+
+    // 2. Build inspection record
+    const now = new Date();
+    const dateStr = now.toISOString().split('T')[0];
+    const timeStr = now.toTimeString().slice(0,5);
+    const occurrences = {
+      electric: criticalEvents.electric,
+      fire: criticalEvents.fire,
+      height: criticalEvents.height
+    };
+    const hasCritical = criticalEvents.electric || criticalEvents.fire || criticalEvents.height;
+    const notes = document.getElementById('notesInput').value.trim();
+    const record = {
+      date: dateStr,
+      time_start: timeStr,
+      time_end: timeStr,
+      area: selectedArea,
+      inspector: currentUser.name||currentUser.username,
+      team: currentUser.team||'admin',
+      language: currentLang==='zh'?'ZH':'EN',
+      photos: photoUrls,
+      occurrences: occurrences,
+      notes: notes||null,
+      source: 'ios_web',
+    };
+    if(hasCritical){
+      record.critical_location = selectedArea;
+      record.critical_photos = photoUrls.map(function(url){
+        const h = criticalEvents.electric?'electric':criticalEvents.fire?'fire':'height';
+        return {url:url, hazard:h, location:selectedArea};
+      });
+    }
+
+    // 3. Save to Supabase
+    btnText.innerHTML = '<div class="spinner"></div> '+(currentLang==='zh'?'保存记录...':'Saving record...');
+    const saveRes = await fetch(SUPABASE_URL+'/rest/v1/inspections',{
+      method:'POST',
+      headers:{
+        'apikey': SUPABASE_KEY,
+        'Authorization': 'Bearer '+SUPABASE_KEY,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=representation'
+      },
+      body: JSON.stringify(record)
+    });
+    if(!saveRes.ok){
+      const err = await saveRes.text();
+      throw new Error('Save failed: '+saveRes.status+' '+err.slice(0,120));
+    }
+
+    // 4. Show success
+    const areaObj = AREAS.find(function(a){ return a.code===selectedArea; });
+    const areaLabel = areaObj?(currentLang==='zh'?areaObj.nameZH:areaObj.nameEN):selectedArea;
+    const critList = [
+      criticalEvents.electric?(currentLang==='zh'?'电气危险':'Electrical'):null,
+      criticalEvents.fire?(currentLang==='zh'?'火灾危险':'Fire'):null,
+      criticalEvents.height?(currentLang==='zh'?'高处作业':'Height'):null,
+    ].filter(Boolean).join(', ');
+    document.getElementById('successDetail').innerHTML =
+      '<div class="success-detail-row"><span>'+(currentLang==='zh'?'区域':'Area')+'</span><span>'+selectedArea+' · '+areaLabel+'</span></div>'+
+      '<div class="success-detail-row"><span>'+(currentLang==='zh'?'检查员':'Inspector')+'</span><span>'+(currentUser.name||currentUser.username)+'</span></div>'+
+      '<div class="success-detail-row"><span>'+(currentLang==='zh'?'照片':'Photos')+'</span><span>'+photoUrls.length+'</span></div>'+
+      '<div class="success-detail-row"><span>'+(currentLang==='zh'?'关键事件':'Critical')+'</span><span>'+(critList||(currentLang==='zh'?'无':'None'))+'</span></div>'+
+      '<div class="success-detail-row"><span>'+(currentLang==='zh'?'时间':'Time')+'</span><span>'+dateStr+' '+timeStr+'</span></div>';
+    document.getElementById('successTitle').textContent = t('successTitle');
+    document.getElementById('successSub').textContent = t('successSub');
+    document.getElementById('newInspBtn').textContent = t('newInspBtn');
+    showScreen('successScreen');
+
+  } catch(err){
+    console.error('Submit error:', err);
+    alert((currentLang==='zh'?'提交失败：':'Submission failed: ')+err.message);
+    btn.disabled = false;
+    btn.classList.remove('loading');
+    btnText.textContent = t('submitBtn');
+  }
+}
+
+// ── RESET ─────────────────────────────────────────────────────────────────────
+function resetForm(fullReset){
+  selectedArea = null;
+  criticalEvents = { electric:false, fire:false, height:false };
+  photoFiles = [];
+  photoDataURLs = [];
+  ['electric','fire','height'].forEach(function(t){
+    const el = document.getElementById('crit-'+t);
+    if(el) el.classList.remove('active');
+  });
+  document.getElementById('photoPreviews').innerHTML = '';
+  document.getElementById('uploadArea').style.display = 'block';
+  const badge = document.getElementById('photoCountBadge');
+  if(badge) badge.remove();
+  document.getElementById('notesInput').value = '';
+  document.getElementById('areaError').classList.remove('show');
+  document.getElementById('photoError').classList.remove('show');
+  const btn = document.getElementById('submitBtn');
+  btn.disabled = false;
+  btn.classList.remove('loading');
+  document.getElementById('submitBtnText').textContent = t('submitBtn');
+  buildAreaGrid();
+  if(!fullReset) showScreen('appScreen');
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+(function init(){
+  // Restore session
+  const savedUser = sessionStorage.getItem('sc_ios_user');
+  if(sessionStorage.getItem('sc_ios_auth')==='true' && savedUser){
+    try{
+      const user = JSON.parse(savedUser);
+      currentUser = user;
+      document.getElementById('userAvatar').textContent = (user.name||user.username).charAt(0).toUpperCase();
+      document.getElementById('userName').textContent = user.name||user.username;
+      document.getElementById('userRole').textContent = (user.role||'Inspector')+' · SafeCheck iOS';
+      showScreen('appScreen');
+    }catch(e){}
+  }
+  applyLang();
+  buildAreaGrid();
+})();
+</script>
+</body>
+</html>
