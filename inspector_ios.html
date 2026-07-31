@@ -1,0 +1,931 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="theme-color" content="#0A1628"/>
+<title>SafeCheck · iOS Inspector</title>
+<style>
+:root{
+  --navy:#0D1F35;--dark:#0A1628;--accent:#2E86C1;
+  --bg:#F0F4F8;--white:#FFFFFF;--text:#1A2E3E;--muted:#5D7A8A;
+  --border:#C5D8EA;--red:#E74C3C;--orange:#E67E22;--green:#27AE60;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{background:var(--bg);font-family:-apple-system,'Helvetica Neue',sans-serif;color:var(--text);}
+
+/* ── SCREENS ── */
+.screen{display:none;min-height:100vh;flex-direction:column;}
+.screen.active{display:flex;}
+
+/* ── LOGIN ── */
+#loginScreen{background:linear-gradient(160deg,#0A1628 0%,#1A3C5E 60%,#0D1F35 100%);align-items:center;justify-content:center;padding:24px;}
+.login-card{background:white;border-radius:24px;padding:36px 28px;width:100%;max-width:380px;box-shadow:0 32px 80px rgba(0,0,0,0.4);animation:fadeUp 0.4s ease;}
+.login-logo{text-align:center;margin-bottom:28px;}
+.login-logo-mark{width:56px;height:56px;background:var(--navy);border-radius:16px;display:flex;align-items:center;justify-content:center;margin:0 auto 12px;font-size:26px;}
+.login-logo-name{font-size:22px;font-weight:800;color:var(--navy);}
+.login-logo-sub{font-size:11px;color:var(--muted);margin-top:3px;letter-spacing:1px;text-transform:uppercase;}
+.lang-toggle-login{display:flex;justify-content:center;gap:8px;margin-bottom:20px;}
+.lang-pill{padding:5px 16px;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;border:1.5px solid var(--border);color:var(--muted);background:white;transition:all 0.2s;}
+.lang-pill.active{background:var(--navy);color:white;border-color:var(--navy);}
+.lf{margin-bottom:16px;}
+.lf label{display:block;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;}
+.lf input{width:100%;padding:14px 16px;border:2px solid var(--border);border-radius:14px;font-size:16px;color:var(--text);outline:none;background:var(--bg);}
+.lf input:focus{border-color:var(--accent);background:white;}
+.login-btn{width:100%;padding:16px;background:var(--navy);color:white;border:none;border-radius:14px;font-size:16px;font-weight:700;cursor:pointer;margin-top:8px;}
+.login-btn:active{background:var(--accent);}
+.login-err{background:rgba(231,76,60,0.1);border:1px solid rgba(231,76,60,0.3);color:var(--red);border-radius:10px;padding:10px 14px;font-size:13px;font-weight:600;margin-top:12px;text-align:center;display:none;}
+.login-err.show{display:block;}
+
+/* ── APP HEADER ── */
+#appScreen{background:var(--bg);}
+.app-hdr{background:var(--navy);padding:52px 20px 16px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;}
+.app-logo{font-size:13px;font-weight:800;color:white;}
+.app-sub{font-size:10px;color:rgba(255,255,255,0.5);margin-top:1px;}
+.hdr-btn{background:rgba(255,255,255,0.12);color:white;border:none;border-radius:8px;padding:6px 12px;font-size:11px;font-weight:700;cursor:pointer;}
+.hdr-actions{display:flex;gap:8px;}
+
+/* ── BODY ── */
+.app-body{padding:14px;padding-bottom:48px;}
+
+/* ── USER BAR ── */
+.user-bar{background:linear-gradient(135deg,var(--navy),#1A3C5E);border-radius:14px;padding:13px 16px;margin-bottom:12px;display:flex;align-items:center;gap:12px;}
+.u-avatar{width:36px;height:36px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:800;color:white;flex-shrink:0;}
+.u-name{font-size:14px;font-weight:700;color:white;}
+.u-role{font-size:10px;color:rgba(255,255,255,0.5);margin-top:1px;}
+
+/* ── SECTION CARD ── */
+.sc{background:white;border-radius:18px;padding:16px;margin-bottom:12px;border:1px solid var(--border);box-shadow:0 2px 8px rgba(26,60,94,0.05);}
+.sc-title{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;}
+.req{color:var(--red);}
+.val-msg{font-size:12px;color:var(--red);font-weight:600;margin-top:6px;display:none;}
+.val-msg.show{display:block;}
+
+/* ── AREA GRID ── */
+.area-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;}
+.area-btn{padding:16px 10px;border-radius:14px;border:2px solid var(--border);background:white;text-align:center;cursor:pointer;transition:all 0.15s;}
+.area-btn:active{transform:scale(0.95);}
+.area-btn.sel{background:var(--navy);border-color:var(--navy);}
+.area-code{font-size:20px;font-weight:800;color:var(--navy);}
+.area-btn.sel .area-code{color:white;}
+.area-label{font-size:10px;color:var(--muted);margin-top:3px;line-height:1.3;}
+.area-btn.sel .area-label{color:rgba(255,255,255,0.65);}
+
+/* ── NORMAL PHOTOS ── */
+.upload-zone{border:2px dashed var(--border);border-radius:14px;padding:22px 16px;text-align:center;cursor:pointer;background:var(--bg);position:relative;transition:all 0.2s;}
+.upload-zone:active{border-color:var(--accent);}
+.upload-zone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
+.upload-icon{font-size:32px;margin-bottom:6px;}
+.upload-text{font-size:14px;font-weight:600;color:var(--accent);}
+.upload-sub{font-size:11px;color:var(--muted);margin-top:3px;}
+.photo-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px;}
+.photo-thumb{position:relative;border-radius:10px;overflow:hidden;aspect-ratio:1;}
+.photo-thumb img{width:100%;height:100%;object-fit:cover;}
+.photo-rm{position:absolute;top:4px;right:4px;width:22px;height:22px;background:rgba(0,0,0,0.65);border:none;border-radius:50%;color:white;font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.photo-count{background:var(--accent);color:white;border-radius:10px;padding:3px 10px;font-size:11px;font-weight:700;margin-top:8px;display:inline-block;}
+
+/* ── CRITICAL EVENTS ── */
+.crit-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+.crit-btn{padding:14px 6px;border-radius:14px;border:2px solid var(--border);background:white;text-align:center;cursor:pointer;transition:all 0.15s;position:relative;}
+.crit-btn:active{transform:scale(0.95);}
+.crit-btn.on{border-color:var(--red);background:#FEF0F0;}
+.crit-icon{font-size:22px;display:block;margin-bottom:4px;}
+.crit-label{font-size:10px;color:var(--muted);font-weight:600;line-height:1.3;}
+.crit-btn.on .crit-label{color:var(--red);}
+.crit-check{position:absolute;top:6px;right:6px;width:16px;height:16px;border-radius:50%;background:var(--red);display:none;align-items:center;justify-content:center;}
+.crit-btn.on .crit-check{display:flex;}
+.crit-check::after{content:'✓';color:white;font-size:9px;font-weight:800;}
+
+/* ── CRITICAL PHOTO UPLOAD (per hazard) ── */
+.crit-photo-section{margin-top:10px;padding:12px;background:#FEF0F0;border-radius:12px;border:1px solid rgba(231,76,60,0.2);display:none;}
+.crit-photo-section.visible{display:block;animation:fadeUp 0.2s ease;}
+.crit-photo-hdr{font-size:11px;font-weight:700;color:var(--red);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;display:flex;align-items:center;gap:6px;}
+.crit-upload-zone{border:2px dashed rgba(231,76,60,0.4);border-radius:12px;padding:16px;text-align:center;cursor:pointer;background:white;position:relative;}
+.crit-upload-zone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
+.crit-upload-text{font-size:13px;font-weight:600;color:var(--red);}
+.crit-upload-sub{font-size:10px;color:var(--muted);margin-top:2px;}
+
+/* ── COMPANION ── */
+.companion-inp{width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:12px;font-size:15px;color:var(--text);outline:none;font-family:inherit;background:var(--bg);display:none;}
+.companion-inp.show{display:block;}
+.companion-inp:focus{border-color:var(--accent);background:white;}
+.partner-list{max-height:280px;overflow-y:auto;margin-top:4px;-webkit-overflow-scrolling:touch;}
+.partner-item{display:flex;align-items:center;gap:10px;padding:10px 6px;border-radius:12px;cursor:pointer;}
+.partner-item:active{background:var(--bg);}
+.partner-avatar{width:34px;height:34px;border-radius:50%;background:var(--border);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:white;flex-shrink:0;}
+.partner-name{font-size:14px;font-weight:700;color:var(--text);}
+.partner-empty{font-size:12px;color:var(--muted);text-align:center;padding:14px 0;}
+.partner-selected-box{display:flex;align-items:center;gap:10px;background:var(--bg);border:1.5px solid var(--navy);border-radius:12px;padding:12px;}
+.partner-selected-avatar{width:38px;height:38px;border-radius:50%;background:var(--navy);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:white;flex-shrink:0;}
+.partner-selected-label{font-size:10px;color:var(--accent);font-weight:700;text-transform:uppercase;letter-spacing:0.5px;}
+.partner-selected-name{font-size:14px;font-weight:800;color:var(--navy);margin-top:1px;}
+.partner-change-btn{color:var(--accent);font-size:12px;font-weight:700;white-space:nowrap;cursor:pointer;padding:4px 2px;}
+
+/* ── NOTES ── */
+.notes-inp{width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:12px;font-size:15px;color:var(--text);outline:none;resize:none;font-family:inherit;background:var(--bg);min-height:80px;}
+.notes-inp:focus{border-color:var(--accent);background:white;}
+
+/* ── SUBMIT ── */
+.submit-btn{width:100%;padding:18px;background:var(--green);color:white;border:none;border-radius:16px;font-size:17px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;}
+.submit-btn:active{opacity:0.9;transform:scale(0.98);}
+.submit-btn:disabled{background:var(--muted);cursor:not-allowed;transform:none;}
+.submit-btn.loading{background:var(--accent);}
+.spinner{width:20px;height:20px;border:3px solid rgba(255,255,255,0.3);border-top-color:white;border-radius:50%;animation:spin 0.7s linear infinite;}
+
+/* ── SUCCESS ── */
+#successScreen{background:linear-gradient(160deg,#0A1628,#1A6B3A);align-items:center;justify-content:center;padding:32px;}
+.success-card{background:white;border-radius:24px;padding:36px 28px;width:100%;max-width:380px;text-align:center;animation:fadeUp 0.4s ease;}
+.success-icon{font-size:52px;margin-bottom:14px;}
+.success-title{font-size:22px;font-weight:800;color:var(--navy);margin-bottom:6px;}
+.success-sub{font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:20px;}
+.success-detail{background:var(--bg);border-radius:12px;padding:12px;margin-bottom:18px;text-align:left;}
+.sd-row{display:flex;justify-content:space-between;font-size:13px;padding:5px 0;border-bottom:1px solid var(--border);}
+.sd-row:last-child{border-bottom:none;}
+.sd-row span:first-child{color:var(--muted);}
+.sd-row span:last-child{font-weight:700;}
+.new-btn{width:100%;padding:16px;background:var(--navy);color:white;border:none;border-radius:14px;font-size:16px;font-weight:700;cursor:pointer;}
+.new-btn:active{background:var(--accent);}
+
+@keyframes spin{to{transform:rotate(360deg);}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(18px);}to{opacity:1;transform:translateY(0);}}
+</style>
+</head>
+<body>
+
+<!-- ══ LOGIN ══ -->
+<div class="screen active" id="loginScreen">
+  <div class="login-card">
+    <div class="lang-toggle-login">
+      <div class="lang-pill active" id="llEN" onclick="setLang('en')">EN</div>
+      <div class="lang-pill" id="llZH" onclick="setLang('zh')">中文</div>
+    </div>
+    <div class="login-logo">
+      <div class="login-logo-mark">🛡️</div>
+      <div class="login-logo-name">SafeCheck</div>
+      <div class="login-logo-sub" id="lSub">iOS Inspector · HSM Project</div>
+    </div>
+    <div class="lf"><label id="lUser">Username</label>
+      <input id="loginUser" type="text" autocapitalize="none" autocomplete="username" onkeydown="if(event.key==='Enter')doLogin()"/></div>
+    <div class="lf"><label id="lPass">Password</label>
+      <input id="loginPass" type="password" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()"/></div>
+    <button class="login-btn" id="loginBtn" onclick="doLogin()">🔐 Sign In</button>
+    <div class="login-err" id="loginErr">❌ Invalid username or password.</div>
+  </div>
+</div>
+
+<!-- ══ APP ══ -->
+<div class="screen" id="appScreen">
+  <div class="app-hdr">
+    <div><div class="app-logo">SafeCheck iOS</div><div class="app-sub">HSM · NEMM Up</div></div>
+    <div class="hdr-actions">
+      <button class="hdr-btn" onclick="toggleLang()" id="langBtn">中文</button>
+      <button class="hdr-btn" onclick="doLogout()">⏏</button>
+    </div>
+  </div>
+  <div class="app-body">
+
+    <!-- user bar -->
+    <div class="user-bar">
+      <div class="u-avatar" id="uAvatar">M</div>
+      <div><div class="u-name" id="uName">Inspector</div><div class="u-role" id="uRole">Inspector · iOS</div></div>
+    </div>
+    <!-- Companion (mandatory pair — HSM-HS-NT-003) -->
+    <div class="sc" id="companionCard">
+      <div class="sc-title">👥 <span id="tCompanion">Inspection Pair</span> <span class="req">*</span></div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:10px;" id="companionSub">Per HSM-HS-NT-003, all construction site visits must be conducted by a minimum of 2 people.</div>
+      <div id="partnerSelected" style="display:none;"></div>
+      <div id="partnerPicker">
+        <input class="companion-inp show" id="partnerSearch" type="text" autocapitalize="none" autocorrect="off"
+          placeholder="Search team member..." oninput="renderPartnerList()"/>
+        <div class="partner-list" id="partnerList"></div>
+      </div>
+      <div class="val-msg" id="companionErr">Please select an inspection partner.</div>
+    </div>
+
+    <!-- 1. AREA -->
+    <div class="sc">
+      <div class="sc-title">📍 <span id="tArea">Inspection Area</span> <span class="req">*</span></div>
+      <div class="area-grid" id="areaGrid"></div>
+      <div class="val-msg" id="areaErr">Please select an area.</div>
+    </div>
+
+    <!-- 2. NORMAL PHOTOS (PPE Vision) -->
+    <div class="sc">
+      <div class="sc-title">📸 <span id="tPhotos">PPE Photos</span> <span class="req">*</span></div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:10px;" id="tPhotosSub">These photos will be analyzed by PPE Vision on the dashboard.</div>
+      <div class="upload-zone" id="normalUploadZone">
+        <input type="file" id="normalPhotoInput" accept="image/*" multiple onchange="handleNormalPhotos(event)"/>
+        <div class="upload-icon">📷</div>
+        <div class="upload-text" id="tPhotoBtn">Take Photo / Choose from Library</div>
+        <div class="upload-sub" id="tPhotoHint">Tap to open camera or gallery · Max 5 photos</div>
+      </div>
+      <div class="photo-grid" id="normalPreviews"></div>
+      <div class="val-msg" id="photoErr">Please add at least one photo.</div>
+    </div>
+
+    <!-- 3. CRITICAL EVENTS -->
+    <div class="sc">
+      <div class="sc-title">🚨 <span id="tCritical">Critical Events</span></div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:12px;" id="tCritSub">Tap to activate — a dedicated camera will appear for each hazard.</div>
+      <div class="crit-grid">
+        <div class="crit-btn" id="cb-electric" onclick="toggleCritical('electric')">
+          <span class="crit-icon">⚡</span>
+          <span class="crit-label" id="clElectric">Electrical<br>Hazard</span>
+          <div class="crit-check"></div>
+        </div>
+        <div class="crit-btn" id="cb-fire" onclick="toggleCritical('fire')">
+          <span class="crit-icon">🔥</span>
+          <span class="crit-label" id="clFire">Fire<br>Hazard</span>
+          <div class="crit-check"></div>
+        </div>
+        <div class="crit-btn" id="cb-height" onclick="toggleCritical('height')">
+          <span class="crit-icon">🏔️</span>
+          <span class="crit-label" id="clHeight">Work at<br>Height</span>
+          <div class="crit-check"></div>
+        </div>
+      </div>
+
+      <!-- Critical photo upload — electric -->
+      <div class="crit-photo-section" id="cps-electric">
+        <div class="crit-photo-hdr">⚡ <span id="cphElectric">Electrical Hazard — Photo Evidence</span></div>
+        <div class="crit-upload-zone">
+          <input type="file" id="critInput-electric" accept="image/*" multiple onchange="handleCriticalPhotos('electric',event)"/>
+          <div class="crit-upload-text" id="critBtn-electric">📷 Take Critical Photo</div>
+          <div class="crit-upload-sub" id="critHint-electric">Photo will go directly to Critical Events on dashboard</div>
+        </div>
+        <div class="photo-grid" id="critPreviews-electric"></div>
+      </div>
+
+      <!-- Critical photo upload — fire -->
+      <div class="crit-photo-section" id="cps-fire">
+        <div class="crit-photo-hdr">🔥 <span id="cphFire">Fire Hazard — Photo Evidence</span></div>
+        <div class="crit-upload-zone">
+          <input type="file" id="critInput-fire" accept="image/*" multiple onchange="handleCriticalPhotos('fire',event)"/>
+          <div class="crit-upload-text" id="critBtn-fire">📷 Take Critical Photo</div>
+          <div class="crit-upload-sub" id="critHint-fire">Photo will go directly to Critical Events on dashboard</div>
+        </div>
+        <div class="photo-grid" id="critPreviews-fire"></div>
+      </div>
+
+      <!-- Critical photo upload — height -->
+      <div class="crit-photo-section" id="cps-height">
+        <div class="crit-photo-hdr">🏔️ <span id="cphHeight">Work at Height — Photo Evidence</span></div>
+        <div class="crit-upload-zone">
+          <input type="file" id="critInput-height" accept="image/*" multiple onchange="handleCriticalPhotos('height',event)"/>
+          <div class="crit-upload-text" id="critBtn-height">📷 Take Critical Photo</div>
+          <div class="crit-upload-sub" id="critHint-height">Photo will go directly to Critical Events on dashboard</div>
+        </div>
+        <div class="photo-grid" id="critPreviews-height"></div>
+      </div>
+    </div>
+
+    <!-- 4. NOTES -->
+    <div class="sc">
+      <div class="sc-title">📝 <span id="tNotes">Notes (optional)</span></div>
+      <textarea class="notes-inp" id="notesInput" rows="3"></textarea>
+    </div>
+
+    <!-- 5. SUBMIT -->
+    <button class="submit-btn" id="submitBtn" onclick="submitInspection()">
+      <span id="submitTxt">📤 Submit Inspection</span>
+    </button>
+
+  </div>
+</div>
+
+<!-- ══ SUCCESS ══ -->
+<div class="screen" id="successScreen">
+  <div class="success-card">
+    <div class="success-icon">✅</div>
+    <div class="success-title" id="sTitle">Submitted!</div>
+    <div class="success-sub" id="sSub">Inspection saved. PPE Vision analysis will be performed on the dashboard.</div>
+    <div class="success-detail" id="sDetail"></div>
+    <button class="new-btn" id="newBtn" onclick="resetForm()">＋ New Inspection</button>
+  </div>
+</div>
+
+<script>
+'use strict';
+// ── CONFIG ────────────────────────────────────────────────────────────────────
+const SUPABASE_URL='https://ocqfsccrvpdnjjlofkvk.supabase.co';
+const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9jcWZzY2NydnBkbmpqbG9ma3ZrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ1OTMwMTksImV4cCI6MjA5MDE2OTAxOX0.Uq0bMvtwmWm8lpIXAtUaPND7zDwW6QUKvOwbDhuKECI';
+const BUCKET='inspection-photos';
+
+const AREAS=[
+  {code:'SY', en:'Slab Yard',           zh:'板坯库'},
+  {code:'RHF',en:'Reheating Furnace',   zh:'加热炉'},
+  {code:'MRL',en:'Main Rolling Area',   zh:'主轧区'},
+  {code:'DC', en:'Down Coiler',         zh:'卷取区'},
+  {code:'WTA',en:'Water Treatment Area',zh:'水处理区'},
+  {code:'CY', en:'Coil Yard',           zh:'钢卷库'},
+];
+
+// No credentials are shipped in source. Offline fallback is built at runtime,
+// per-device, only from logins that already succeeded against Supabase — see
+// cacheLoginLocally() / tryLocalCache() below. This avoids publishing real
+// team passwords in a public GitHub Pages file.
+
+// ── STATE ─────────────────────────────────────────────────────────────────────
+let lang=localStorage.getItem('sc_ios_lang')||'en';
+let currentUser=null;
+let selArea=null;
+let inspStartTime=null;   // set when form becomes active — for duration calc
+// Normal photos: {file, dataURL}[]
+let normalPhotos=[];
+// Critical photos per type: {electric:[], fire:[], height:[]}
+let critPhotos={electric:[],fire:[],height:[]};
+// Critical active flags
+let critActive={electric:false,fire:false,height:false};
+// v2 sync fix: id for the record being submitted. Set once on the first submit
+// attempt and reused on any retry of the SAME inspection (submitInspection can
+// be re-run from scratch after a failed attempt), so a resubmit after a
+// client-side timeout upserts the same row instead of creating a duplicate.
+// Cleared in resetForm() once an inspection succeeds or is abandoned.
+let currentInspectionId=null;
+
+// ── TRANSLATIONS ──────────────────────────────────────────────────────────────
+const L={
+  en:{
+    lSub:'iOS Inspector · HSM Project',
+    lUser:'Username',lPass:'Password',
+    loginBtn:'🔐 Sign In',loginErr:'❌ Invalid username or password.',
+    langBtn:'中文',
+    tArea:'Inspection Area',areaErr:'Please select an area.',
+    tCompanion:'Inspection Pair',partnerSearchPH:'Search team member...',
+    companionSub:'Per HSM-HS-NT-003, all construction site visits must be conducted by a minimum of 2 people.',
+    companionErr:'Please select an inspection partner.',
+    partnerLoading:'Loading team members...',partnerNone:'No team members found.',
+    partnerChange:'Change',
+    tCompanionSum:'Companion',
+    tPhotos:'PPE Photos',photoErr:'Please add at least one photo.',
+    tPhotosSub:'These photos will be analyzed by PPE Vision on the dashboard.',
+    tPhotoBtn:'Take Photo / Choose from Library',
+    tPhotoHint:'Tap to open camera or gallery · Max 5 photos',
+    tCritical:'Critical Events',
+    tCritSub:'Tap to activate — a dedicated camera will appear for each hazard.',
+    clElectric:'Electrical\nHazard',clFire:'Fire\nHazard',clHeight:'Work at\nHeight',
+    cphElectric:'Electrical Hazard — Photo Evidence',
+    cphFire:'Fire Hazard — Photo Evidence',
+    cphHeight:'Work at Height — Photo Evidence',
+    critBtn:'📷 Take Critical Photo',
+    critHint:'Photo will go directly to Critical Events on dashboard',
+    tNotes:'Notes (optional)',
+    submitTxt:'📤 Submit Inspection',
+    submitting:'Submitting...',
+    uploading:'Uploading photo',of:'of',
+    saving:'Saving record...',
+    sTitle:'✅ Submitted!',
+    sSub:'Inspection saved. PPE Vision analysis will be performed on the dashboard.',
+    newBtn:'＋ New Inspection',
+    lArea:'Area',lInsp:'Inspector',lPhotos:'PPE Photos',
+    lCrit:'Critical Events',lNone:'None',lTime:'Time',
+  },
+  zh:{
+    lSub:'iOS检查员 · HSM项目',
+    lUser:'用户名',lPass:'密码',
+    loginBtn:'🔐 登录',loginErr:'❌ 用户名或密码错误。',
+    langBtn:'EN',
+    tArea:'检查区域',areaErr:'请选择检查区域。',
+    tCompanion:'双人巡检',partnerSearchPH:'搜索团队成员...',
+    companionSub:'根据HSM-HS-NT-003规定，所有工地巡检必须由至少2人共同进行。',
+    companionErr:'请选择巡检同伴。',
+    partnerLoading:'正在加载团队成员...',partnerNone:'未找到团队成员。',
+    partnerChange:'更换',
+    tCompanionSum:'同伴',
+    tPhotos:'PPE照片',photoErr:'请至少添加一张照片。',
+    tPhotosSub:'这些照片将在仪表板上由PPE Vision进行分析。',
+    tPhotoBtn:'拍照 / 从相册选择',
+    tPhotoHint:'点击打开相机或相册 · 最多5张',
+    tCritical:'关键事件',
+    tCritSub:'点击激活 — 每个危险类型将显示专属拍照区域。',
+    clElectric:'电气\n危险',clFire:'火灾\n危险',clHeight:'高处\n作业',
+    cphElectric:'电气危险 — 照片证据',
+    cphFire:'火灾危险 — 照片证据',
+    cphHeight:'高处作业 — 照片证据',
+    critBtn:'📷 拍摄关键照片',
+    critHint:'照片将直接显示在仪表板的关键事件中',
+    tNotes:'备注（可选）',
+    submitTxt:'📤 提交检查',
+    submitting:'提交中...',
+    uploading:'上传照片',of:'/',
+    saving:'保存记录...',
+    sTitle:'✅ 已提交！',
+    sSub:'检查记录已保存。PPE Vision分析将在仪表板上执行。',
+    newBtn:'＋ 新建检查',
+    lArea:'区域',lInsp:'检查员',lPhotos:'PPE照片',
+    lCrit:'关键事件',lNone:'无',lTime:'时间',
+  }
+};
+function t(k){return (L[lang]||L.en)[k]||k;}
+
+function setLang(l){
+  lang=l;
+  localStorage.setItem('sc_ios_lang',l);
+  applyLang();
+}
+function toggleLang(){setLang(lang==='en'?'zh':'en');}
+
+function applyLang(){
+  const zh=lang==='zh';
+  document.getElementById('llEN').classList.toggle('active',!zh);
+  document.getElementById('llZH').classList.toggle('active',zh);
+  // Login
+  ['lSub','lUser','lPass','loginBtn','loginErr'].forEach(function(k){
+    var el=document.getElementById(k); if(el) el.textContent=t(k);
+  });
+  document.getElementById('loginBtn').textContent=t('loginBtn');
+  document.getElementById('loginErr').textContent=t('loginErr');
+  // App
+  document.getElementById('langBtn').textContent=t('langBtn');
+  document.getElementById('tCompanion').textContent=t('tCompanion');
+  document.getElementById('companionSub').textContent=t('companionSub');
+  document.getElementById('partnerSearch').placeholder=t('partnerSearchPH');
+  document.getElementById('companionErr').textContent=t('companionErr');
+  renderPartnerList();
+  renderSelectedPartner();
+  document.getElementById('tArea').textContent=t('tArea');
+  document.getElementById('areaErr').textContent=t('areaErr');
+  document.getElementById('tPhotos').textContent=t('tPhotos');
+  document.getElementById('tPhotosSub').textContent=t('tPhotosSub');
+  document.getElementById('tPhotoBtn').textContent=t('tPhotoBtn');
+  document.getElementById('tPhotoHint').textContent=t('tPhotoHint');
+  document.getElementById('photoErr').textContent=t('photoErr');
+  document.getElementById('tCritical').textContent=t('tCritical');
+  document.getElementById('tCritSub').textContent=t('tCritSub');
+  document.getElementById('clElectric').innerHTML=t('clElectric').replace('\n','<br>');
+  document.getElementById('clFire').innerHTML=t('clFire').replace('\n','<br>');
+  document.getElementById('clHeight').innerHTML=t('clHeight').replace('\n','<br>');
+  document.getElementById('cphElectric').textContent=t('cphElectric');
+  document.getElementById('cphFire').textContent=t('cphFire');
+  document.getElementById('cphHeight').textContent=t('cphHeight');
+  ['electric','fire','height'].forEach(function(h){
+    var b=document.getElementById('critBtn-'+h);
+    var s=document.getElementById('critHint-'+h);
+    if(b) b.textContent=t('critBtn');
+    if(s) s.textContent=t('critHint');
+  });
+  document.getElementById('tNotes').textContent=t('tNotes');
+  document.getElementById('submitTxt').textContent=t('submitTxt');
+  document.getElementById('sTitle').textContent=t('sTitle');
+  document.getElementById('sSub').textContent=t('sSub');
+  document.getElementById('newBtn').textContent=t('newBtn');
+  buildAreaGrid();
+}
+
+// ── AUTH ──────────────────────────────────────────────────────────────────────
+// SHA-256 hash — used so even the local per-device cache never stores a plain password.
+async function hashPW(pw){
+  var enc=new TextEncoder().encode(pw);
+  var buf=await crypto.subtle.digest('SHA-256',enc);
+  return Array.from(new Uint8Array(buf)).map(function(b){return b.toString(16).padStart(2,'0');}).join('');
+}
+function getLoginCache(){
+  try{var s=localStorage.getItem('sc_ios_login_cache');return s?JSON.parse(s):{};}
+  catch(e){return {};}
+}
+async function cacheLoginLocally(username,password,user){
+  try{
+    var cache=getLoginCache();
+    cache[username]={hash:await hashPW(password),user:user};
+    localStorage.setItem('sc_ios_login_cache',JSON.stringify(cache));
+  }catch(e){}
+}
+async function tryLocalCache(username,password){
+  try{
+    var cache=getLoginCache();
+    var entry=cache[username];
+    if(!entry)return null;
+    var h=await hashPW(password);
+    return h===entry.hash?entry.user:null;
+  }catch(e){return null;}
+}
+function doLogin(){
+  var username=(document.getElementById('loginUser').value||'').trim().toLowerCase();
+  var password=(document.getElementById('loginPass').value||'').trim();
+  var errEl=document.getElementById('loginErr');
+  errEl.classList.remove('show');
+  if(!username||!password){errEl.classList.add('show');return;}
+  // Try Supabase first (source of truth); fall back to this device's own
+  // cache of previously-successful logins (hashed, never plaintext) if offline.
+  loginSupa(username,password).then(function(u){
+    if(u){ cacheLoginLocally(username,password,u); startSession(u); return; }
+    tryLocalCache(username,password).then(function(cached){
+      if(cached) startSession(cached); else errEl.classList.add('show');
+    });
+  }).catch(function(){
+    tryLocalCache(username,password).then(function(cached){
+      if(cached) startSession(cached); else errEl.classList.add('show');
+    });
+  });
+}
+async function loginSupa(u,p){
+  try{
+    var r=await fetch(SUPABASE_URL+'/rest/v1/safecheck_users?username=eq.'+encodeURIComponent(u)+'&password=eq.'+encodeURIComponent(p)+'&select=*&limit=1',
+      {headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY}});
+    if(!r.ok)return null;
+    var d=await r.json();
+    return d&&d.length?d[0]:null;
+  }catch(e){return null;}
+}
+function startSession(user){
+  currentUser=user;
+  // Persistent session — survives Safari close/reopen
+  localStorage.setItem('sc_ios_auth','true');
+  localStorage.setItem('sc_ios_user',JSON.stringify(user));
+  document.getElementById('uAvatar').textContent=(user.name||user.username).charAt(0).toUpperCase();
+  document.getElementById('uName').textContent=user.name||user.username;
+  document.getElementById('uRole').textContent=(user.role||'Inspector')+' · SafeCheck iOS';
+  showScreen('appScreen');
+  startInspectionTimer();
+  loadTeamMembers();
+}
+function doLogout(){
+  currentUser=null;
+  localStorage.removeItem('sc_ios_auth');
+  localStorage.removeItem('sc_ios_user');
+  resetForm(true);
+  showScreen('loginScreen');
+}
+function startInspectionTimer(){
+  var now=new Date();
+  inspStartTime=now.getHours().toString().padStart(2,'0')+':'+now.getMinutes().toString().padStart(2,'0');
+}
+
+// ── SCREENS ───────────────────────────────────────────────────────────────────
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active');});
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
+}
+
+// ── PARTNER PICKER (mandatory pair — HSM-HS-NT-003) ─────────────────────────
+// Mirrors the Android apps: partner must be picked from the logged-in user's
+// team roster in safecheck_users, not freely typed — free text let anyone be
+// entered as the "second person," which defeats the paired-inspection rule.
+let teamMembers=[];
+let teamLoading=true;
+let selectedPartner=null;
+
+function clearCompanionErr(){
+  document.getElementById('companionErr').classList.remove('show');
+}
+
+async function fetchTeamMembersOnce(){
+  try{
+    var r=await fetch(SUPABASE_URL+'/rest/v1/safecheck_users?team=eq.'+encodeURIComponent(currentUser.team||'')+'&select=id,name,username,team',
+      {headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY}});
+    if(!r.ok) return null; // null = failure, retry
+    var data=await r.json();
+    return Array.isArray(data)?data.filter(function(u){return u.id!==currentUser.id;}):[];
+  }catch(e){return null;} // null = failure, retry
+}
+// Retries with backoff (1s, 2s) — important given China network latency.
+async function loadTeamMembers(){
+  teamLoading=true; renderPartnerList();
+  for(var i=0;i<3;i++){
+    var result=await fetchTeamMembersOnce();
+    if(result!==null){ teamMembers=result; teamLoading=false; renderPartnerList(); return; }
+    if(i<2) await new Promise(function(res){setTimeout(res,1000*Math.pow(2,i));});
+  }
+  teamMembers=[]; teamLoading=false; renderPartnerList();
+}
+
+function partnerDisplayName(u){ return u.name||u.username||'?'; }
+function partnerInitials(u){ return partnerDisplayName(u).slice(0,2).toUpperCase(); }
+
+function renderPartnerList(){
+  var listEl=document.getElementById('partnerList');
+  if(!listEl) return;
+  if(teamLoading){
+    listEl.innerHTML='<div class="partner-empty">'+t('partnerLoading')+'</div>';
+    return;
+  }
+  var searchEl=document.getElementById('partnerSearch');
+  var search=(searchEl&&searchEl.value||'').toLowerCase();
+  var filtered=teamMembers.filter(function(u){return partnerDisplayName(u).toLowerCase().indexOf(search)>-1;});
+  if(!filtered.length){
+    listEl.innerHTML='<div class="partner-empty">'+t('partnerNone')+'</div>';
+    return;
+  }
+  listEl.innerHTML=filtered.map(function(u){
+    return '<div class="partner-item" onclick="selectPartner(\''+u.id+'\')">'
+      +'<div class="partner-avatar">'+partnerInitials(u)+'</div>'
+      +'<div class="partner-name">'+partnerDisplayName(u)+'</div>'
+      +'</div>';
+  }).join('');
+}
+
+function selectPartner(id){
+  var u=teamMembers.find(function(x){return String(x.id)===String(id);});
+  if(!u) return;
+  selectedPartner=u;
+  clearCompanionErr();
+  renderSelectedPartner();
+}
+function changePartner(){
+  selectedPartner=null;
+  renderSelectedPartner();
+  renderPartnerList();
+}
+function renderSelectedPartner(){
+  var box=document.getElementById('partnerSelected');
+  var picker=document.getElementById('partnerPicker');
+  if(!box||!picker) return;
+  if(selectedPartner){
+    box.style.display='block';
+    picker.style.display='none';
+    var you=currentUser?(currentUser.name||currentUser.username):'';
+    box.innerHTML='<div class="partner-selected-box">'
+      +'<div class="partner-selected-avatar">'+partnerInitials(selectedPartner)+'</div>'
+      +'<div style="flex:1;">'
+      +'<div class="partner-selected-label">'+you+' + '+t('tCompanionSum')+'</div>'
+      +'<div class="partner-selected-name">'+you+' + '+partnerDisplayName(selectedPartner)+'</div>'
+      +'</div>'
+      +'<div class="partner-change-btn" onclick="changePartner()">'+t('partnerChange')+'</div>'
+      +'</div>';
+  }else{
+    box.style.display='none';
+    picker.style.display='block';
+  }
+}
+
+// ── AREA ──────────────────────────────────────────────────────────────────────
+function buildAreaGrid(){
+  var g=document.getElementById('areaGrid');
+  if(!g)return;
+  g.innerHTML=AREAS.map(function(a){
+    return '<div class="area-btn'+(selArea===a.code?' sel':'')+'" onclick="selectArea(\''+a.code+'\')">'
+      +'<div class="area-code">'+a.code+'</div>'
+      +'<div class="area-label">'+(lang==='zh'?a.zh:a.en)+'</div>'
+      +'</div>';
+  }).join('');
+}
+function selectArea(code){
+  selArea=code;
+  document.getElementById('areaErr').classList.remove('show');
+  buildAreaGrid();
+}
+
+// ── NORMAL PHOTOS ─────────────────────────────────────────────────────────────
+function handleNormalPhotos(e){
+  var files=Array.from(e.target.files);
+  var rem=5-normalPhotos.length;
+  files.slice(0,rem).forEach(function(f){
+    var r=new FileReader();
+    r.onload=function(ev){
+      normalPhotos.push({file:f,dataURL:ev.target.result});
+      renderNormalPreviews();
+    };
+    r.readAsDataURL(f);
+  });
+  e.target.value='';
+}
+function renderNormalPreviews(){
+  var c=document.getElementById('normalPreviews');
+  var z=document.getElementById('normalUploadZone');
+  document.getElementById('photoErr').classList.remove('show');
+  c.innerHTML=normalPhotos.map(function(p,i){
+    return '<div class="photo-thumb"><img src="'+p.dataURL+'"/>'
+      +'<button class="photo-rm" onclick="removeNormal('+i+')">✕</button></div>';
+  }).join('');
+  z.style.display=normalPhotos.length>=5?'none':'block';
+}
+function removeNormal(i){
+  normalPhotos.splice(i,1);
+  document.getElementById('normalUploadZone').style.display='block';
+  renderNormalPreviews();
+}
+
+// ── CRITICAL EVENTS ───────────────────────────────────────────────────────────
+function toggleCritical(type){
+  critActive[type]=!critActive[type];
+  document.getElementById('cb-'+type).classList.toggle('on',critActive[type]);
+  var section=document.getElementById('cps-'+type);
+  section.classList.toggle('visible',critActive[type]);
+  // If deactivated, clear photos for that type
+  if(!critActive[type]){
+    critPhotos[type]=[];
+    document.getElementById('critPreviews-'+type).innerHTML='';
+  }
+}
+
+function handleCriticalPhotos(type,e){
+  var files=Array.from(e.target.files);
+  var rem=3-critPhotos[type].length;
+  files.slice(0,rem).forEach(function(f){
+    var r=new FileReader();
+    r.onload=function(ev){
+      critPhotos[type].push({file:f,dataURL:ev.target.result});
+      renderCritPreviews(type);
+    };
+    r.readAsDataURL(f);
+  });
+  e.target.value='';
+}
+function renderCritPreviews(type){
+  var c=document.getElementById('critPreviews-'+type);
+  c.innerHTML=critPhotos[type].map(function(p,i){
+    return '<div class="photo-thumb"><img src="'+p.dataURL+'"/>'
+      +'<button class="photo-rm" onclick="removeCrit(\''+type+'\','+i+')">✕</button></div>';
+  }).join('');
+}
+function removeCrit(type,i){
+  critPhotos[type].splice(i,1);
+  renderCritPreviews(type);
+}
+
+// ── UPLOAD TO SUPABASE STORAGE ────────────────────────────────────────────────
+async function uploadFile(file, path){
+  var res=await fetch(SUPABASE_URL+'/storage/v1/object/'+BUCKET+'/'+path,{
+    method:'POST',
+    headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,
+             'Content-Type':file.type||'image/jpeg','x-upsert':'true'},
+    body:file
+  });
+  if(!res.ok) throw new Error('Upload failed: '+res.status);
+  return SUPABASE_URL+'/storage/v1/object/public/'+BUCKET+'/'+path;
+}
+
+// ── SUBMIT ────────────────────────────────────────────────────────────────────
+async function submitInspection(){
+  // Validate
+  var valid=true;
+  var companionName=selectedPartner?partnerDisplayName(selectedPartner):'';
+  if(!selectedPartner){document.getElementById('companionErr').classList.add('show');valid=false;}
+  if(!selArea){document.getElementById('areaErr').classList.add('show');valid=false;}
+  if(!normalPhotos.length){document.getElementById('photoErr').classList.add('show');valid=false;}
+  if(!valid){
+    document.querySelector('.val-msg.show').scrollIntoView({behavior:'smooth',block:'center'});
+    return;
+  }
+  var btn=document.getElementById('submitBtn');
+  var txt=document.getElementById('submitTxt');
+  btn.disabled=true; btn.classList.add('loading');
+
+  try{
+    if(!currentInspectionId) currentInspectionId=Date.now();
+    var ts=currentInspectionId;
+    var normalUrls=[];
+    var criticalPhotosArr=[];
+
+    // Upload normal photos
+    for(var i=0;i<normalPhotos.length;i++){
+      txt.innerHTML='<div class="spinner"></div> '+t('uploading')+' '+(i+1)+' '+t('of')+' '+normalPhotos.length;
+      var path='ios/normal/'+ts+'_'+i+'.'+(normalPhotos[i].file.name.split('.').pop()||'jpg');
+      try{
+        var url=await uploadFile(normalPhotos[i].file,path);
+        normalUrls.push(url);
+      }catch(e){
+        // Fallback to base64 if storage fails
+        normalUrls.push(normalPhotos[i].dataURL);
+      }
+    }
+
+    // Upload critical photos per type
+    var hazardTypes=['electric','fire','height'];
+    for(var h=0;h<hazardTypes.length;h++){
+      var hType=hazardTypes[h];
+      if(!critActive[hType]||!critPhotos[hType].length) continue;
+      for(var ci=0;ci<critPhotos[hType].length;ci++){
+        txt.innerHTML='<div class="spinner"></div> Uploading '+hType+' photo '+(ci+1)+'...';
+        var cPath='ios/critical/'+ts+'_'+hType+'_'+ci+'.'+(critPhotos[hType][ci].file.name.split('.').pop()||'jpg');
+        var cUrl;
+        try{ cUrl=await uploadFile(critPhotos[hType][ci].file,cPath); }
+        catch(e){ cUrl=critPhotos[hType][ci].dataURL; }
+        criticalPhotosArr.push({url:cUrl, hazard:hType, location:selArea});
+      }
+    }
+
+    // Build record
+    txt.innerHTML='<div class="spinner"></div> '+t('saving');
+    var now=new Date();
+    var dateStr=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0');
+    var timeEnd=now.getHours().toString().padStart(2,'0')+':'+now.getMinutes().toString().padStart(2,'0');
+    var timeStart=inspStartTime||timeEnd;
+    // Calculate duration in minutes
+    var toMins=function(t){var p=t.split(':');return parseInt(p[0])*60+parseInt(p[1]);};
+    var diffMin=toMins(timeEnd)>=toMins(timeStart)?toMins(timeEnd)-toMins(timeStart):24*60-toMins(timeStart)+toMins(timeEnd);
+    var duration=diffMin<60?diffMin+' minutes':Math.floor(diffMin/60)+'h '+diffMin%60+'m';
+    var occurrences={
+      electric:critActive.electric,
+      fire:critActive.fire,
+      height:critActive.height
+    };
+    var record={
+      id:currentInspectionId,
+      date:dateStr,
+      time_start:timeStart,
+      time_end:timeEnd,
+      duration:duration,
+      area:selArea,
+      inspector:currentUser.name||currentUser.username,
+      companion_name:companionName,
+      team:currentUser.team||'admin',
+      language:lang==='zh'?'ZH':'EN',
+      photos:normalUrls,
+      occurrences:occurrences,
+      notes:document.getElementById('notesInput').value.trim()||null,
+    };
+    if(criticalPhotosArr.length){
+      record.critical_photos=criticalPhotosArr;
+      record.critical_location=selArea;
+    }
+
+    // Save to Supabase
+    var saveRes=await fetch(SUPABASE_URL+'/rest/v1/inspections',{
+      method:'POST',
+      headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,
+               'Content-Type':'application/json',
+               // v2: 'resolution=merge-duplicates' makes this an upsert on id.
+               // If the first attempt actually succeeded server-side but the
+               // browser saw it as a failure (timeout/dropped connection) and
+               // the user resubmits, this updates the same row (same id from
+               // currentInspectionId) instead of creating a duplicate record.
+               'Prefer':'return=minimal,resolution=merge-duplicates'},
+      body:JSON.stringify(record)
+    });
+    if(!saveRes.ok){var er=await saveRes.text();throw new Error(er.slice(0,120));}
+    currentInspectionId=null; // this inspection is done — next submit gets a fresh id
+
+    // Build success summary
+    var areaObj=AREAS.find(function(a){return a.code===selArea;});
+    var areaLabel=areaObj?(lang==='zh'?areaObj.zh:areaObj.en):selArea;
+    var critList=[
+      critActive.electric?(lang==='zh'?'⚡ 电气危险':'⚡ Electrical'):null,
+      critActive.fire?(lang==='zh'?'🔥 火灾危险':'🔥 Fire'):null,
+      critActive.height?(lang==='zh'?'🏔️ 高处作业':'🏔️ Height'):null,
+    ].filter(Boolean).join(', ');
+    document.getElementById('sDetail').innerHTML=
+      '<div class="sd-row"><span>'+t('lArea')+'</span><span>'+selArea+' · '+areaLabel+'</span></div>'
+      +'<div class="sd-row"><span>'+t('lInsp')+'</span><span>'+(currentUser.name||currentUser.username)+(companionName?' + '+companionName:'')+'</span></div>'
+      +(companionName?'<div class="sd-row"><span>'+t('tCompanionSum')+'</span><span>'+companionName+'</span></div>':'')
+      +'<div class="sd-row"><span>'+t('lPhotos')+'</span><span>'+normalUrls.length+'</span></div>'
+      +'<div class="sd-row"><span>'+t('lCrit')+'</span><span>'+(critList||t('lNone'))+'</span></div>'
+      +'<div class="sd-row"><span>'+t('lTime')+'</span><span>'+timeStart+' → '+timeEnd+' ('+duration+')</span></div>';
+    document.getElementById('sTitle').textContent=t('sTitle');
+    document.getElementById('sSub').textContent=t('sSub');
+    document.getElementById('newBtn').textContent=t('newBtn');
+    showScreen('successScreen');
+
+  }catch(err){
+    console.error(err);
+    alert((lang==='zh'?'提交失败：':'Submission failed: ')+err.message);
+    btn.disabled=false; btn.classList.remove('loading');
+    txt.textContent=t('submitTxt');
+  }
+}
+
+// ── RESET ─────────────────────────────────────────────────────────────────────
+function resetForm(full){
+  currentInspectionId=null;
+  selArea=null;
+  normalPhotos=[];
+  critPhotos={electric:[],fire:[],height:[]};
+  critActive={electric:false,fire:false,height:false};
+  selectedPartner=null;
+  var partnerSearchEl=document.getElementById('partnerSearch');
+  if(partnerSearchEl) partnerSearchEl.value='';
+  renderSelectedPartner();
+  renderPartnerList();
+  document.getElementById('companionErr').classList.remove('show');
+  ['electric','fire','height'].forEach(function(h){
+    document.getElementById('cb-'+h).classList.remove('on');
+    document.getElementById('cps-'+h).classList.remove('visible');
+    document.getElementById('critPreviews-'+h).innerHTML='';
+  });
+  document.getElementById('normalPreviews').innerHTML='';
+  document.getElementById('normalUploadZone').style.display='block';
+  document.getElementById('notesInput').value='';
+  document.getElementById('areaErr').classList.remove('show');
+  document.getElementById('photoErr').classList.remove('show');
+  var btn=document.getElementById('submitBtn');
+  btn.disabled=false; btn.classList.remove('loading');
+  document.getElementById('submitTxt').textContent=t('submitTxt');
+  buildAreaGrid();
+  startInspectionTimer(); // restart timer for new inspection
+  if(!full) showScreen('appScreen');
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+(function(){
+  // Persistent session — survives Safari close/reopen
+  var saved=localStorage.getItem('sc_ios_user');
+  if(localStorage.getItem('sc_ios_auth')==='true'&&saved){
+    try{
+      var u=JSON.parse(saved); currentUser=u;
+      document.getElementById('uAvatar').textContent=(u.name||u.username).charAt(0).toUpperCase();
+      document.getElementById('uName').textContent=u.name||u.username;
+      document.getElementById('uRole').textContent=(u.role||'Inspector')+' · SafeCheck iOS';
+      showScreen('appScreen');
+      startInspectionTimer();
+      loadTeamMembers();
+    }catch(e){}
+  }
+  applyLang();
+  buildAreaGrid();
+})();
+</script>
+</body>
+</html>
